@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from .exceptions import CrateValidationError
-from .models import ParsedCrate
+from ..exceptions import CrateValidationError
+from ..models.rocrate import ParsedCrate
 
 
 def _validate_main_entity(crate: ParsedCrate) -> None:

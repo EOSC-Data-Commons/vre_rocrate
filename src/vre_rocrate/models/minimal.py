@@ -1,10 +1,7 @@
-import json
-
-from fastapi import Form
 from pydantic import BaseModel, Field, HttpUrl, model_validator
 from typing import List
 
-from .constants import VRE_TYPES
+from ..constants import VRE_TYPES
 
 
 class MinimalFileInput(BaseModel):
@@ -62,14 +59,3 @@ class MinimalVRERequest(BaseModel):
                     f"workflow '{self.workflow}' is a filename but was not found in files"
                 )
         return self
-
-
-def parse_minimal_vre_form(
-    parsed_data: str = Form(..., description="JSON string of MinimalVRERequest")
-) -> MinimalVRERequest:
-    """Parse and validate MinimalVRERequest from a multipart form field."""
-    data = json.loads(parsed_data)
-    return MinimalVRERequest.model_validate(data)
-
-
-__all__ = ["parse_minimal_vre_form", "MinimalVRERequest", "MinimalFileInput"]

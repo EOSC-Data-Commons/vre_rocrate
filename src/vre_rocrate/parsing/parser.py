@@ -5,7 +5,7 @@ from typing import Any
 
 from rocrate.rocrate import ROCrate
 
-from .models import ParsedCrate, Entity
+from ..models.rocrate import ParsedCrate, Entity
 
 
 class ROCrateParser:

@@ -9,11 +9,11 @@ from .models import (
     FormalParameter,
     RuntimePlatform,
     IMInputFile,
+    MinimalVRERequest,
+    MinimalFileInput,
 )
-from .parser import ROCrateParser
-from .validator import ValidationPipeline
-from .builder import RequestPackageBuilder, RocrateBuilder
-from .minimal import MinimalVRERequest, MinimalFileInput, parse_minimal_vre_form
+from .parsing import ROCrateParser, ValidationPipeline, parse_minimal_vre_form
+from .building import RequestPackageBuilder, RocrateBuilder
 from .constants import (
     VRE_TYPES,
     VRE_TYPE_TO_PROGRAMMING_LANGUAGE,
@@ -35,13 +35,13 @@ __all__ = [
     "FormalParameter",
     "RuntimePlatform",
     "IMInputFile",
-    "ROCrateParser",
-    "ValidationPipeline",
-    "RequestPackageBuilder",
-    "RocrateBuilder",
     "MinimalVRERequest",
     "MinimalFileInput",
+    "ROCrateParser",
+    "ValidationPipeline",
     "parse_minimal_vre_form",
+    "RequestPackageBuilder",
+    "RocrateBuilder",
     "VRE_TYPES",
     "VRE_TYPE_TO_PROGRAMMING_LANGUAGE",
     "GALAXY_PROGRAMMING_LANGUAGE",
