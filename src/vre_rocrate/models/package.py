@@ -48,6 +48,15 @@ class RequestPackage:
     workflow_outputs: list[FormalParameter] = field(default_factory=list)
     raw_crate: dict[str, Any] = field(default_factory=dict, repr=False)
 
+    # OCM / ScienceMesh fields — extracted from RO-Crate entities during parsing
+    receiver_userid: str | None = None
+    owner_userid: str | None = None
+    sender_userid: str | None = None
+    sender_name: str | None = None
+    root_name: str | None = None
+    root_description: str | None = None
+    resource_id: str | None = None
+
     def files_by_encoding(self, encoding: str) -> list[FileReference]:
         return [f for f in self.files if f.encoding_format == encoding]
 
@@ -174,7 +183,22 @@ class RequestPackage:
             workflow_inputs=workflow_inputs,
             workflow_outputs=workflow_outputs,
             raw_crate=crate.raw,
+            receiver_userid=cls._entity_prop(crate, "#receiver", "userid"),
+            owner_userid=cls._entity_prop(crate, "#owner", "userid"),
+            sender_userid=cls._entity_prop(crate, "#sender", "userid"),
+            sender_name=cls._entity_prop(crate, "#sender", "name"),
+            root_name=cls._entity_prop(crate, "./", "name"),
+            root_description=cls._entity_prop(crate, "./", "description"),
+            resource_id=cls._entity_prop(crate, "#identifier", "userid"),
         )
+
+    @staticmethod
+    def _entity_prop(crate: ParsedCrate, entity_id: str, prop: str) -> str | None:
+        """Read a property from a ParsedCrate entity, returning None if missing."""
+        entity = crate.get(entity_id)
+        if entity is None:
+            return None
+        return entity.get(prop)
 
     @staticmethod
     def _extract_files(
