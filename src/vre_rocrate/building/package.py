@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..constants import VRE_TYPE_TO_PROGRAMMING_LANGUAGE
-from ..models.rocrate import ParsedCrate, Entity
+from ..models.rocrate import ParsedCrate
 from ..models.package import (
     RequestPackage,
     WorkflowDescriptor,
@@ -11,14 +10,13 @@ from ..models.package import (
     FormalParameter,
     OCMData,
 )
-from ..models.minimal import MinimalVRERequest, MinimalFileInput
 from ..models.infrastructure import RuntimePlatform
 from ..parsing.infrastructure import runtime_platform_from_dict
 from ..parsing.validator import ValidationPipeline
 
 
 class RequestPackageBuilder:
-    """Builds RequestPackage instances from ParsedCrate or minimal VRE data.
+    """Builds RequestPackage instances from ParsedCrate.
 
     All construction logic lives here; RequestPackage is a pure data container.
     """
@@ -41,24 +39,6 @@ class RequestPackageBuilder:
                 if fref.id in file_bytes_map:
                     fref.properties["content"] = file_bytes_map[fref.id]
         return package
-
-    @classmethod
-    def build_from_minimal(
-        cls,
-        request: MinimalVRERequest,
-        file_bytes_map: dict[str, bytes],
-    ) -> RequestPackage:
-        """Build a RequestPackage from a MinimalVRERequest."""
-        programming_language = VRE_TYPE_TO_PROGRAMMING_LANGUAGE[request.vre_type]
-
-        return cls._from_minimal(
-            vre_type=request.vre_type,
-            programming_language=programming_language,
-            workflow_url=request.workflow,
-            files=request.files,
-            file_bytes_map=file_bytes_map,
-            runtime_platform=request.runtime_platform,
-        )
 
     # ------------------------------------------------------------------
     # Construction from ParsedCrate
@@ -125,60 +105,6 @@ class RequestPackageBuilder:
             workflow_outputs=workflow_outputs,
             raw_crate=crate.raw,
             ocm_data=ocm_data,
-        )
-
-    # ------------------------------------------------------------------
-    # Construction from minimal VRE data
-    # ------------------------------------------------------------------
-
-    @classmethod
-    def _from_minimal(
-        cls,
-        vre_type: str,
-        programming_language: str,
-        workflow_url: str | None,
-        files: list[MinimalFileInput],
-        file_bytes_map: dict[str, bytes],
-        runtime_platform: str | None = None,
-    ) -> RequestPackage:
-        """Build a RequestPackage from minimal VRE start payload."""
-        workflow = WorkflowDescriptor(
-            id="#workflow",
-            type="ComputationalWorkflow",
-            url=workflow_url,
-            programming_language_id=programming_language,
-            runtime_platform=runtime_platform,
-            properties={},
-        )
-
-        file_refs: list[FileReference] = []
-        for f in files:
-            file_id = f.url or f.name
-            props: dict[str, Any] = {}
-
-            if f.name in file_bytes_map:
-                props["content"] = file_bytes_map[f.name]
-                if f.url is None:
-                    file_id = f.name
-
-            file_refs.append(
-                FileReference(
-                    id=file_id,
-                    name=f.name,
-                    encoding_format=f.encoding_format,
-                    url=f.url,
-                    onedata_domain=f.onedata_domain,
-                    onedata_file_id=f.onedata_file_id,
-                    properties=props,
-                )
-            )
-
-        return RequestPackage(
-            vre_type=programming_language,
-            programming_language=programming_language,
-            workflow=workflow,
-            files=file_refs,
-            raw_crate={},
         )
 
     # ------------------------------------------------------------------
