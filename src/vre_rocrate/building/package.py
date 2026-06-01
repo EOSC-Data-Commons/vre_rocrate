@@ -13,6 +13,7 @@ from ..models.package import (
 )
 from ..models.minimal import MinimalVRERequest, MinimalFileInput
 from ..models.infrastructure import RuntimePlatform
+from ..parsing.infrastructure import runtime_platform_from_dict
 from ..parsing.validator import ValidationPipeline
 
 
@@ -85,7 +86,7 @@ class RequestPackageBuilder:
                 if hasattr(runtime_platform_resolved, "properties")
                 else runtime_platform_resolved
             )
-            runtime_platform = RuntimePlatform.from_dict(rp_props)
+            runtime_platform = runtime_platform_from_dict(rp_props)
 
         workflow_url = (
             main.id if main.id.startswith(("http://", "https://")) else main.get("url")
