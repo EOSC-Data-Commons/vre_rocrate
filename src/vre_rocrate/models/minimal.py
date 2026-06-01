@@ -1,20 +1,23 @@
-from pydantic import BaseModel, Field, HttpUrl, model_validator
-from typing import List
+from __future__ import annotations
+
+from dataclasses import dataclass, field
 
 from ..constants import VRE_TYPES
 
 
-class MinimalFileInput(BaseModel):
+@dataclass
+class MinimalFileInput:
     """Represents a file input for a minimal VRE request."""
 
     name: str
-    url: HttpUrl | None = None
+    url: str | None = None
     encoding_format: str | None = None
     onedata_domain: str | None = None
     onedata_file_id: str | None = None
 
 
-class MinimalVRERequest(BaseModel):
+@dataclass
+class MinimalVRERequest:
     """Represents a minimal VRE request payload.
 
     This model validates:
@@ -24,32 +27,18 @@ class MinimalVRERequest(BaseModel):
     - runtime_platform: Optional override for target service URL
     """
 
-    vre_type: str = Field(..., description="VRE type identifier")
-    workflow: str | None = Field(
-        None,
-        description="URL or filename of the workflow descriptor (required for Galaxy and OSCAR)",
-    )
-    files: List[MinimalFileInput] = Field(default_factory=list)
-    runtime_platform: HttpUrl | None = Field(
-        None, description="Optional override for the target service URL"
-    )
+    vre_type: str
+    workflow: str | None = None
+    files: list[MinimalFileInput] = field(default_factory=list)
+    runtime_platform: str | None = None
 
-    @model_validator(mode="after")
-    def validate_vre_type(self):
+    def __post_init__(self) -> None:
         if self.vre_type not in VRE_TYPES:
             raise ValueError(
                 f"vre_type must be one of {VRE_TYPES}, got '{self.vre_type}'"
             )
-        return self
-
-    @model_validator(mode="after")
-    def validate_workflow_required(self):
         if self.workflow is None:
             raise ValueError("workflow is required")
-        return self
-
-    @model_validator(mode="after")
-    def validate_workflow_in_files(self):
         if self.workflow is not None and not self.workflow.startswith(
             ("http://", "https://")
         ):
@@ -58,4 +47,3 @@ class MinimalVRERequest(BaseModel):
                 raise ValueError(
                     f"workflow '{self.workflow}' is a filename but was not found in files"
                 )
-        return self

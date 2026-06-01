@@ -13,7 +13,7 @@ from .models import (
     MinimalVRERequest,
     MinimalFileInput,
 )
-from .parsing import ROCrateParser, ValidationPipeline, parse_minimal_vre_form
+from .parsing import ROCrateParser, ValidationPipeline
 from .building import RequestPackageBuilder, RocrateBuilder
 from .constants import (
     VRE_TYPES,
@@ -41,7 +41,6 @@ __all__ = [
     "MinimalFileInput",
     "ROCrateParser",
     "ValidationPipeline",
-    "parse_minimal_vre_form",
     "RequestPackageBuilder",
     "RocrateBuilder",
     "VRE_TYPES",

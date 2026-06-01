@@ -11,6 +11,7 @@ from ..models.package import (
     FormalParameter,
     OCMData,
 )
+from ..models.minimal import MinimalVRERequest, MinimalFileInput
 from ..models.infrastructure import RuntimePlatform
 from ..parsing.validator import ValidationPipeline
 
@@ -43,24 +44,19 @@ class RequestPackageBuilder:
     @classmethod
     def build_from_minimal(
         cls,
-        data: dict[str, Any],
+        request: MinimalVRERequest,
         file_bytes_map: dict[str, bytes],
     ) -> RequestPackage:
-        """Build a RequestPackage from a minimal VRE start payload."""
-        vre_type = data["vre_type"]
-        programming_language = VRE_TYPE_TO_PROGRAMMING_LANGUAGE[vre_type]
-        workflow = data.get("workflow")
-        runtime_platform = (
-            str(data["runtime_platform"]) if data.get("runtime_platform") else None
-        )
+        """Build a RequestPackage from a MinimalVRERequest."""
+        programming_language = VRE_TYPE_TO_PROGRAMMING_LANGUAGE[request.vre_type]
 
         return cls._from_minimal(
-            vre_type=vre_type,
+            vre_type=request.vre_type,
             programming_language=programming_language,
-            workflow_url=workflow,
-            files_data=data.get("files", []),
+            workflow_url=request.workflow,
+            files=request.files,
             file_bytes_map=file_bytes_map,
-            runtime_platform=runtime_platform,
+            runtime_platform=request.runtime_platform,
         )
 
     # ------------------------------------------------------------------
@@ -140,7 +136,7 @@ class RequestPackageBuilder:
         vre_type: str,
         programming_language: str,
         workflow_url: str | None,
-        files_data: list[dict[str, Any]],
+        files: list[MinimalFileInput],
         file_bytes_map: dict[str, bytes],
         runtime_platform: str | None = None,
     ) -> RequestPackage:
@@ -154,25 +150,24 @@ class RequestPackageBuilder:
             properties={},
         )
 
-        files: list[FileReference] = []
-        for f in files_data:
-            file_url = str(f["url"]) if f.get("url") else None
-            file_id = file_url or f["name"]
+        file_refs: list[FileReference] = []
+        for f in files:
+            file_id = f.url or f.name
             props: dict[str, Any] = {}
 
-            if f["name"] in file_bytes_map:
-                props["content"] = file_bytes_map[f["name"]]
-                if file_url is None:
-                    file_id = f["name"]
+            if f.name in file_bytes_map:
+                props["content"] = file_bytes_map[f.name]
+                if f.url is None:
+                    file_id = f.name
 
-            files.append(
+            file_refs.append(
                 FileReference(
                     id=file_id,
-                    name=f["name"],
-                    encoding_format=f.get("encoding_format"),
-                    url=file_url,
-                    onedata_domain=f.get("onedata_domain"),
-                    onedata_file_id=f.get("onedata_file_id"),
+                    name=f.name,
+                    encoding_format=f.encoding_format,
+                    url=f.url,
+                    onedata_domain=f.onedata_domain,
+                    onedata_file_id=f.onedata_file_id,
                     properties=props,
                 )
             )
@@ -181,7 +176,7 @@ class RequestPackageBuilder:
             vre_type=programming_language,
             programming_language=programming_language,
             workflow=workflow,
-            files=files,
+            files=file_refs,
             raw_crate={},
         )
 

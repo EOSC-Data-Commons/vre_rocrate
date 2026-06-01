@@ -1,13 +1,15 @@
 from __future__ import annotations
 
+from dataclasses import asdict
 from datetime import datetime, timezone
 from typing import Any
 
 from ..constants import VRE_TYPE_TO_PROGRAMMING_LANGUAGE
+from ..models.minimal import MinimalVRERequest, MinimalFileInput
 
 
 class RocrateBuilder:
-    """Builds a complete ROCrate JSON dict from a minimal VRE request.
+    """Builds a complete ROCrate JSON dict from a MinimalVRERequest.
 
     Uses instance methods with shared state to construct individual entities
     and assemble them into a complete @graph.
@@ -20,7 +22,7 @@ class RocrateBuilder:
         workflow_id: str,
         lang_id: str,
         runtime_platform: str | None,
-        files_data: list[dict[str, Any]],
+        files: list[MinimalFileInput],
         now_iso: str,
     ):
         self.vre_type = vre_type
@@ -28,7 +30,7 @@ class RocrateBuilder:
         self.workflow_id = workflow_id
         self.lang_id = lang_id
         self.runtime_platform = runtime_platform
-        self.files_data = files_data
+        self.files = files
         self.now_iso = now_iso
         self.graph: list[dict[str, Any]] = []
         self.result: dict[str, Any] | None = None
@@ -47,9 +49,8 @@ class RocrateBuilder:
     def _add_root_dataset(self) -> None:
         """Add the root Dataset entity with hasPart references to the graph."""
         root_has_part: list[dict[str, str]] = [{"@id": self.workflow_id}]
-        for f in self.files_data:
-            file_url = str(f["url"]) if f.get("url") else None
-            file_id = file_url or f["name"]
+        for f in self.files:
+            file_id = f.url or f.name
             if file_id == self.workflow_id:
                 continue
             root_has_part.append({"@id": file_id})
@@ -93,26 +94,25 @@ class RocrateBuilder:
         )
 
     def _add_file_entities(self) -> None:
-        """Add file entities from the files_data list to the graph."""
-        for f in self.files_data:
-            file_url = str(f["url"]) if f.get("url") else None
-            file_id = file_url or f["name"]
+        """Add file entities from the files list to the graph."""
+        for f in self.files:
+            file_id = f.url or f.name
             if file_id == self.workflow_id:
                 continue
 
             file_entity: dict[str, Any] = {
                 "@id": file_id,
                 "@type": "File",
-                "name": f["name"],
+                "name": f.name,
             }
-            if f.get("encoding_format"):
-                file_entity["encodingFormat"] = f["encoding_format"]
-            if file_url:
-                file_entity["url"] = file_url
-            if f.get("onedata_domain"):
-                file_entity["onedata:onezoneDomain"] = f["onedata_domain"]
-            if f.get("onedata_file_id"):
-                file_entity["onedata:fileId"] = f["onedata_file_id"]
+            if f.encoding_format:
+                file_entity["encodingFormat"] = f.encoding_format
+            if f.url:
+                file_entity["url"] = f.url
+            if f.onedata_domain:
+                file_entity["onedata:onezoneDomain"] = f.onedata_domain
+            if f.onedata_file_id:
+                file_entity["onedata:fileId"] = f.onedata_file_id
             self.graph.append(file_entity)
 
     def _add_supporting_entities(self) -> None:
@@ -152,22 +152,19 @@ class RocrateBuilder:
         return self.result
 
     @staticmethod
-    def build_from_minimal(data: dict[str, Any]) -> dict[str, Any]:
-        """Convert a MinimalVRERequest dict into a complete ROCrate JSON dict.
+    def build_from_minimal(request: MinimalVRERequest) -> dict[str, Any]:
+        """Convert a MinimalVRERequest into a complete ROCrate JSON dict.
 
         Args:
-            data: The minimal VRE request data dictionary.
+            request: The minimal VRE request.
 
         Returns:
             A complete ROCrate JSON structure with @context and @graph.
         """
-        vre_type: str = data["vre_type"]
+        vre_type: str = request.vre_type
         programming_language: str = VRE_TYPE_TO_PROGRAMMING_LANGUAGE[vre_type]
-        workflow: str = data["workflow"]
-        runtime_platform: str | None = (
-            str(data["runtime_platform"]) if data.get("runtime_platform") else None
-        )
-        files_data: list[dict[str, Any]] = data.get("files", [])
+        workflow: str = request.workflow
+        runtime_platform: str | None = request.runtime_platform
 
         lang_id = f"#{vre_type}-lang"
         now_iso = datetime.now(timezone.utc).isoformat()
@@ -178,7 +175,7 @@ class RocrateBuilder:
             workflow_id=workflow,
             lang_id=lang_id,
             runtime_platform=runtime_platform,
-            files_data=files_data,
+            files=request.files,
             now_iso=now_iso,
         )
 
