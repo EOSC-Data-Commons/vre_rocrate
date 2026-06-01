@@ -2,6 +2,7 @@
 
 from .models import (
     Entity,
+    OCMData,
     ParsedCrate,
     RequestPackage,
     WorkflowDescriptor,
@@ -28,6 +29,7 @@ from .exceptions import VreRocrateError, CrateValidationError
 
 __all__ = [
     "Entity",
+    "OCMData",
     "ParsedCrate",
     "RequestPackage",
     "WorkflowDescriptor",

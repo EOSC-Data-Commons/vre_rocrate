@@ -1,5 +1,6 @@
 from .rocrate import Entity, ParsedCrate, _MetadataProxy
 from .package import (
+    OCMData,
     RequestPackage,
     WorkflowDescriptor,
     FileReference,
@@ -12,6 +13,7 @@ __all__ = [
     "Entity",
     "ParsedCrate",
     "_MetadataProxy",
+    "OCMData",
     "RequestPackage",
     "WorkflowDescriptor",
     "FileReference",

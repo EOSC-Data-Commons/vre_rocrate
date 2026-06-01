@@ -39,6 +39,19 @@ class WorkflowDescriptor:
 
 
 @dataclass
+class OCMData:
+    """Data extracted from RO-Crate entities for OCM / ScienceMesh sharing."""
+
+    receiver_userid: str | None = None
+    owner_userid: str | None = None
+    sender_userid: str | None = None
+    sender_name: str | None = None
+    root_name: str | None = None
+    root_description: str | None = None
+    resource_id: str | None = None
+
+
+@dataclass
 class RequestPackage:
     vre_type: str
     programming_language: str
@@ -47,15 +60,7 @@ class RequestPackage:
     workflow_inputs: list[FormalParameter] = field(default_factory=list)
     workflow_outputs: list[FormalParameter] = field(default_factory=list)
     raw_crate: dict[str, Any] = field(default_factory=dict, repr=False)
-
-    # OCM / ScienceMesh fields — extracted from RO-Crate entities during parsing
-    receiver_userid: str | None = None
-    owner_userid: str | None = None
-    sender_userid: str | None = None
-    sender_name: str | None = None
-    root_name: str | None = None
-    root_description: str | None = None
-    resource_id: str | None = None
+    ocm_data: OCMData | None = None
 
     def files_by_encoding(self, encoding: str) -> list[FileReference]:
         return [f for f in self.files if f.encoding_format == encoding]
@@ -175,6 +180,16 @@ class RequestPackage:
         workflow_inputs = cls._extract_parameters(crate, main.get("input", []))
         workflow_outputs = cls._extract_parameters(crate, main.get("output", []))
 
+        ocm_data = OCMData(
+            receiver_userid=cls._entity_prop(crate, "#receiver", "userid"),
+            owner_userid=cls._entity_prop(crate, "#owner", "userid"),
+            sender_userid=cls._entity_prop(crate, "#sender", "userid"),
+            sender_name=cls._entity_prop(crate, "#sender", "name"),
+            root_name=cls._entity_prop(crate, "./", "name"),
+            root_description=cls._entity_prop(crate, "./", "description"),
+            resource_id=cls._entity_prop(crate, "#identifier", "userid"),
+        )
+
         return cls(
             vre_type=lang_id or "unknown",
             programming_language=lang_id or "unknown",
@@ -183,13 +198,7 @@ class RequestPackage:
             workflow_inputs=workflow_inputs,
             workflow_outputs=workflow_outputs,
             raw_crate=crate.raw,
-            receiver_userid=cls._entity_prop(crate, "#receiver", "userid"),
-            owner_userid=cls._entity_prop(crate, "#owner", "userid"),
-            sender_userid=cls._entity_prop(crate, "#sender", "userid"),
-            sender_name=cls._entity_prop(crate, "#sender", "name"),
-            root_name=cls._entity_prop(crate, "./", "name"),
-            root_description=cls._entity_prop(crate, "./", "description"),
-            resource_id=cls._entity_prop(crate, "#identifier", "userid"),
+            ocm_data=ocm_data,
         )
 
     @staticmethod
