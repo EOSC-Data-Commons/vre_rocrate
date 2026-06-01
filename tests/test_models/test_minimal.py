@@ -1,4 +1,4 @@
-"""Tests for MinimalVRERequest validation and RequestPackage.from_minimal."""
+"""Tests for MinimalVRERequest validation and RequestPackageBuilder.build_from_minimal()."""
 
 import pytest
 from pydantic import ValidationError
@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from vre_rocrate import (
     MinimalVRERequest,
     MinimalFileInput,
-    RequestPackage,
+    RequestPackageBuilder,
     GALAXY_PROGRAMMING_LANGUAGE,
     OSCAR_PROGRAMMING_LANGUAGE,
     SCIPION_PROGRAMMING_LANGUAGE,
@@ -71,20 +71,21 @@ class TestMinimalVRERequest:
 
 
 class TestRequestPackageFromMinimal:
-    """Building a RequestPackage from minimal VRE payload data."""
+    """Building a RequestPackage from minimal VRE payload data via RequestPackageBuilder."""
 
     def test_galaxy_package(self):
-        package = RequestPackage.from_minimal(
-            vre_type="galaxy",
-            programming_language=GALAXY_PROGRAMMING_LANGUAGE,
-            workflow_url="https://dockstore.org/api/ga4gh/trs/v2/tools/test",
-            files_data=[
-                {
-                    "name": "sample.fastq",
-                    "url": "https://data.example.org/sample.fastq",
-                    "encoding_format": "application/fastq",
-                }
-            ],
+        package = RequestPackageBuilder.build_from_minimal(
+            data={
+                "vre_type": "galaxy",
+                "workflow": "https://dockstore.org/api/ga4gh/trs/v2/tools/test",
+                "files": [
+                    {
+                        "name": "sample.fastq",
+                        "url": "https://data.example.org/sample.fastq",
+                        "encoding_format": "application/fastq",
+                    }
+                ],
+            },
             file_bytes_map={},
         )
 
@@ -97,11 +98,12 @@ class TestRequestPackageFromMinimal:
         assert package.files[0].url == "https://data.example.org/sample.fastq"
 
     def test_oscar_package(self):
-        package = RequestPackage.from_minimal(
-            vre_type="oscar",
-            programming_language=OSCAR_PROGRAMMING_LANGUAGE,
-            workflow_url="https://raw.githubusercontent.com/example/fdl.json",
-            files_data=[],
+        package = RequestPackageBuilder.build_from_minimal(
+            data={
+                "vre_type": "oscar",
+                "workflow": "https://raw.githubusercontent.com/example/fdl.json",
+                "files": [],
+            },
             file_bytes_map={},
         )
 
@@ -112,11 +114,12 @@ class TestRequestPackageFromMinimal:
         assert len(package.files) == 0
 
     def test_scipion_package(self):
-        package = RequestPackage.from_minimal(
-            vre_type="scipion",
-            programming_language=SCIPION_PROGRAMMING_LANGUAGE,
-            workflow_url=None,
-            files_data=[],
+        package = RequestPackageBuilder.build_from_minimal(
+            data={
+                "vre_type": "scipion",
+                "workflow": None,
+                "files": [],
+            },
             file_bytes_map={},
         )
 
@@ -124,14 +127,15 @@ class TestRequestPackageFromMinimal:
         assert package.workflow.url is None
 
     def test_binder_package_with_uploaded_files(self):
-        package = RequestPackage.from_minimal(
-            vre_type="binder",
-            programming_language=BINDER_PROGRAMMING_LANGUAGE,
-            workflow_url=None,
-            files_data=[
-                {"name": "notebook.ipynb", "url": None, "encoding_format": None},
-                {"name": "requirements.txt", "url": None, "encoding_format": None},
-            ],
+        package = RequestPackageBuilder.build_from_minimal(
+            data={
+                "vre_type": "binder",
+                "workflow": None,
+                "files": [
+                    {"name": "notebook.ipynb", "url": None, "encoding_format": None},
+                    {"name": "requirements.txt", "url": None, "encoding_format": None},
+                ],
+            },
             file_bytes_map={
                 "notebook.ipynb": b'{"cells": []}',
                 "requirements.txt": b"numpy==1.21.0",
@@ -144,13 +148,14 @@ class TestRequestPackageFromMinimal:
         assert package.files[1].properties["content"] == b"numpy==1.21.0"
 
     def test_jupyter_package_with_uploaded_notebook(self):
-        package = RequestPackage.from_minimal(
-            vre_type="jupyter",
-            programming_language=JUPYTER_PROGRAMMING_LANGUAGE,
-            workflow_url=None,
-            files_data=[
-                {"name": "notebook.ipynb", "url": None, "encoding_format": None},
-            ],
+        package = RequestPackageBuilder.build_from_minimal(
+            data={
+                "vre_type": "jupyter",
+                "workflow": None,
+                "files": [
+                    {"name": "notebook.ipynb", "url": None, "encoding_format": None},
+                ],
+            },
             file_bytes_map={
                 "notebook.ipynb": b'{"cells": []}',
             },
@@ -161,31 +166,33 @@ class TestRequestPackageFromMinimal:
         assert package.files[0].properties["content"] == b'{"cells": []}'
 
     def test_runtime_platform_override(self):
-        package = RequestPackage.from_minimal(
-            vre_type="galaxy",
-            programming_language=GALAXY_PROGRAMMING_LANGUAGE,
-            workflow_url="https://example.com/workflow.ga",
-            files_data=[],
+        package = RequestPackageBuilder.build_from_minimal(
+            data={
+                "vre_type": "galaxy",
+                "workflow": "https://example.com/workflow.ga",
+                "runtime_platform": "https://custom-galaxy.example.org/",
+                "files": [],
+            },
             file_bytes_map={},
-            runtime_platform="https://custom-galaxy.example.org/",
         )
 
         assert package.workflow.runtime_platform == "https://custom-galaxy.example.org/"
 
     def test_onedata_file(self):
-        package = RequestPackage.from_minimal(
-            vre_type="galaxy",
-            programming_language=GALAXY_PROGRAMMING_LANGUAGE,
-            workflow_url="https://example.com/workflow.ga",
-            files_data=[
-                {
-                    "name": "onedata_file",
-                    "url": None,
-                    "encoding_format": "image/tiff",
-                    "onedata_domain": "demo.onedata.org",
-                    "onedata_file_id": "00000000007EADF37368",
-                }
-            ],
+        package = RequestPackageBuilder.build_from_minimal(
+            data={
+                "vre_type": "galaxy",
+                "workflow": "https://example.com/workflow.ga",
+                "files": [
+                    {
+                        "name": "onedata_file",
+                        "url": None,
+                        "encoding_format": "image/tiff",
+                        "onedata_domain": "demo.onedata.org",
+                        "onedata_file_id": "00000000007EADF37368",
+                    }
+                ],
+            },
             file_bytes_map={},
         )
 
