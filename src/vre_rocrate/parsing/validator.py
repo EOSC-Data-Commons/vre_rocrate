@@ -1,26 +1,73 @@
 from __future__ import annotations
 
+from typing import Any
+
 from ..exceptions import CrateValidationError
-from ..models.rocrate import ParsedCrate
 
 
-def _validate_main_entity(crate: ParsedCrate) -> None:
+def _find_entity(graph: list[dict[str, Any]], entity_id: str) -> dict[str, Any] | None:
+    """Find an entity in the graph by its @id."""
+    for entity in graph:
+        if entity.get("@id") == entity_id:
+            return entity
+    return None
+
+
+def _get_root_dataset(graph: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Find the root dataset entity (@id == './') in the graph."""
+    return _find_entity(graph, "./")
+
+
+def _get_main_entity(graph: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Resolve the mainEntity from the root dataset."""
+    root = _get_root_dataset(graph)
+    if root is None:
+        return None
+    main_ref = root.get("mainEntity")
+    if main_ref is None:
+        return None
+    if isinstance(main_ref, dict):
+        return _find_entity(graph, main_ref.get("@id", ""))
+    if isinstance(main_ref, str):
+        return _find_entity(graph, main_ref)
+    eid = getattr(main_ref, "id", None) or main_ref.get("@id", "")
+    return _find_entity(graph, eid)
+
+
+def _resolve_ref(graph: list[dict[str, Any]], ref: object) -> object:
+    """Resolve a reference to an entity in the graph.
+
+    Args:
+        graph: The @graph list from the crate.
+        ref: The reference to resolve (can be a string @id, dict with @id, or direct entity).
+
+    Returns:
+        The resolved entity dict or None if not found.
+    """
+    if isinstance(ref, dict) and "@id" in ref:
+        return _find_entity(graph, ref["@id"])
+    if isinstance(ref, str):
+        return _find_entity(graph, ref)
+    return ref
+
+
+def _validate_main_entity(graph: list[dict[str, Any]]) -> None:
     """Validate that the crate has a valid mainEntity.
 
     Raises:
         CrateValidationError: If mainEntity is missing or invalid.
     """
-    main = crate.main_entity
+    main = _get_main_entity(graph)
     if main is None:
         raise CrateValidationError("Missing mainEntity inside ROCrate")
 
-    if isinstance(main.type, str) and main.type == "":
+    main_type = main.get("@type", "")
+    if isinstance(main_type, str) and main_type == "":
         raise CrateValidationError("Missing main entity object")
 
 
 def _validate_programming_language(
-    crate: ParsedCrate,
-    main: object,
+    graph: list[dict[str, Any]], main: dict[str, Any]
 ) -> None:
     """Validate that the main entity has a valid programmingLanguage.
 
@@ -31,7 +78,7 @@ def _validate_programming_language(
     if lang_ref is None or (isinstance(lang_ref, str) and lang_ref == ""):
         raise CrateValidationError("Missing main entity programmingLanguage object")
 
-    lang = _resolve_ref(crate, lang_ref)
+    lang = _resolve_ref(graph, lang_ref)
     if lang is None:
         raise CrateValidationError("Cannot resolve programmingLanguage reference")
 
@@ -42,29 +89,12 @@ def _validate_programming_language(
         )
 
 
-def _resolve_ref(crate: ParsedCrate, ref: object) -> object:
-    """Resolve a reference to an entity in the crate.
-
-    Args:
-        crate: The parsed crate containing entities.
-        ref: The reference to resolve (can be a string @id, dict with @id, or direct entity).
-
-    Returns:
-        The resolved Entity or None if not found.
-    """
-    if isinstance(ref, dict) and "@id" in ref:
-        return crate.get(ref["@id"])
-    if isinstance(ref, str):
-        return crate.get(ref)
-    return ref
-
-
 class ValidationPipeline:
     """Pipeline for validating ROCrate structures."""
 
     @classmethod
-    def validate_basic(cls, crate: ParsedCrate) -> None:
-        """Perform basic validation of a parsed ROCrate.
+    def validate_basic(cls, crate: dict[str, Any]) -> None:
+        """Perform basic validation of a ROCrate dict.
 
         This validates:
         - mainEntity exists and is valid
@@ -72,27 +102,29 @@ class ValidationPipeline:
         - programmingLanguage has an identifier
 
         Args:
-            crate: The parsed crate to validate.
+            crate: The ROCrate dict (with @graph).
 
         Raises:
             CrateValidationError: If any validation step fails.
         """
-        _validate_main_entity(crate)
-        _validate_programming_language(crate, crate.main_entity)
+        graph: list[dict[str, Any]] = crate.get("@graph", [])
+        _validate_main_entity(graph)
+        _validate_programming_language(graph, _get_main_entity(graph))
 
     @classmethod
-    def validate_workflow_required_fields(cls, crate: ParsedCrate) -> None:
+    def validate_workflow_required_fields(cls, crate: dict[str, Any]) -> None:
         """Validate that workflow-related required fields are present.
 
         This can be extended to check for additional workflow-specific requirements.
 
         Args:
-            crate: The parsed crate to validate.
+            crate: The ROCrate dict (with @graph).
 
         Raises:
             CrateValidationError: If required workflow fields are missing.
         """
-        main = crate.main_entity
+        graph: list[dict[str, Any]] = crate.get("@graph", [])
+        main = _get_main_entity(graph)
         if main is None:
             return  # Already caught by validate_basic
 

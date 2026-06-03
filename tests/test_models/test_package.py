@@ -2,7 +2,7 @@
 
 import pytest
 
-from vre_rocrate import ROCrateParser, RequestPackageBuilder, RequestPackage
+from vre_rocrate import RequestPackageBuilder, RequestPackage
 from conftest import load_json
 
 SERIALIZATION_CASES = [
@@ -18,8 +18,7 @@ class TestRequestPackageSerialization:
     @pytest.mark.parametrize("fixture_path", SERIALIZATION_CASES)
     def test_to_dict_and_from_dict_roundtrip(self, fixtures_dir, fixture_path):
         source = load_json(fixtures_dir, fixture_path)
-        parsed = ROCrateParser.parse(source)
-        package = RequestPackageBuilder.build(parsed)
+        package = RequestPackageBuilder.build(source)
         d = package.to_dict()
         restored = RequestPackage.from_dict(d)
         assert restored.vre_type == package.vre_type
@@ -34,30 +33,26 @@ class TestRequestPackageHelpers:
 
     def test_local_vs_remote_files(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        parsed = ROCrateParser.parse(source)
-        package = RequestPackageBuilder.build(parsed)
+        package = RequestPackageBuilder.build(source)
         assert len(package.local_files) == 0
         assert len(package.remote_files) == 2
 
     def test_files_by_encoding(self, fixtures_dir):
         source = load_json(fixtures_dir, "oscar/ro-crate-metadata.json")
-        parsed = ROCrateParser.parse(source)
-        package = RequestPackageBuilder.build(parsed)
+        package = RequestPackageBuilder.build(source)
         scripts = package.files_by_encoding("text/x-shellscript")
         assert len(scripts) == 1
         assert scripts[0].name == "script.sh"
 
     def test_files_by_encoding_no_match(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        parsed = ROCrateParser.parse(source)
-        package = RequestPackageBuilder.build(parsed)
+        package = RequestPackageBuilder.build(source)
         result = package.files_by_encoding("application/octet-stream")
         assert result == []
 
     def test_file_by_id(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        parsed = ROCrateParser.parse(source)
-        package = RequestPackageBuilder.build(parsed)
+        package = RequestPackageBuilder.build(source)
         f = package.file_by_id(
             "https://example-files.online-convert.com/document/txt/example.txt"
         )
@@ -66,15 +61,13 @@ class TestRequestPackageHelpers:
 
     def test_file_by_id_not_found(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        parsed = ROCrateParser.parse(source)
-        package = RequestPackageBuilder.build(parsed)
+        package = RequestPackageBuilder.build(source)
         f = package.file_by_id("https://nonexistent.example.com/file.txt")
         assert f is None
 
     def test_workflow_inputs_outputs(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        parsed = ROCrateParser.parse(source)
-        package = RequestPackageBuilder.build(parsed)
+        package = RequestPackageBuilder.build(source)
         assert len(package.workflow_inputs) == 1
         assert package.workflow_inputs[0].name == "simpletext_input"
         assert len(package.workflow_outputs) == 1
@@ -83,8 +76,7 @@ class TestRequestPackageHelpers:
     def test_mixed_local_remote_files(self, fixtures_dir):
         """Verify local_files and remote_files partition correctly with mixed data."""
         source = load_json(fixtures_dir, "oscar/ro-crate-metadata.json")
-        parsed = ROCrateParser.parse(source)
-        package = RequestPackageBuilder.build(parsed)
+        package = RequestPackageBuilder.build(source)
         assert len(package.local_files) >= 0
         assert len(package.remote_files) >= 0
         assert len(package.local_files) + len(package.remote_files) == len(

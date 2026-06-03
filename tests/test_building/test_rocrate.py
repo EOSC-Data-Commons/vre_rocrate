@@ -4,7 +4,7 @@ from vre_rocrate import (
     MinimalVRERequest,
     MinimalFileInput,
     RocrateBuilder,
-    ROCrateParser,
+    RequestPackageBuilder,
     GALAXY_PROGRAMMING_LANGUAGE,
     OSCAR_PROGRAMMING_LANGUAGE,
     SCIPION_PROGRAMMING_LANGUAGE,
@@ -149,8 +149,8 @@ class TestRocrateBuilder:
         assert "#author-dispatcher" in ids
         assert "https://spdx.org/licenses/GPL-3.0" in ids
 
-    def test_rocrate_can_be_parsed_back(self):
-        """Verify the generated ROCrate can be parsed by ROCrateParser."""
+    def test_rocrate_can_be_built_into_package(self):
+        """Verify the generated ROCrate can be consumed by RequestPackageBuilder."""
         workflow_url = "https://dockstore.org/api/ga4gh/trs/v2/tools/test"
         request = MinimalVRERequest(
             vre_type="galaxy",
@@ -163,9 +163,8 @@ class TestRocrateBuilder:
                 )
             ],
         )
-        crate = RocrateBuilder.build_from_minimal(request)
+        crate_dict = RocrateBuilder.build_from_minimal(request)
 
-        parsed = ROCrateParser.parse(crate)
-        assert parsed.root_id == "./"
-        assert parsed.main_entity is not None
-        assert parsed.main_entity.id == workflow_url
+        package = RequestPackageBuilder.build(crate_dict)
+        assert package.vre_type == GALAXY_PROGRAMMING_LANGUAGE
+        assert package.workflow.id == workflow_url

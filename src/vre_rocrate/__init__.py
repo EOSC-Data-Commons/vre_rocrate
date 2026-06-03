@@ -1,9 +1,7 @@
 """VRE RO-Crate library — parsing, validation, building, and minimal-VRE handling."""
 
 from .models import (
-    Entity,
     OCMData,
-    ParsedCrate,
     RequestPackage,
     WorkflowDescriptor,
     FileReference,
@@ -13,7 +11,9 @@ from .models import (
     MinimalVRERequest,
     MinimalFileInput,
 )
-from .parsing import ROCrateParser, ValidationPipeline
+from .parsing import (
+    ValidationPipeline,
+)
 from .building import RequestPackageBuilder, RocrateBuilder
 from .constants import (
     VRE_TYPES,
@@ -28,9 +28,7 @@ from .constants import (
 from .exceptions import VreRocrateError, CrateValidationError
 
 __all__ = [
-    "Entity",
     "OCMData",
-    "ParsedCrate",
     "RequestPackage",
     "WorkflowDescriptor",
     "FileReference",
@@ -39,7 +37,6 @@ __all__ = [
     "IMInputFile",
     "MinimalVRERequest",
     "MinimalFileInput",
-    "ROCrateParser",
     "ValidationPipeline",
     "RequestPackageBuilder",
     "RocrateBuilder",

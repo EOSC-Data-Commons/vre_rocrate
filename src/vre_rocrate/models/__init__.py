@@ -1,4 +1,3 @@
-from .rocrate import Entity, ParsedCrate, _MetadataProxy
 from .package import (
     OCMData,
     RequestPackage,
@@ -10,9 +9,6 @@ from .minimal import MinimalVRERequest, MinimalFileInput
 from .infrastructure import RuntimePlatform, IMInputFile
 
 __all__ = [
-    "Entity",
-    "ParsedCrate",
-    "_MetadataProxy",
     "OCMData",
     "RequestPackage",
     "WorkflowDescriptor",
