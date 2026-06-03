@@ -82,3 +82,22 @@ class TestRequestPackageHelpers:
         assert len(package.local_files) + len(package.remote_files) == len(
             package.files
         )
+
+    def test_input_files_filters_by_workflow_inputs(self, fixtures_dir):
+        """input_files returns only files whose @id matches a workflow input."""
+        source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
+        package = RequestPackageBuilder.build(source)
+        # Galaxy fixture has input referencing the file entity directly
+        assert len(package.workflow_inputs) == 1
+        assert package.workflow_inputs[0].name == "simpletext_input"
+        # input_files should only contain the file referenced by input
+        assert len(package.input_files) == 1
+        assert package.input_files[0].name == "simpletext_input"
+
+    def test_input_files_falls_back_to_all_files(self, fixtures_dir):
+        """input_files returns all files when no workflow_inputs are declared."""
+        source = load_json(fixtures_dir, "oscar/ro-crate-metadata.json")
+        package = RequestPackageBuilder.build(source)
+        # OSCAR fixture has no input parameter
+        assert len(package.workflow_inputs) == 0
+        assert len(package.input_files) == len(package.files)

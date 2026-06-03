@@ -91,7 +91,25 @@ class RequestPackage:
 
     @property
     def input_files(self) -> list[FileReference]:
-        return self.files
+        """Files that match declared workflow inputs, or all files if none declared.
+
+        Resolves file references through ``FormalParameter.default_value``.
+        If ``default_value`` is a dict with ``@id``, that @id is matched
+        against ``FileReference.id``.  Falls back to all files when no
+        inputs are declared or none carry a resolvable default value.
+        """
+        if not self.workflow_inputs:
+            return self.files
+        file_ids: set[str] = set()
+        for param in self.workflow_inputs:
+            dv = param.default_value
+            if isinstance(dv, dict) and "@id" in dv:
+                file_ids.add(dv["@id"])
+            elif isinstance(dv, str):
+                file_ids.add(dv)
+        if not file_ids:
+            return self.files
+        return [f for f in self.files if f.id in file_ids]
 
     @property
     def fdl_url(self) -> str | None:
