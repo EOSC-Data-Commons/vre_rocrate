@@ -79,6 +79,17 @@ class RocrateBuilder:
         }
         if self.runtime_platform:
             workflow_entity["runtimePlatform"] = self.runtime_platform
+
+        # Add input references for each file (excluding the workflow itself)
+        input_refs: list[dict[str, str]] = []
+        for i, f in enumerate(self.files):
+            file_id = f.url or f.name
+            if file_id == self.workflow_id:
+                continue
+            input_refs.append({"@id": f"#input-{i}"})
+        if input_refs:
+            workflow_entity["input"] = input_refs
+
         self.graph.append(workflow_entity)
 
     def _add_programming_language(self) -> None:
@@ -115,6 +126,22 @@ class RocrateBuilder:
                 file_entity["onedata:fileId"] = f.onedata_file_id
             self.graph.append(file_entity)
 
+    def _add_formal_parameters(self) -> None:
+        """Add FormalParameter entities for each file input."""
+        for i, f in enumerate(self.files):
+            file_id = f.url or f.name
+            if file_id == self.workflow_id:
+                continue
+
+            self.graph.append(
+                {
+                    "@id": f"#input-{i}",
+                    "@type": "FormalParameter",
+                    "name": f.name,
+                    "defaultValue": {"@id": file_id},
+                }
+            )
+
     def _add_supporting_entities(self) -> None:
         """Add supporting entities (author, license) to the graph."""
         self.graph.append(
@@ -144,6 +171,7 @@ class RocrateBuilder:
         self._add_workflow_entity()
         self._add_programming_language()
         self._add_file_entities()
+        self._add_formal_parameters()
         self._add_supporting_entities()
         self.result = {
             "@context": "https://w3id.org/ro/crate/1.1/context",
