@@ -24,6 +24,7 @@ from .constants import (
     SCIPION_PROGRAMMING_LANGUAGE,
     OSCAR_PROGRAMMING_LANGUAGE,
     JUPYTER_PROGRAMMING_LANGUAGE,
+    VIP_PROGRAMMING_LANGUAGE,
 )
 from .exceptions import VreRocrateError, CrateValidationError
 
@@ -48,6 +49,7 @@ __all__ = [
     "SCIPION_PROGRAMMING_LANGUAGE",
     "OSCAR_PROGRAMMING_LANGUAGE",
     "JUPYTER_PROGRAMMING_LANGUAGE",
+    "VIP_PROGRAMMING_LANGUAGE",
     "VreRocrateError",
     "CrateValidationError",
 ]
