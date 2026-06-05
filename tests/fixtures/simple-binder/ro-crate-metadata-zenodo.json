@@ -1,0 +1,87 @@
+{
+    "@context": "https://w3id.org/ro/crate/1.1/context",
+    "@graph": [
+        {
+            "@id": "ro-crate-metadata.json",
+            "@type": "CreativeWork",
+            "about": {
+                "@id": "./"
+            },
+            "conformsTo": {
+                "@id": "https://w3id.org/ro/crate/1.1"
+            }
+        },
+        {
+            "@id": "./",
+            "@type": "Dataset",
+            "name": "Binder Notebook Example with Zenodo DOI",
+            "description": "This is an example of a Jupyter notebook for Binder, referencing a Zenodo DOI.",
+            "datePublished": "2025-05-06T14:35:47+00:00",
+            "license": {
+                "@id": "https://spdx.org/licenses/GPL-3.0"
+            },
+            "creator": {
+                "@id": "#author-dispatcher"
+            },
+            "mainEntity": {
+                "@id": "https://doi.org/10.5281/zenodo.12345678"
+            },
+            "hasPart": [
+                {
+                    "@id": "https://doi.org/10.5281/zenodo.12345678"
+                }
+            ]
+        },
+        {
+            "@id": "https://doi.org/10.5281/zenodo.12345678",
+            "@type": [
+                "File",
+                "SoftwareSourceCode"
+            ],
+            "conformsTo": {
+                "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
+            },
+            "name": "Example jupyter notebook",
+            "description": "A simple Jupyter notebook for demonstration purposes.",
+            "programmingLanguage": {
+                "@id": "#binder-lang"
+            },
+            "creator": {
+                "@id": "#author-dispatcher"
+            },
+            "dateCreated": "2025-05-06",
+            "license": {
+                "@id": "https://spdx.org/licenses/GPL-3.0"
+            },
+            "sdPublisher": {
+                "@id": "#workflow-hub"
+            },
+            "version": "1.0.0",
+            "runtimePlatform": "https://replay.notebooks.egi.eu/"
+        },
+        {
+            "@id": "#binder-lang",
+            "@type": "ComputerLanguage",
+            "identifier": "https://jupyter.org/binder/",
+            "name": "Jupyter Notebook",
+            "url": "https://jupyter.org"
+        },
+        {
+            "@id": "#author-dispatcher",
+            "@type": "Person",
+            "name": "Dispatcher System"
+        },
+        {
+            "@id": "#workflow-hub",
+            "@type": "Organization",
+            "name": "Example Workflow Hub",
+            "url": "http://example.com/workflows/"
+        },
+        {
+            "@id": "https://spdx.org/licenses/GPL-3.0",
+            "@type": "CreativeWork",
+            "name": "GNU General Public License v3.0",
+            "alternateName": "GPL-3.0"
+        }
+    ]
+}
