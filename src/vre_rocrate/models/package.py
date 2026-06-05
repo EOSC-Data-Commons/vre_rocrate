@@ -36,6 +36,19 @@ class WorkflowDescriptor:
     runtime_platform: str | RuntimePlatform | None = None
     properties: dict[str, Any] = field(default_factory=dict, repr=False)
 
+    @property
+    def zenodo_doi(self) -> str | None:
+        """Return the bare Zenodo DOI if identifier or @id is a Zenodo DOI URL, else None."""
+        candidate = self.id
+        if candidate and "zenodo" in candidate:
+            doi = candidate
+            for prefix in ("https://doi.org/", "http://doi.org/"):
+                if doi.startswith(prefix):
+                    doi = doi[len(prefix) :]
+                    break
+            return doi
+        return None
+
 
 @dataclass
 class OCMData:
