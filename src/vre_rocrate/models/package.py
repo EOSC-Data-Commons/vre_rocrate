@@ -129,14 +129,8 @@ class RequestPackage:
         return self.workflow.url
 
     @property
-    def script_files(self) -> list[FileReference]:
-        return self.files_by_encoding("text/x-shellscript")
-
-    @property
     def oscar_input_files(self) -> list[FileReference]:
-        excluded = {f.id for f in self.script_files}
-        excluded.add(self.workflow.id)
-        return [f for f in self.files if f.id not in excluded]
+        return [f for f in self.files if f.id != self.workflow.id]
 
     def get_entity(self, entity_id: str) -> dict[str, Any] | None:
         graph = self.raw_crate.get("@graph", [])

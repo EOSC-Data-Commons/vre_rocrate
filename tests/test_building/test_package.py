@@ -37,7 +37,6 @@ class TestRequestPackageBuilder:
         source = load_json(fixtures_dir, "oscar/ro-crate-metadata.json")
         package = RequestPackageBuilder.build(source)
         assert package.fdl_url is not None
-        assert len(package.script_files) == 1
         assert len(package.oscar_input_files) == 1
 
     def test_build_galaxy_tosca_package(self, fixtures_dir):
