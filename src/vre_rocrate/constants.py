@@ -7,6 +7,7 @@ SCIPION_PROGRAMMING_LANGUAGE = "http://scipion.i2pc.es/"
 OSCAR_PROGRAMMING_LANGUAGE = "https://oscar.grycap.net/"
 JUPYTER_PROGRAMMING_LANGUAGE = "https://jupyter.org"
 VIP_PROGRAMMING_LANGUAGE = "https://vip.creatis.insa-lyon.fr/"
+MDDASH_PROGRAMMING_LANGUAGE = "https://github.com/CERIT-SC/mddash"
 
 VRE_TYPE_TO_PROGRAMMING_LANGUAGE = {
     "galaxy": GALAXY_PROGRAMMING_LANGUAGE,
