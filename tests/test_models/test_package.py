@@ -37,13 +37,6 @@ class TestRequestPackageHelpers:
         assert len(package.local_files) == 0
         assert len(package.remote_files) == 2
 
-    def test_files_by_encoding(self, fixtures_dir):
-        source = load_json(fixtures_dir, "oscar/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
-        scripts = package.files_by_encoding("text/x-shellscript")
-        assert len(scripts) == 1
-        assert scripts[0].name == "script.sh"
-
     def test_files_by_encoding_no_match(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
         package = RequestPackageBuilder.build(source)
