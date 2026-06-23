@@ -24,19 +24,19 @@
                 "@id": "#author-dispatcher"
             },
             "mainEntity": {
-                "@id": "https://workflowhub.eu/workflows/69/git/1/raw/Relion_3_tutorial-betagal.json"
+                "@id": "https://workflowhub.eu/workflows/1747/git/1/raw/workflow_simple.json"
             },
             "hasPart": [
                 {
-                    "@id": "https://workflowhub.eu/workflows/69/git/1/raw/Relion_3_tutorial-betagal.json"
+                    "@id": "https://workflowhub.eu/workflows/1747/git/1/raw/workflow_simple.json"
                 },
                 {
-                    "@id": "https://example-files.online-convert.com/document/txt/example.txt"
+                    "@id": "rsync://ftp.ebi.ac.uk/empiar/world_availability/12944/"
                 }
             ]
         },
         {
-            "@id": "https://workflowhub.eu/workflows/69/git/1/raw/Relion_3_tutorial-betagal.json",
+            "@id": "https://workflowhub.eu/workflows/1747/git/1/raw/workflow_simple.json",
             "@type": [
                 "File",
                 "SoftwareSourceCode",
@@ -66,7 +66,7 @@
             },
             "input": [
                 {
-                    "@id": "#input-textfile"
+                    "@id": "#input-empiar-dataset"
                 }
             ],
             "output": [
@@ -76,17 +76,14 @@
             ]
         },
         {
-            "@id": "#input-textfile",
+            "@id": "#input-empiar-dataset",
             "@type": "FormalParameter",
             "conformsTo": {
                 "@id": "https://bioschemas.org/profiles/FormalParameter/0.1-DRAFT-2020_07_21/"
             },
-            "name": "simpletext_input",
-            "additionalType": {
-                "@id": "http://edamontology.org/data_3671"
-            },
-            "encodingFormat": {
-                "@id": "http://edamontology.org/format_2330"
+            "name": "empiar_dataset",
+            "defaultValue": {
+                "@id": "rsync://ftp.ebi.ac.uk/empiar/world_availability/12944/"
             }
         },
         {
@@ -111,10 +108,9 @@
             "url": "http://scipion.i2pc.es/"
         },
         {
-            "@id": "https://example-files.online-convert.com/document/txt/example.txt",
-            "@type": "File",
-            "name": "simpletext_input",
-            "encodingFormat": "text/txt"
+            "@id": "rsync://ftp.ebi.ac.uk/empiar/world_availability/12944/",
+            "@type": "Dataset",
+            "name": "empiar_dataset"
         },
         {
             "@id": "#destination",
