@@ -16,4 +16,4 @@ request = MinimalVRERequest(
         ),
     ],
 )
-RocrateBuilder.build_from_minimal(request)
+print(RocrateBuilder.build_from_minimal(request))
