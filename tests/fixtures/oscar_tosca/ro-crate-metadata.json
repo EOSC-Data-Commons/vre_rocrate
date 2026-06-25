@@ -32,9 +32,6 @@
                 },
                 {
                     "@id": "https://example-files.online-convert.com/document/txt/example.txt"
-                },
-                {
-                    "@id": "https://raw.githubusercontent.com/grycap/oscar/refs/heads/master/examples/cowsay/script.sh"
                 }
             ]
         },
@@ -67,12 +64,6 @@
             "runtimePlatform": {
                 "@id": "#destination"
             }
-        },
-        {
-            "@id": "https://raw.githubusercontent.com/grycap/oscar/refs/heads/master/examples/cowsay/script.sh",
-            "@type": "File",
-            "name": "script.sh",
-            "encodingFormat": "text/x-shellscript"
         },
         {
             "@id": "#oscar-lang",
