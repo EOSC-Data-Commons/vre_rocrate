@@ -25,12 +25,14 @@ class MinimalVRERequest:
     - workflow: Required for Galaxy and OSCAR (URL or filename)
     - files: Optional list of file inputs
     - runtime_platform: Optional override for target service URL
+    - receiver_userid: Optional ScienceMesh receiver user ID
     """
 
     vre_type: str
     workflow: str | None = None
     files: list[MinimalFileInput] = field(default_factory=list)
     runtime_platform: str | None = None
+    receiver_userid: str | None = None
 
     def __post_init__(self) -> None:
         if self.vre_type not in VRE_TYPES:
