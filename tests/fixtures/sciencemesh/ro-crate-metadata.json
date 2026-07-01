@@ -82,23 +82,6 @@
             "url": "https://jupyter.org/"
         },
         {
-            "@id": "#creator",
-            "@type": "Person",
-            "name": "Rasmus Oscar Welander",
-            "userid": "rasmus.oscar.welander@egi.eu"
-        },
-        {
-            "@id": "#sender",
-            "@type": "Person",
-            "name": "Rasmus Oscar Welander",
-            "userid": "rasmus.oscar.welander@egi.eu"
-        },
-        {
-            "@id": "#owner",
-            "@type": "Person",
-            "userid": "rasmus.oscar.welander@egi.eu"
-        },
-        {
             "@id": "#receiver",
             "@type": "Person",
             "userid": "rwelande@cernbox.cern.ch"
