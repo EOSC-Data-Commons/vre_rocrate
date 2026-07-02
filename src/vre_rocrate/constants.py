@@ -2,7 +2,7 @@
 
 GALAXY_PROGRAMMING_LANGUAGE = "https://galaxyproject.org/"
 BINDER_PROGRAMMING_LANGUAGE = "https://jupyter.org/binder/"
-SCIENCEMESH_PROGRAMMING_LANGUAGE = "https://qa.cernbox.cern.ch"
+SCIENCEMESH_PROGRAMMING_LANGUAGE = "https://eosc.cernbox.cern.ch"
 SCIPION_PROGRAMMING_LANGUAGE = "http://scipion.i2pc.es/"
 OSCAR_PROGRAMMING_LANGUAGE = "https://oscar.grycap.net/"
 JUPYTER_PROGRAMMING_LANGUAGE = "https://jupyter.org"
