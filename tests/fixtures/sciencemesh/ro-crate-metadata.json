@@ -61,7 +61,7 @@
                 "@id": "#workflow-hub"
             },
             "version": "1.0.0",
-            "runtimePlatform": "https://qa.cernbox.cern.ch",
+            "runtimePlatform": "https://eosc.cernbox.cern.ch",
             "encodingFormat": "application/x-ipynb+json"
         },
         {
@@ -84,7 +84,7 @@
         {
             "@id": "#receiver",
             "@type": "Person",
-            "userid": "rwelande@cernbox.cern.ch"
+            "userid": "rwelande@eosc.cernbox.cern.ch"
         },
         {
             "@id": "#workflow-hub",

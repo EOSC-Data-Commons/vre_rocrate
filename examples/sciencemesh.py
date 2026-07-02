@@ -16,7 +16,7 @@ request = MinimalVRERequest(
     workflow=WORKFLOW_URL,
     files=[DATA_FILE],
     runtime_platform="https://eosc.cernbox.cern.ch",
-    receiver_userid="rwelande@cernbox.cern.ch",
+    receiver_userid="rwelande@eosc.cernbox.cern.ch",
 )
 
 print(RocrateBuilder.build_from_minimal(request))
