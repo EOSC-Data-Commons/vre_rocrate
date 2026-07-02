@@ -77,7 +77,7 @@
         {
             "@id": "#sciencemesh-lang",
             "@type": "ComputerLanguage",
-            "identifier": "https://qa.cernbox.cern.ch",
+            "identifier": "https://eosc.cernbox.cern.ch",
             "name": "Jupyter Notebook",
             "url": "https://jupyter.org/"
         },
