@@ -109,7 +109,7 @@
         },
         {
             "@id": "rsync://ftp.ebi.ac.uk/empiar/world_availability/12944/",
-            "@type": "Dataset",
+            "@type": "File",
             "name": "empiar_dataset"
         },
         {
