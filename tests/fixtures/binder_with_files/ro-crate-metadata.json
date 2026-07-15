@@ -1,0 +1,65 @@
+{
+  "@context": "https://w3id.org/ro/crate/1.1/context",
+  "@graph": [
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      },
+      "conformsTo": {
+        "@id": "https://w3id.org/ro/crate/1.1"
+      }
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "name": "DataLens Binder notebook example", 
+      "description": "An RO-Crate describing the DataLens notebook, its Binder execution environment, staged input data and non-sensitive launch parameters.", 
+      "datePublished": "2026-07-15",
+      "mainEntity": {
+        "@id": "https://github.com/recap/DataLens"
+      },
+      "hasPart": [
+        {
+          "@id": "#launch-configuration"
+        }
+      ]
+    },
+    {
+      "@id": "https://github.com/recap/DataLens",
+      "@type": "SoftwareSourceCode",
+      "name": "DataLens",
+      "codeRepository": "https://github.com/recap/DataLens",
+      "url": "https://github.com/recap/DataLens"
+    },
+    {
+      "@id": "#launch-configuration",
+      "@type": "Dataset",
+      "name": "NBStager launch configuration",
+      "description": "Non-sensitive environment variables and files staged into the notebook workspace.",
+      "hasPart": [
+        {
+          "@id": "#env-dataset-url"
+        },
+        {
+          "@id": "data/example.csv"
+        }
+      ]
+    },
+    {
+      "@id": "#env-dataset-url",
+      "@type": "PropertyValue",
+      "name": "DATASET_URL",
+      "propertyID": "DATASET_URL",
+      "value": "https://example.org/example.csv"
+    },
+    {
+      "@id": "data/example.csv",
+      "@type": "File",
+      "name": "Example staged CSV file",
+      "encodingFormat": "text/csv",
+      "contentUrl": "https://example.org/example.csv"
+    }
+  ]
+}
