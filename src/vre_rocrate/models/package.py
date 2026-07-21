@@ -44,19 +44,6 @@ class WorkflowDescriptor:
     runtime_platform: str | RuntimePlatform | None = None
     properties: dict[str, Any] = field(default_factory=dict, repr=False)
 
-    @property
-    def zenodo_doi(self) -> str | None:
-        """Return the bare Zenodo DOI if identifier or @id is a Zenodo DOI URL, else None."""
-        candidate = self.id
-        if candidate and "zenodo" in candidate:
-            doi = candidate
-            for prefix in ("https://doi.org/", "http://doi.org/"):
-                if doi.startswith(prefix):
-                    doi = doi[len(prefix) :]
-                    break
-            return doi
-        return None
-
 
 @dataclass
 class OCMData:
@@ -79,7 +66,7 @@ class RequestPackage:
     """
 
     vre_type: str
-    programming_language: str
+    programming_language: str  # redundant info to vre type
     workflow: WorkflowDescriptor
     files: list[FileReference] = field(default_factory=list)
     workflow_inputs: list[FormalParameter] = field(default_factory=list)
@@ -106,6 +93,11 @@ class RequestPackage:
     @property
     def remote_files(self) -> list[FileReference]:
         return [f for f in self.files if f.id.startswith(("http://", "https://"))]
+
+    @property
+    def is_repository_only(self) -> bool:
+        """True when workflow references a remote URL and no local files are provided."""
+        return self.workflow.url is not None and len(self.local_files) == 0 and len(self.env_vars) == 0
 
     @property
     def workflow_url(self) -> str | None:
