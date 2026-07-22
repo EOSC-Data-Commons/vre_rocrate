@@ -64,6 +64,15 @@ request = MinimalVRERequest(vre_type="galaxy", workflow="https://example.com/wor
 crate = RocrateBuilder.build_from_minimal(request)
 ```
 
+### Running examples
+
+In the `examples/` folder, we provide examples you can run to generate ro-crate.
+This is a example to generate print a valid ro-crate.
+
+```console
+uv run python examples/galaxy.py | jq .
+```
+
 ## Design Principles
 
 - **Models are pure data** — no construction logic, no parsing, no I/O
