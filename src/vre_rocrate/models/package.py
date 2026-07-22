@@ -87,8 +87,15 @@ class RequestPackage:
 
     @property
     def is_repository_only(self) -> bool:
-        """True when workflow references a remote URL and no local files are provided."""
-        return self.workflow.url is not None and len(self.local_files) == 0 and len(self.remote_files) == 0
+        """True when workflow references a remote URL and no additional files are provided.
+
+        The main entity may appear in hasPart (as required by ROCrate), so files
+        whose id matches workflow.url are excluded from the count.
+        """
+        if self.workflow.url is None:
+            return False
+        other_files = [f for f in self.files if f.id != self.workflow.url]
+        return len(other_files) == 0
 
     @property
     def workflow_url(self) -> str | None:
