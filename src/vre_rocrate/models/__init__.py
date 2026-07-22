@@ -4,7 +4,6 @@ from .package import (
     WorkflowDescriptor,
     FileReference,
     FormalParameter,
-    EnvVar,
 )
 from .minimal import MinimalVRERequest, MinimalFileInput
 from .infrastructure import RuntimePlatform, IMInputFile
@@ -15,7 +14,6 @@ __all__ = [
     "WorkflowDescriptor",
     "FileReference",
     "FormalParameter",
-    "EnvVar",
     "MinimalVRERequest",
     "MinimalFileInput",
     "RuntimePlatform",

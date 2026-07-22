@@ -7,14 +7,6 @@ from .infrastructure import RuntimePlatform
 
 
 @dataclass
-class EnvVar:
-    """Environment variable extracted from ROCrate PropertyValue entities."""
-
-    name: str
-    value: str
-
-
-@dataclass
 class FormalParameter:
     id: str
     name: str
@@ -71,7 +63,6 @@ class RequestPackage:
     files: list[FileReference] = field(default_factory=list)
     workflow_inputs: list[FormalParameter] = field(default_factory=list)
     workflow_outputs: list[FormalParameter] = field(default_factory=list)
-    env_vars: list[EnvVar] = field(default_factory=list)
     raw_crate: dict[str, Any] = field(default_factory=dict, repr=False)
     ocm_data: OCMData | None = None
 
@@ -97,7 +88,7 @@ class RequestPackage:
     @property
     def is_repository_only(self) -> bool:
         """True when workflow references a remote URL and no local files are provided."""
-        return self.workflow.url is not None and len(self.local_files) == 0 and len(self.env_vars) == 0
+        return self.workflow.url is not None and len(self.local_files) == 0 and len(self.remote_files) == 0
 
     @property
     def workflow_url(self) -> str | None:
@@ -155,12 +146,10 @@ class RequestPackage:
         workflow_outputs = [
             FormalParameter(**p) for p in data.pop("workflow_outputs", [])
         ]
-        env_vars = [EnvVar(**e) for e in data.pop("env_vars", [])]
         return cls(
             workflow=workflow,
             files=files,
             workflow_inputs=workflow_inputs,
             workflow_outputs=workflow_outputs,
-            env_vars=env_vars,
             **data,
         )

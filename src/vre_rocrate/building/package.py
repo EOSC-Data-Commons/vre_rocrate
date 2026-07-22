@@ -8,7 +8,6 @@ from ..models.package import (
     FileReference,
     FormalParameter,
     OCMData,
-    EnvVar,
 )
 from ..models.infrastructure import RuntimePlatform
 from ..parsing.infrastructure import runtime_platform_from_dict
@@ -61,7 +60,6 @@ class RequestPackageBuilder:
         files = self._extract_files()
         workflow_inputs = self._extract_parameters(self.main.get("input", []))
         workflow_outputs = self._extract_parameters(self.main.get("output", []))
-        env_vars = self._extract_env_vars()
         ocm_data = self._build_ocm_data()
 
         return RequestPackage(
@@ -71,7 +69,6 @@ class RequestPackageBuilder:
             files=files,
             workflow_inputs=workflow_inputs,
             workflow_outputs=workflow_outputs,
-            env_vars=env_vars,
             raw_crate=self.crate,
             ocm_data=ocm_data,
         )
@@ -176,36 +173,6 @@ class RequestPackageBuilder:
                 )
             )
         return params
-
-    # ------------------------------------------------------------------
-    # Extraction helpers continued
-    # ------------------------------------------------------------------
-
-    def _extract_env_vars(self) -> list[EnvVar]:
-        """Extract PropertyValue entities from hasPart.
-
-        PropertyValue entities define environment variables as key-value pairs.
-        The 'name' property becomes the env var name, and 'value' becomes the value.
-        """
-        has_part = self.root.get("hasPart") if self.root else []
-        env_vars: list[EnvVar] = []
-        for ref in has_part:
-            eid = ref if isinstance(ref, str) else ref.get("@id")
-            entity = self._find_entity(eid)
-            if entity is None:
-                continue
-            entity_types = entity.get("@type", [])
-            if isinstance(entity_types, str):
-                entity_types = [entity_types]
-            if "PropertyValue" not in entity_types:
-                continue
-            env_vars.append(
-                EnvVar(
-                    name=entity.get("name", ""),
-                    value=str(entity.get("value", "")),
-                )
-            )
-        return env_vars
 
     # ------------------------------------------------------------------
     # Low-level helpers
