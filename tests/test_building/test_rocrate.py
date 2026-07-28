@@ -297,3 +297,44 @@ class TestRocrateBuilder:
         package = RequestPackageBuilder.build(crate_dict)
         assert package.vre_type == SCIENCEMESH_PROGRAMMING_LANGUAGE
         assert package.workflow.id == workflow_url
+
+    def test_repository_workflow_not_staged_as_data_file(self):
+        """A repository/pipeline workflow URL must not be staged as data.
+
+        Unlike a downloadable workflow file (.ga, .ipynb, .json) which is
+        typed ``File`` and staged, a repository/pipeline URL (no inferable
+        encoding format) is fetched by the runtime platform and must be
+        typed ``SoftwareSourceCode`` + ``ComputationalWorkflow`` only, so it
+        is not collected by ``_extract_files`` and not downloaded as input.
+        """
+        workflow_url = "https://github.com/andrejcermak/DataLens"
+        request = MinimalVRERequest(
+            vre_type="binder",
+            workflow=workflow_url,
+            files=[
+                MinimalFileInput(
+                    name="dataset",
+                    url="https://github.com/EOSC-Data-Commons/dataplayer-example-dataset/blob/master/cernbox/CMSDimuon/MuRun2010B.csv",
+                    encoding_format="text/csv",
+                )
+            ],
+            runtime_platform="https://replay.notebooks.egi.eu/v2",
+        )
+        crate_dict = RocrateBuilder.build_from_minimal(request)
+
+        workflow_entity = next(
+            e for e in crate_dict["@graph"] if e.get("@id") == workflow_url
+        )
+        assert "File" not in workflow_entity["@type"]
+        assert "SoftwareSourceCode" in workflow_entity["@type"]
+        assert "ComputationalWorkflow" in workflow_entity["@type"]
+
+        package = RequestPackageBuilder.build(crate_dict)
+
+        file_ids = [f.id for f in package.files]
+        assert workflow_url not in file_ids
+        assert len(package.files) == 1
+        assert package.files[0].id == (
+            "https://github.com/EOSC-Data-Commons/dataplayer-example-dataset/blob/master/cernbox/CMSDimuon/MuRun2010B.csv"
+        )
+        assert package.workflow.id == workflow_url
