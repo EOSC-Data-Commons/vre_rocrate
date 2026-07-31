@@ -35,6 +35,7 @@ class WorkflowDescriptor:
     programming_language_id: str | None = None
     runtime_platform: str | RuntimePlatform | None = None
     properties: dict[str, Any] = field(default_factory=dict, repr=False)
+    tool_version: str | None = None
 
 
 @dataclass
@@ -65,6 +66,7 @@ class RequestPackage:
     workflow_outputs: list[FormalParameter] = field(default_factory=list)
     raw_crate: dict[str, Any] = field(default_factory=dict, repr=False)
     ocm_data: OCMData | None = None
+    raw_definition: dict[str, Any] = field(default_factory=dict, repr=False)
 
     # -- data-access helpers -------------------------------------------------
 
@@ -96,25 +98,12 @@ class RequestPackage:
 
     @property
     def input_files(self) -> list[FileReference]:
-        """Files that match declared workflow inputs, or all files if none declared.
+        """Slot-bound files plus free-form files.
 
-        Resolves file references through ``FormalParameter.default_value``.
-        If ``default_value`` is a dict with ``@id``, that @id is matched
-        against ``FileReference.id``.  Falls back to all files when no
-        inputs are declared or none carry a resolvable default value.
+        SlotsAndFiles tools (e.g. sciencemesh/cernbox) carry both slot-bound
+        parameters and free-form data attachments. Both must be available.
         """
-        if not self.workflow_inputs:
-            return self.files
-        file_ids: set[str] = set()
-        for param in self.workflow_inputs:
-            dv = param.default_value
-            if isinstance(dv, dict) and "@id" in dv:
-                file_ids.add(dv["@id"])
-            elif isinstance(dv, str):
-                file_ids.add(dv)
-        if not file_ids:
-            return self.files
-        return [f for f in self.files if f.id in file_ids]
+        return self.files
 
     @property
     def fdl_url(self) -> str | None:

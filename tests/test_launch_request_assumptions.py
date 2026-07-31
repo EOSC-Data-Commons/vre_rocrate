@@ -41,6 +41,7 @@ def _load_api():
         DatasetHandle=vre_rocrate.DatasetHandle,
         RocrateBuilder=vre_rocrate.RocrateBuilder,
         RequestPackageBuilder=vre_rocrate.RequestPackageBuilder,
+        RequestPackage=vre_rocrate.RequestPackage,
         ValidationPipeline=vre_rocrate.ValidationPipeline,
         WorkflowDescriptor=vre_rocrate.WorkflowDescriptor,
         resolve_vre_type=resolve_vre_type,

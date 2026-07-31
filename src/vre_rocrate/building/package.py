@@ -61,6 +61,7 @@ class RequestPackageBuilder:
         workflow_inputs = self._extract_parameters(self.main.get("input", []))
         workflow_outputs = self._extract_parameters(self.main.get("output", []))
         ocm_data = self._build_ocm_data()
+        raw_definition = self._extract_raw_definition()
 
         return RequestPackage(
             vre_type=lang_id or "unknown",
@@ -71,6 +72,7 @@ class RequestPackageBuilder:
             workflow_outputs=workflow_outputs,
             raw_crate=self.crate,
             ocm_data=ocm_data,
+            raw_definition=raw_definition,
         )
 
     # ------------------------------------------------------------------
@@ -110,6 +112,7 @@ class RequestPackageBuilder:
             programming_language_id=lang_id,
             runtime_platform=runtime_platform,
             properties=dict(self.main),
+            tool_version=self.main.get("version"),
         )
 
     def _build_ocm_data(self) -> OCMData:
@@ -139,6 +142,8 @@ class RequestPackageBuilder:
             if isinstance(entity_types, str):
                 entity_types = [entity_types]
             if "File" not in entity_types:
+                continue
+            if entity.get("@id") == self.main.get("@id"):
                 continue
             files.append(
                 FileReference(
@@ -173,6 +178,17 @@ class RequestPackageBuilder:
                 )
             )
         return params
+
+    # ------------------------------------------------------------------
+    # Extraction helpers
+    # ------------------------------------------------------------------
+
+    def _extract_raw_definition(self) -> dict[str, Any]:
+        """Extract raw_definition from the #tool-metadata entity if present."""
+        tm = self._find_entity("#tool-metadata")
+        if tm is None:
+            return {}
+        return tm.get("rawDefinition", {})
 
     # ------------------------------------------------------------------
     # Low-level helpers

@@ -1,4 +1,4 @@
-"""VRE RO-Crate library — parsing, validation, building, and minimal-VRE handling."""
+"""VRE RO-Crate library — parsing, validation, building, and launch-request handling."""
 
 from .models import (
     OCMData,
@@ -8,8 +8,13 @@ from .models import (
     FormalParameter,
     RuntimePlatform,
     IMInputFile,
-    MinimalVRERequest,
-    MinimalFileInput,
+    VRELaunchRequest,
+    ToolMeta,
+    LaunchInput,
+    SlotDefinition,
+    SlotValue,
+    FileInput,
+    DatasetHandle,
 )
 from .parsing import (
     ValidationPipeline,
@@ -37,8 +42,13 @@ __all__ = [
     "FormalParameter",
     "RuntimePlatform",
     "IMInputFile",
-    "MinimalVRERequest",
-    "MinimalFileInput",
+    "VRELaunchRequest",
+    "ToolMeta",
+    "LaunchInput",
+    "SlotDefinition",
+    "SlotValue",
+    "FileInput",
+    "DatasetHandle",
     "ValidationPipeline",
     "RequestPackageBuilder",
     "RocrateBuilder",

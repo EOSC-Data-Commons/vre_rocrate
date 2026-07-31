@@ -8,8 +8,18 @@ from ..constants import (
     VRE_TYPE_TO_PROGRAMMING_LANGUAGE,
     VRE_TYPE_TO_DISPLAY_NAME,
     VRE_TYPE_TO_LANGUAGE_URL,
+    resolve_vre_type,
+    VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM,
 )
-from ..models.minimal import MinimalVRERequest, MinimalFileInput
+from ..models.launch import (
+    VRELaunchRequest,
+    ToolMeta,
+    LaunchInput,
+    SlotDefinition,
+    SlotValue,
+    FileInput,
+    DatasetHandle,
+)
 
 # ------------------------------------------------------------------
 # Module-level helpers
@@ -43,41 +53,35 @@ def _extract_filename_from_url(url: str) -> str:
     return PurePosixPath(url).name
 
 
-class RocrateBuilder:
-    """Builds a complete ROCrate JSON dict from a MinimalVRERequest.
+def _file_id(f: FileInput) -> str:
+    return f.url or f.name
 
-    Uses instance methods with shared state to construct individual entities
-    and assemble them into a complete @graph.
-    """
+
+class RocrateBuilder:
+    """Builds a complete ROCrate JSON dict from a VRELaunchRequest."""
 
     def __init__(
         self,
-        vre_type: str,
-        programming_language: str,
-        display_name: str,
-        language_url: str,
-        workflow_id: str,
-        lang_id: str,
-        runtime_platform: str | None,
-        files: list[MinimalFileInput],
-        now_iso: str,
-        receiver_userid: str | None,
+        request: VRELaunchRequest,
     ):
-        self.vre_type = vre_type
-        self.programming_language = programming_language
-        self.display_name = display_name
-        self.language_url = language_url
-        self.workflow_id = workflow_id
-        self.lang_id = lang_id
-        self.runtime_platform = runtime_platform
-        self.files = files
-        self.now_iso = now_iso
-        self.receiver_userid = receiver_userid
+        self.request = request
+        self.tool: ToolMeta = request.tool
+        self.vre_type = resolve_vre_type(self.tool)
+        self.programming_language = VRE_TYPE_TO_PROGRAMMING_LANGUAGE.get(
+            self.vre_type, ""
+        )
+        self.display_name = VRE_TYPE_TO_DISPLAY_NAME.get(self.vre_type, "")
+        self.language_url = VRE_TYPE_TO_LANGUAGE_URL.get(self.vre_type, "")
+        self.lang_id = f"#{self.vre_type}-lang"
+        self.now_iso = datetime.now(timezone.utc).isoformat()
         self.graph: list[dict[str, Any]] = []
-        self.result: dict[str, Any] | None = None
+
+    def _runtime_platform(self) -> str:
+        if self.request.runtime_platform:
+            return self.request.runtime_platform
+        return VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM.get(self.vre_type, "")
 
     def _add_metadata_descriptor(self) -> None:
-        """Add the ro-crate-metadata.json descriptor entity to the graph."""
         self.graph.append(
             {
                 "@id": "ro-crate-metadata.json",
@@ -88,76 +92,69 @@ class RocrateBuilder:
         )
 
     def _add_root_dataset(self) -> None:
-        """Add the root Dataset entity with hasPart references to the graph."""
-        root_has_part: list[dict[str, str]] = [{"@id": self.workflow_id}]
-        for f in self.files:
-            file_id = f.url or f.name
-            if file_id == self.workflow_id:
-                continue
-            root_has_part.append({"@id": file_id})
+        dataset = self.request.input.dataset
+        name = dataset.title if dataset else self.tool.name
+        description = dataset.description if dataset else self.tool.description
+
+        has_part: list[dict[str, str]] = [{"@id": self.tool.uri}]
+        for sv in self.request.input.slots.values():
+            if sv.file is not None:
+                has_part.append({"@id": _file_id(sv.file)})
+        for f in self.request.input.files.values():
+            has_part.append({"@id": _file_id(f)})
+        if dataset is not None:
+            has_part.append({"@id": dataset.url})
 
         self.graph.append(
             {
                 "@id": "./",
                 "@type": "Dataset",
-                "name": "placeholder",
-                "description": "placeholder",
+                "name": name,
+                "description": description,
                 "datePublished": self.now_iso,
                 "license": {"@id": "https://spdx.org/licenses/GPL-3.0"},
                 "creator": {"@id": "#author-dispatcher"},
-                "mainEntity": {"@id": self.workflow_id},
-                "hasPart": root_has_part,
+                "mainEntity": {"@id": self.tool.uri},
+                "hasPart": has_part,
             }
         )
 
     def _add_workflow_entity(self) -> None:
-        """Add the workflow (mainEntity) entity to the graph."""
-        workflow_name = _extract_filename_from_url(self.workflow_id)
-        encoding_format = _infer_encoding_format(self.workflow_id)
+        encoding_format = _infer_encoding_format(self.tool.uri)
         now_date = datetime.now(timezone.utc).date().isoformat()
 
-        # "File" only applies to actual downloadable workflow files (e.g. .ga,
-        # .ipynb, .json). Repository/pipeline URLs (no inferable encoding) are
-        # fetched by the runtime platform and must not be staged as data, so
-        # they are typed SoftwareSourceCode + ComputationalWorkflow only.
         workflow_types = ["SoftwareSourceCode", "ComputationalWorkflow"]
         if encoding_format:
             workflow_types.insert(0, "File")
 
         workflow_entity: dict[str, Any] = {
-            "@id": self.workflow_id,
+            "@id": self.tool.uri,
             "@type": workflow_types,
             "conformsTo": {
                 "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
             },
-            "name": workflow_name,
-            "description": "placeholder",
+            "name": self.tool.name or _extract_filename_from_url(self.tool.uri),
+            "description": self.tool.description or "placeholder",
             "programmingLanguage": {"@id": self.lang_id},
             "creator": {"@id": "#author-dispatcher"},
             "dateCreated": now_date,
             "license": {"@id": "https://spdx.org/licenses/GPL-3.0"},
             "sdPublisher": {"@id": "#workflow-hub"},
-            "version": "1.0.0",
+            "version": self.tool.version,
+            "runtimePlatform": self._runtime_platform(),
         }
-        if self.runtime_platform:
-            workflow_entity["runtimePlatform"] = self.runtime_platform
         if encoding_format:
             workflow_entity["encodingFormat"] = encoding_format
 
-        # Add input references for each file (excluding the workflow itself)
         input_refs: list[dict[str, str]] = []
-        for i, f in enumerate(self.files):
-            file_id = f.url or f.name
-            if file_id == self.workflow_id:
-                continue
-            input_refs.append({"@id": f"#input-{i}"})
+        for slot in self.tool.slots:
+            input_refs.append({"@id": f"#input-{slot.id}"})
         if input_refs:
             workflow_entity["input"] = input_refs
 
         self.graph.append(workflow_entity)
 
     def _add_programming_language(self) -> None:
-        """Add the programming language entity to the graph."""
         self.graph.append(
             {
                 "@id": self.lang_id,
@@ -168,47 +165,76 @@ class RocrateBuilder:
             }
         )
 
-    def _add_file_entities(self) -> None:
-        """Add file entities from the files list to the graph."""
-        for f in self.files:
-            file_id = f.url or f.name
-            if file_id == self.workflow_id:
-                continue
+    def _build_file_entity(self, f: FileInput) -> dict[str, Any]:
+        file_entity: dict[str, Any] = {
+            "@id": _file_id(f),
+            "@type": "File",
+            "name": f.name,
+            "license": {"@id": "https://spdx.org/licenses/GPL-3.0"},
+        }
+        if f.mime_type:
+            file_entity["encodingFormat"] = f.mime_type
+        if f.url:
+            file_entity["url"] = f.url
+        if f.size_bytes is not None:
+            file_entity["contentSize"] = f.size_bytes
+        if f.checksum and f.checksum_type == "sha256":
+            file_entity["sha256"] = f.checksum
+        if f.onedata_domain:
+            file_entity["onedata:onezoneDomain"] = f.onedata_domain
+        if f.onedata_file_id:
+            file_entity["onedata:fileId"] = f.onedata_file_id
+        return file_entity
 
-            file_entity: dict[str, Any] = {
-                "@id": file_id,
-                "@type": "File",
-                "name": f.name,
-                "license": {"@id": "https://spdx.org/licenses/GPL-3.0"},
-            }
-            if f.encoding_format:
-                file_entity["encodingFormat"] = f.encoding_format
-            if f.url:
-                file_entity["url"] = f.url
-            if f.onedata_domain:
-                file_entity["onedata:onezoneDomain"] = f.onedata_domain
-            if f.onedata_file_id:
-                file_entity["onedata:fileId"] = f.onedata_file_id
-            self.graph.append(file_entity)
+    def _add_file_entities(self) -> None:
+        for sv in self.request.input.slots.values():
+            if sv.file is not None:
+                self.graph.append(self._build_file_entity(sv.file))
+        for f in self.request.input.files.values():
+            self.graph.append(self._build_file_entity(f))
 
     def _add_formal_parameters(self) -> None:
-        """Add FormalParameter entities for each file input."""
-        for i, f in enumerate(self.files):
-            file_id = f.url or f.name
-            if file_id == self.workflow_id:
-                continue
+        for slot in self.tool.slots:
+            fp: dict[str, Any] = {
+                "@id": f"#input-{slot.id}",
+                "@type": "FormalParameter",
+                "name": slot.name,
+                "additionalType": slot.slot_type,
+                "required": not slot.is_optional,
+            }
+            sv = self.request.input.slots.get(slot.name)
+            if sv is not None:
+                if sv.file is not None:
+                    fp["defaultValue"] = {"@id": _file_id(sv.file)}
+                elif sv.value is not None:
+                    fp["defaultValue"] = sv.value
+            self.graph.append(fp)
 
-            self.graph.append(
-                {
-                    "@id": f"#input-{i}",
-                    "@type": "FormalParameter",
-                    "name": f.name,
-                    "defaultValue": {"@id": file_id},
-                }
-            )
+    def _add_dataset_entity(self) -> None:
+        dataset = self.request.input.dataset
+        if dataset is None:
+            return
+        self.graph.append(
+            {
+                "@id": dataset.url,
+                "@type": "Dataset",
+                "name": dataset.title,
+                "description": dataset.description,
+            }
+        )
+
+    def _add_tool_metadata_entity(self) -> None:
+        if not self.tool.raw_definition:
+            return
+        self.graph.append(
+            {
+                "@id": "#tool-metadata",
+                "@type": "Thing",
+                "rawDefinition": self.tool.raw_definition,
+            }
+        )
 
     def _add_supporting_entities(self) -> None:
-        """Add supporting entities (author, license, workflow-hub) to the graph."""
         self.graph.append(
             {
                 "@id": "#author-dispatcher",
@@ -234,69 +260,34 @@ class RocrateBuilder:
         )
 
     def _add_receiver_entity(self) -> None:
-        """Add the #receiver Person entity if receiver_userid is set."""
-        if not self.receiver_userid:
+        sv = self.request.input.slots.get("Shared With")
+        if sv is None or sv.value is None:
             return
         self.graph.append(
             {
                 "@id": "#receiver",
                 "@type": "Person",
-                "userid": self.receiver_userid,
+                "userid": sv.value,
             }
         )
 
     def build(self) -> dict[str, Any]:
-        """Build and return the complete ROCrate JSON dict.
-
-        Returns:
-            A complete ROCrate JSON structure with @context and @graph.
-        """
         self._add_metadata_descriptor()
         self._add_root_dataset()
         self._add_workflow_entity()
         self._add_programming_language()
         self._add_file_entities()
         self._add_formal_parameters()
+        self._add_dataset_entity()
+        self._add_tool_metadata_entity()
         self._add_supporting_entities()
         self._add_receiver_entity()
-        self.result = {
+        return {
             "@context": "https://w3id.org/ro/crate/1.1/context",
             "@graph": self.graph,
         }
-        return self.result
 
     @staticmethod
-    def build_from_minimal(request: MinimalVRERequest) -> dict[str, Any]:
-        """Convert a MinimalVRERequest into a complete ROCrate JSON dict.
-
-        Args:
-            request: The minimal VRE request.
-
-        Returns:
-            A complete ROCrate JSON structure with @context and @graph.
-        """
-        vre_type: str = request.vre_type
-        programming_language: str = VRE_TYPE_TO_PROGRAMMING_LANGUAGE[vre_type]
-        display_name: str = VRE_TYPE_TO_DISPLAY_NAME[vre_type]
-        language_url: str = VRE_TYPE_TO_LANGUAGE_URL[vre_type]
-        workflow: str = request.workflow
-        runtime_platform: str | None = request.runtime_platform
-        receiver_userid: str | None = request.receiver_userid
-
-        lang_id = f"#{vre_type}-lang"
-        now_iso = datetime.now(timezone.utc).isoformat()
-
-        builder = RocrateBuilder(
-            vre_type=vre_type,
-            programming_language=programming_language,
-            display_name=display_name,
-            language_url=language_url,
-            workflow_id=workflow,
-            lang_id=lang_id,
-            runtime_platform=runtime_platform,
-            files=request.files,
-            now_iso=now_iso,
-            receiver_userid=receiver_userid,
-        )
-
-        return builder.build()
+    def build_from_launch_request(request: VRELaunchRequest) -> dict[str, Any]:
+        """Convert a VRELaunchRequest into a complete ROCrate JSON dict."""
+        return RocrateBuilder(request).build()

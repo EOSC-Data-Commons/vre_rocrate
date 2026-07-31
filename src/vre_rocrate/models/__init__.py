@@ -5,7 +5,15 @@ from .package import (
     FileReference,
     FormalParameter,
 )
-from .minimal import MinimalVRERequest, MinimalFileInput
+from .launch import (
+    VRELaunchRequest,
+    ToolMeta,
+    LaunchInput,
+    SlotDefinition,
+    SlotValue,
+    FileInput,
+    DatasetHandle,
+)
 from .infrastructure import RuntimePlatform, IMInputFile
 
 __all__ = [
@@ -14,8 +22,13 @@ __all__ = [
     "WorkflowDescriptor",
     "FileReference",
     "FormalParameter",
-    "MinimalVRERequest",
-    "MinimalFileInput",
+    "VRELaunchRequest",
+    "ToolMeta",
+    "LaunchInput",
+    "SlotDefinition",
+    "SlotValue",
+    "FileInput",
+    "DatasetHandle",
     "RuntimePlatform",
     "IMInputFile",
 ]
