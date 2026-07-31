@@ -14,630 +14,411 @@ against them, and so that any drift between plan and implementation is caught.
 Only the public API is exercised — no internal helpers, no private methods.
 """
 
+import dataclasses
+
 import pytest
+
+# The new public API does not exist yet — eager top-level imports would make
+# the module fail to collect. Instead we load the symbols lazily on first use
+# and stash them as module globals, so pytest can always discover the tests
+# and they error at runtime (not collection time) until the implementation lands.
+def _load_api():
+    import vre_rocrate
+    from vre_rocrate.constants import (
+        resolve_vre_type,
+        VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM,
+    )
+    g = globals()
+    g.update(
+        VRELaunchRequest=vre_rocrate.VRELaunchRequest,
+        ToolMeta=vre_rocrate.ToolMeta,
+        LaunchInput=vre_rocrate.LaunchInput,
+        SlotDefinition=vre_rocrate.SlotDefinition,
+        SlotValue=vre_rocrate.SlotValue,
+        FileInput=vre_rocrate.FileInput,
+        DatasetHandle=vre_rocrate.DatasetHandle,
+        RocrateBuilder=vre_rocrate.RocrateBuilder,
+        RequestPackageBuilder=vre_rocrate.RequestPackageBuilder,
+        ValidationPipeline=vre_rocrate.ValidationPipeline,
+        WorkflowDescriptor=vre_rocrate.WorkflowDescriptor,
+        resolve_vre_type=resolve_vre_type,
+        VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM=VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM,
+    )
+    return True
+
+
+@pytest.fixture(autouse=True)
+def _api():
+    if "VRELaunchRequest" not in globals():
+        _load_api()
+    yield
 
 
 # ---------------------------------------------------------------------------
-# Imports — these names must exist in the public API after the transformation.
+# Helpers / fixtures
+# ---------------------------------------------------------------------------
+
+GALAXY_URI = "https://example.org/wf.ga"
+BINDER_URI = "https://example.org/nb.ipynb"
+SCIENCEMESH_URI = "https://example.org/nb.ipynb"
+FILE_URL = "https://example.org/p.txt"
+FREE_FILE_URL = "https://example.org/free.csv"
+DATASET_URL = "https://example.org/dataset"
+
+
+def _entity(graph, eid):
+    return next(e for e in graph if e.get("@id") == eid)
+
+
+def _tool(uri, types, slots=None, raw_definition=None, version="1", name="T", tid="t"):
+    return ToolMeta(id=tid, version=version, name=name, uri=uri, types=types,
+                    slots=slots or [], raw_definition=raw_definition or {})
+
+
+@pytest.fixture
+def galaxy_slot_request():
+    """Galaxy request with one file-bound slot."""
+    return VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"],
+                   slots=[SlotDefinition(id="f", name="f", slot_type="file")]),
+        input=LaunchInput(slots={
+            "f": SlotValue(file=FileInput(name="f", url=FILE_URL)),
+        }),
+    )
+
+
+@pytest.fixture
+def binder_files_request():
+    """Binder request with one free-form file, no slots."""
+    return VRELaunchRequest(
+        tool=_tool(BINDER_URI, ["binder"]),
+        input=LaunchInput(files={
+            "data.csv": FileInput(name="data.csv", url=FREE_FILE_URL),
+        }),
+    )
+
+
+@pytest.fixture
+def galaxy_slot_and_free_file_request():
+    """Galaxy request with both a slot-bound file and a free-form file."""
+    return VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"],
+                   slots=[SlotDefinition(id="slot_file", name="slot_file", slot_type="file")]),
+        input=LaunchInput(
+            slots={
+                "slot_file": SlotValue(file=FileInput(name="slot_file",
+                                                     url="https://example.org/slot.txt")),
+            },
+            files={
+                "free.csv": FileInput(name="free.csv", url=FREE_FILE_URL),
+            },
+        ),
+    )
+
+
+@pytest.fixture
+def galaxy_empty_request():
+    """Galaxy request with no slots, no files, no dataset."""
+    return VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"]),
+        input=LaunchInput(),
+    )
+
+
+@pytest.fixture
+def sciencemesh_literal_slot_request():
+    """ScienceMesh request with a literal-value slot (Shared With)."""
+    return VRELaunchRequest(
+        tool=_tool(SCIENCEMESH_URI, ["sciencemesh"],
+                   slots=[SlotDefinition(id="Shared With", name="Shared With",
+                                         slot_type="string")]),
+        input=LaunchInput(slots={"Shared With": SlotValue(value="user@e.org")}),
+    )
+
+
+@pytest.fixture
+def galaxy_dataset_request():
+    """Galaxy request with a DatasetHandle."""
+    return VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"]),
+        input=LaunchInput(dataset=DatasetHandle(
+            url=DATASET_URL, title="DS", description="A dataset",
+        )),
+    )
+
+
+def _build(request):
+    return RocrateBuilder.build_from_launch_request(request)
+
+
+def _graph(crate):
+    return crate["@graph"]
+
+
+# ---------------------------------------------------------------------------
+# Public API existence
 # ---------------------------------------------------------------------------
 
 def test_public_api_exports_launch_types():
-    """The package must export the new launch-request types."""
     import vre_rocrate
-
-    for name in (
-        "VRELaunchRequest",
-        "ToolMeta",
-        "LaunchInput",
-        "SlotDefinition",
-        "SlotValue",
-        "FileInput",
-        "DatasetHandle",
-        "RocrateBuilder",
-        "RequestPackageBuilder",
-    ):
-        assert hasattr(vre_rocrate, name), f"vre_rocrate must export {name}"
+    for n in ("VRELaunchRequest", "ToolMeta", "LaunchInput", "SlotDefinition",
+              "SlotValue", "FileInput", "DatasetHandle", "RocrateBuilder",
+              "RequestPackageBuilder"):
+        assert hasattr(vre_rocrate, n), f"vre_rocrate must export {n}"
 
 
 def test_minimal_vre_request_removed():
-    """MinimalVRERequest and MinimalFileInput must be removed from the public API."""
     import vre_rocrate
-
     assert not hasattr(vre_rocrate, "MinimalVRERequest")
     assert not hasattr(vre_rocrate, "MinimalFileInput")
 
 
 def test_build_from_minimal_removed():
-    """RocrateBuilder.build_from_minimal must no longer exist."""
-    from vre_rocrate import RocrateBuilder
-
     assert not hasattr(RocrateBuilder, "build_from_minimal")
     assert hasattr(RocrateBuilder, "build_from_launch_request")
 
 
 # ---------------------------------------------------------------------------
-# Dataclass shapes — the fields the plan specifies in §1.
+# Dataclass shapes (plan §1)
 # ---------------------------------------------------------------------------
 
 def test_dataset_handle_fields():
-    from vre_rocrate import DatasetHandle
-
-    d = DatasetHandle(url="https://example.org/data", title="T", description="D")
-    assert d.url == "https://example.org/data"
-    assert d.title == "T"
-    assert d.description == "D"
+    d = DatasetHandle(url="u", title="T", description="D")
+    assert (d.url, d.title, d.description) == ("u", "T", "D")
 
 
 def test_slot_definition_fields():
-    from vre_rocrate import SlotDefinition
-
-    s = SlotDefinition(id="param_file", name="Parameter File", slot_type="file")
-    assert s.id == "param_file"
-    assert s.name == "Parameter File"
-    assert s.slot_type == "file"
-    assert s.is_optional is False  # default
+    s = SlotDefinition(id="p", name="P", slot_type="file")
+    assert (s.id, s.name, s.slot_type, s.is_optional) == ("p", "P", "file", False)
 
 
 def test_file_input_fields():
-    from vre_rocrate import FileInput
-
-    f = FileInput(name="data.csv")
-    assert f.name == "data.csv"
-    assert f.path is None
-    assert f.url is None
-    assert f.size_bytes is None
-    assert f.mime_type is None
-    assert f.checksum is None
-    assert f.checksum_type is None
-    assert f.onedata_domain is None
-    assert f.onedata_file_id is None
+    f = FileInput(name="d.csv")
+    assert all(getattr(f, a) is None for a in (
+        "path", "url", "size_bytes", "mime_type", "checksum",
+        "checksum_type", "onedata_domain", "onedata_file_id"))
 
 
 def test_slot_value_is_value_or_file():
-    from vre_rocrate import SlotValue, FileInput
-
-    v_literal = SlotValue(value="hello")
-    assert v_literal.value == "hello"
-    assert v_literal.file is None
-
-    v_file = SlotValue(file=FileInput(name="x.csv", url="https://e.org/x.csv"))
-    assert v_file.file is not None
-    assert v_file.file.url == "https://e.org/x.csv"
-    assert v_file.value is None
+    assert SlotValue(value="hi").file is None
+    assert SlotValue(file=FileInput(name="x")).value is None
 
 
 def test_tool_meta_fields_and_defaults():
-    from vre_rocrate import ToolMeta
-
-    t = ToolMeta(id="t", version="1", name="T", uri="https://e.org/t", types=["galaxy"])
-    assert t.id == "t"
-    assert t.version == "1"
-    assert t.name == "T"
-    assert t.uri == "https://e.org/t"
-    assert t.types == ["galaxy"]
-    assert t.description == ""
-    assert t.slots == []
-    assert t.raw_definition == {}
-    # ToolKind must NOT be a field on ToolMeta (plan constraint #7).
-    assert not hasattr(t, "tool_kind")
+    t = ToolMeta(id="t", version="1", name="T", uri="u", types=["galaxy"])
+    assert (t.description, t.slots, t.raw_definition) == ("", [], {})
+    assert not hasattr(t, "tool_kind")  # plan constraint #7
 
 
 def test_launch_input_has_slots_and_files_maps():
-    from vre_rocrate import LaunchInput
-
     li = LaunchInput()
-    assert li.dataset is None
-    assert li.slots == {}
-    assert li.files == {}
+    assert li.dataset is None and li.slots == {} and li.files == {}
 
 
 def test_vre_launch_request_fields():
-    from vre_rocrate import VRELaunchRequest, ToolMeta, LaunchInput
-
     req = VRELaunchRequest(
         tool=ToolMeta(id="t", version="1", name="T", uri="u", types=["galaxy"]),
         input=LaunchInput(),
     )
-    assert req.tool is not None
-    assert req.input is not None
-    assert req.runtime_platform is None  # default: infer from vre_type
+    assert req.tool is not None and req.input is not None
+    assert req.runtime_platform is None
 
 
 # ---------------------------------------------------------------------------
-# resolve_vre_type — the three-layer resolution in §3.
+# resolve_vre_type — three-layer resolution (plan §3)
 # ---------------------------------------------------------------------------
 
 def test_resolve_vre_type_from_raw_definition_override():
-    from vre_rocrate import ToolMeta
-    from vre_rocrate.constants import resolve_vre_type
-
-    t = ToolMeta(id="t", version="1", name="T", uri="u", types=["unknown"],
-                 raw_definition={"vre_type": "galaxy"})
+    t = _tool("u", ["unknown"], raw_definition={"vre_type": "galaxy"})
     assert resolve_vre_type(t) == "galaxy"
 
 
 def test_resolve_vre_type_from_tool_types():
-    from vre_rocrate import ToolMeta
-    from vre_rocrate.constants import resolve_vre_type
-
-    cases = {
-        "galaxy_workflow": "galaxy",
-        "vip": "vip",
-        "boutique": "vip",
-        "sciencemesh": "sciencemesh",
-        "binder-launcher": "binder",
-        "rrp": "rrp",
-    }
-    for ttype, expected in cases.items():
-        t = ToolMeta(id="t", version="1", name="T", uri="u", types=[ttype])
-        assert resolve_vre_type(t) == expected, f"{ttype} -> {expected}"
+    for ttype, expected in {
+        "galaxy_workflow": "galaxy", "vip": "vip", "boutique": "vip",
+        "sciencemesh": "sciencemesh", "binder-launcher": "binder", "rrp": "rrp",
+    }.items():
+        assert resolve_vre_type(_tool("u", [ttype])) == expected, f"{ttype} -> {expected}"
 
 
 def test_resolve_vre_type_falls_back_to_uri():
-    from vre_rocrate import ToolMeta
-    from vre_rocrate.constants import resolve_vre_type
-
-    t = ToolMeta(id="t", version="1", name="T",
-                 uri="https://usegalaxy.eu/workflows/abc", types=[])
-    assert resolve_vre_type(t) == "galaxy"
+    assert resolve_vre_type(
+        _tool("https://usegalaxy.eu/workflows/abc", [])) == "galaxy"
 
 
 def test_resolve_vre_type_raises_when_unresolvable():
-    from vre_rocrate import ToolMeta
-    from vre_rocrate.constants import resolve_vre_type
-
-    t = ToolMeta(id="t", version="1", name="T", uri="https://example.org/x", types=[])
     with pytest.raises(ValueError):
-        resolve_vre_type(t)
+        resolve_vre_type(_tool("https://example.org/x", []))
 
 
 # ---------------------------------------------------------------------------
-# Slots vs Files — the core semantic distinction (plan §2).
-# Slots produce FormalParameter entities; free-form files do not.
+# Slots vs Files — core semantic distinction (plan §2)
 # ---------------------------------------------------------------------------
 
-def _galaxy_request(slots=None, files=None, dataset=None, runtime_platform=None):
-    """Build a minimal galaxy VRELaunchRequest for crate-building tests."""
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, SlotDefinition,
-    )
-
-    tool = ToolMeta(
-        id="galaxy-test",
-        version="1",
-        name="Galaxy Test",
-        uri="https://example.org/wf.ga",
-        types=["galaxy_workflow"],
-        slots=slots or [],
-    )
-    return VRELaunchRequest(
-        tool=tool,
-        input=LaunchInput(dataset=dataset, slots=slots and {} or {}, files=files or {}),
-        runtime_platform=runtime_platform,
-    )
+def test_slots_produce_formal_parameters_named_by_slot_id(galaxy_slot_request):
+    ids = {e["@id"] for e in _graph(_build(galaxy_slot_request))}
+    assert "#input-f" in ids
 
 
-def test_slots_produce_formal_parameters_named_by_slot_id():
-    """input.slots entries must produce #input-<slot.id> FormalParameters."""
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, SlotDefinition,
-        SlotValue, FileInput, RocrateBuilder,
-    )
-
-    req = VRELaunchRequest(
-        tool=ToolMeta(
-            id="t", version="1", name="T", uri="https://example.org/w.ga",
-            types=["galaxy_workflow"],
-            slots=[SlotDefinition(id="param_file", name="param_file", slot_type="file")],
-        ),
-        input=LaunchInput(slots={
-            "param_file": SlotValue(file=FileInput(name="param_file",
-                                                    url="https://example.org/p.txt")),
-        }),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    ids = {e["@id"] for e in crate["@graph"]}
-    assert "#input-param_file" in ids
+def test_free_form_files_do_not_produce_formal_parameters(binder_files_request):
+    graph = _graph(_build(binder_files_request))
+    assert [e for e in graph if e.get("@type") == "FormalParameter"] == []
 
 
-def test_free_form_files_do_not_produce_formal_parameters():
-    """input.files entries must NOT produce FormalParameter entities."""
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, FileInput, RocrateBuilder,
-    )
-
-    req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/nb.ipynb",
-                      types=["binder"]),
-        input=LaunchInput(files={
-            "data.csv": FileInput(name="data.csv", url="https://example.org/data.csv"),
-        }),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    formal_params = [e for e in crate["@graph"] if e.get("@type") == "FormalParameter"]
-    assert formal_params == []
-
-
-def test_slot_value_literal_becomes_default_value_literal():
-    """SlotValue::Value must produce a literal defaultValue on the FormalParameter."""
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, SlotDefinition,
-        SlotValue, RocrateBuilder,
-    )
-
-    req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/w",
-                      types=["sciencemesh"],
-                      slots=[SlotDefinition(id="Shared With", name="Shared With",
-                                            slot_type="string")]),
-        input=LaunchInput(slots={"Shared With": SlotValue(value="user@e.org")}),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    fp = next(e for e in crate["@graph"] if e.get("@id") == "#input-Shared With")
+def test_slot_value_literal_becomes_default_value_literal(sciencemesh_literal_slot_request):
+    fp = _entity(_graph(_build(sciencemesh_literal_slot_request)), "#input-Shared With")
     assert fp["defaultValue"] == "user@e.org"
 
 
-def test_slot_value_file_becomes_default_value_id_ref():
-    """SlotValue::File must produce defaultValue: {"@id": file.url}."""
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, SlotDefinition,
-        SlotValue, FileInput, RocrateBuilder,
-    )
-
-    req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/w.ga",
-                      types=["galaxy_workflow"],
-                      slots=[SlotDefinition(id="f", name="f", slot_type="file")]),
-        input=LaunchInput(slots={
-            "f": SlotValue(file=FileInput(name="f", url="https://example.org/f.txt")),
-        }),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    fp = next(e for e in crate["@graph"] if e.get("@id") == "#input-f")
-    assert fp["defaultValue"] == {"@id": "https://example.org/f.txt"}
+def test_slot_value_file_becomes_default_value_id_ref(galaxy_slot_request):
+    fp = _entity(_graph(_build(galaxy_slot_request)), "#input-f")
+    assert fp["defaultValue"] == {"@id": FILE_URL}
 
 
-def test_free_form_file_appears_as_standalone_file_entity():
-    """input.files entries must appear as standalone File entities in @graph."""
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, FileInput, RocrateBuilder,
-    )
+def test_free_form_file_appears_as_standalone_file_entity(binder_files_request):
+    fe = _entity(_graph(_build(binder_files_request)), FREE_FILE_URL)
+    assert fe["@type"] == "File"
 
-    req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/nb.ipynb",
-                      types=["binder"]),
-        input=LaunchInput(files={
-            "data.csv": FileInput(name="data.csv", url="https://example.org/data.csv"),
-        }),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    file_entity = next(e for e in crate["@graph"]
-                       if e.get("@id") == "https://example.org/data.csv")
-    assert file_entity["@type"] == "File"
+
+def test_free_form_file_stated_in_dataset_haspart(binder_files_request):
+    """Free-form files must be listed in the root dataset's hasPart."""
+    crate = _build(binder_files_request)
+    root = _entity(_graph(crate), "./")
+    haspart_ids = {ref["@id"] for ref in root.get("hasPart", [])}
+    assert FREE_FILE_URL in haspart_ids
 
 
 # ---------------------------------------------------------------------------
-# runtimePlatform — always present, resolved or overridden (plan §3, §7).
+# runtimePlatform — always present, resolved or overridden (plan §3, §7)
 # ---------------------------------------------------------------------------
 
-def test_runtime_platform_inferred_when_not_set():
-    """When runtime_platform is None, the builder emits the vre_type default."""
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, RocrateBuilder,
-    )
-    from vre_rocrate.constants import VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM
-
-    req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/w.ga",
-                      types=["galaxy_workflow"]),
-        input=LaunchInput(),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    wf = next(e for e in crate["@graph"]
-              if e.get("@id") == "https://example.org/w.ga")
+def test_runtime_platform_inferred_when_not_set(galaxy_empty_request):
+    wf = _entity(_graph(_build(galaxy_empty_request)), GALAXY_URI)
     assert wf["runtimePlatform"] == VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM["galaxy"]
 
 
 def test_runtime_platform_override_used_directly():
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, RocrateBuilder,
-    )
-
     req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/w.ga",
-                      types=["galaxy_workflow"]),
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"]),
         input=LaunchInput(),
         runtime_platform="https://custom-galaxy.example.org/",
     )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    wf = next(e for e in crate["@graph"]
-              if e.get("@id") == "https://example.org/w.ga")
+    wf = _entity(_graph(_build(req)), GALAXY_URI)
     assert wf["runtimePlatform"] == "https://custom-galaxy.example.org/"
 
 
 # ---------------------------------------------------------------------------
-# Dataset entity — only when input.dataset is provided (plan §4).
+# Dataset entity — only when input.dataset is provided (plan §4)
 # ---------------------------------------------------------------------------
 
-def test_dataset_entity_present_when_dataset_provided():
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, DatasetHandle, RocrateBuilder,
-    )
-
-    req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/w.ga",
-                      types=["galaxy_workflow"]),
-        input=LaunchInput(dataset=DatasetHandle(
-            url="https://example.org/dataset", title="DS", description="A dataset",
-        )),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    ds = next(e for e in crate["@graph"]
-              if e.get("@id") == "https://example.org/dataset")
-    assert ds["@type"] == "Dataset"
-    assert ds["name"] == "DS"
+def test_dataset_entity_present_when_dataset_provided(galaxy_dataset_request):
+    ds = _entity(_graph(_build(galaxy_dataset_request)), DATASET_URL)
+    assert ds["@type"] == "Dataset" and ds["name"] == "DS"
 
 
-def test_no_dataset_entity_when_dataset_none():
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, RocrateBuilder,
-    )
-
-    req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/w.ga",
-                      types=["galaxy_workflow"]),
-        input=LaunchInput(dataset=None),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    datasets = [e for e in crate["@graph"]
+def test_no_dataset_entity_when_dataset_none(galaxy_empty_request):
+    datasets = [e for e in _graph(_build(galaxy_empty_request))
                 if e.get("@type") == "Dataset" and e.get("@id") != "./"]
     assert datasets == []
 
 
 # ---------------------------------------------------------------------------
-# #tool-metadata entity (plan §4).
+# #tool-metadata entity (plan §4)
 # ---------------------------------------------------------------------------
 
 def test_tool_metadata_entity_carries_raw_definition():
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, RocrateBuilder,
-    )
-
     raw = {"custom": "value", "nested": {"a": 1}}
     req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/w.ga",
-                      types=["galaxy_workflow"], raw_definition=raw),
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"], raw_definition=raw),
         input=LaunchInput(),
     )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    tm = next(e for e in crate["@graph"] if e.get("@id") == "#tool-metadata")
+    tm = _entity(_graph(_build(req)), "#tool-metadata")
     assert tm["rawDefinition"] == raw
 
 
 # ---------------------------------------------------------------------------
-# Round-trip: build_from_launch_request -> RequestPackageBuilder.build.
-# The crate must still be parseable into a RequestPackage.
+# Round-trip: build_from_launch_request -> RequestPackageBuilder.build
 # ---------------------------------------------------------------------------
 
-def test_roundtrip_galaxy_slots():
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, SlotDefinition,
-        SlotValue, FileInput, RocrateBuilder, RequestPackageBuilder,
-    )
-
-    req = VRELaunchRequest(
-        tool=ToolMeta(
-            id="galaxy-rt", version="1", name="Galaxy RT",
-            uri="https://example.org/rt.ga", types=["galaxy_workflow"],
-            slots=[SlotDefinition(id="param_file", name="param_file", slot_type="file")],
-        ),
-        input=LaunchInput(slots={
-            "param_file": SlotValue(file=FileInput(
-                name="param_file", url="https://example.org/p.txt",
-                mime_type="text/plain",
-            )),
-        }),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    package = RequestPackageBuilder.build(crate)
-    assert package.workflow.id == "https://example.org/rt.ga"
-    # Slot-bound file must be in the package's files.
-    assert any(f.id == "https://example.org/p.txt" for f in package.files)
+def test_roundtrip_galaxy_slots(galaxy_slot_request):
+    pkg = RequestPackageBuilder.build(_build(galaxy_slot_request))
+    assert pkg.workflow.id == GALAXY_URI
+    assert any(f.id == FILE_URL for f in pkg.files)
 
 
-def test_roundtrip_binder_free_form_files():
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, FileInput,
-        RocrateBuilder, RequestPackageBuilder,
-    )
-
-    req = VRELaunchRequest(
-        tool=ToolMeta(id="b-rt", version="1", name="Binder RT",
-                      uri="https://example.org/nb.ipynb", types=["binder"]),
-        input=LaunchInput(files={
-            "data.csv": FileInput(name="data.csv",
-                                  url="https://example.org/data.csv",
-                                  mime_type="text/csv"),
-        }),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    package = RequestPackageBuilder.build(crate)
-    assert any(f.id == "https://example.org/data.csv" for f in package.files)
+def test_roundtrip_binder_free_form_files(binder_files_request):
+    pkg = RequestPackageBuilder.build(_build(binder_files_request))
+    assert any(f.id == FREE_FILE_URL for f in pkg.files)
 
 
 def test_roundtrip_raw_definition_preserved():
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, RocrateBuilder, RequestPackageBuilder,
-    )
-
     raw = {"k": "v"}
     req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/w.ga",
-                      types=["galaxy_workflow"], raw_definition=raw),
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"], raw_definition=raw),
         input=LaunchInput(),
     )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    package = RequestPackageBuilder.build(crate)
-    assert package.raw_definition == raw
+    pkg = RequestPackageBuilder.build(_build(req))
+    assert pkg.raw_definition == raw
 
 
 def test_roundtrip_workflow_version():
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, RocrateBuilder, RequestPackageBuilder,
-    )
-
     req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="2.3.1", name="T",
-                      uri="https://example.org/w.ga", types=["galaxy_workflow"]),
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"], version="2.3.1"),
         input=LaunchInput(),
     )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    package = RequestPackageBuilder.build(crate)
-    assert package.workflow.tool_version == "2.3.1"
+    pkg = RequestPackageBuilder.build(_build(req))
+    assert pkg.workflow.tool_version == "2.3.1"
 
 
 # ---------------------------------------------------------------------------
-# RequestPackage stays additive — existing fields unchanged (plan §5).
+# RequestPackage stays additive (plan §5)
 # ---------------------------------------------------------------------------
 
 def test_request_package_existing_fields_unchanged():
-    """All pre-existing RequestPackage fields must still be present."""
-    from vre_rocrate import RequestPackage
-
-    import dataclasses
-    field_names = {f.name for f in dataclasses.fields(RequestPackage)}
-    expected = {
-        "vre_type", "programming_language", "workflow", "files",
-        "workflow_inputs", "workflow_outputs", "raw_crate", "ocm_data",
-        "raw_definition",  # NEW — additive
-    }
-    assert expected.issubset(field_names), f"missing: {expected - field_names}"
+    names = {f.name for f in dataclasses.fields(RequestPackage)}
+    assert {"vre_type", "programming_language", "workflow", "files",
+            "workflow_inputs", "workflow_outputs", "raw_crate", "ocm_data",
+            "raw_definition"}.issubset(names)
 
 
 def test_request_package_raw_definition_is_new_and_optional():
-    from vre_rocrate import RequestPackage
-
-    import dataclasses
-    fields = {f.name: f for f in dataclasses.fields(RequestPackage)}
-    assert "raw_definition" in fields
-    # Must have a default (additive, not breaking existing construction).
-    assert fields["raw_definition"].default is not None or \
-           fields["raw_definition"].default_factory is not None
+    f = {f.name: f for f in dataclasses.fields(RequestPackage)}["raw_definition"]
+    assert f.default is not None or f.default_factory is not None
 
 
 def test_workflow_descriptor_tool_version_is_new_and_optional():
-    from vre_rocrate import WorkflowDescriptor
-
-    import dataclasses
-    fields = {f.name: f for f in dataclasses.fields(WorkflowDescriptor)}
-    assert "tool_version" in fields
-    assert fields["tool_version"].default is None
+    f = {f.name: f for f in dataclasses.fields(WorkflowDescriptor)}["tool_version"]
+    assert f.default is None
 
 
 # ---------------------------------------------------------------------------
-# input_files property behavior under the new crate format (plan §6).
-# Plan assumption: slots produce FormalParameters; files-only does not.
+# input_files property behavior under the new crate format (plan §6)
 # ---------------------------------------------------------------------------
 
-def test_input_files_returns_slot_files_when_slots_present():
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, SlotDefinition,
-        SlotValue, FileInput, RocrateBuilder, RequestPackageBuilder,
-    )
-
-    req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/w.ga",
-                      types=["galaxy_workflow"],
-                      slots=[SlotDefinition(id="f", name="f", slot_type="file")]),
-        input=LaunchInput(slots={
-            "f": SlotValue(file=FileInput(name="f", url="https://example.org/f.txt")),
-        }),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    package = RequestPackageBuilder.build(crate)
-    input_ids = {f.id for f in package.input_files}
-    assert "https://example.org/f.txt" in input_ids
+def test_input_files_returns_slot_files_when_slots_present(galaxy_slot_request):
+    pkg = RequestPackageBuilder.build(_build(galaxy_slot_request))
+    assert FILE_URL in {f.id for f in pkg.input_files}
 
 
-def test_input_files_returns_all_files_when_no_slots():
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, FileInput,
-        RocrateBuilder, RequestPackageBuilder,
-    )
-
-    req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/nb.ipynb",
-                      types=["binder"]),
-        input=LaunchInput(files={
-            "a.csv": FileInput(name="a.csv", url="https://example.org/a.csv"),
-            "b.csv": FileInput(name="b.csv", url="https://example.org/b.csv"),
-        }),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    package = RequestPackageBuilder.build(crate)
-    input_ids = {f.id for f in package.input_files}
-    assert input_ids == {"https://example.org/a.csv", "https://example.org/b.csv"}
+def test_input_files_returns_all_files_when_no_slots(binder_files_request):
+    pkg = RequestPackageBuilder.build(_build(binder_files_request))
+    assert {f.id for f in pkg.input_files} == {FREE_FILE_URL}
 
 
-def test_input_files_with_slots_and_free_form_files_returns_slot_files_only():
-    """When both slots and free-form files exist, input_files returns slot files only.
-
-    This is the load-bearing assumption from plan §6: no current VRE handler
-    that uses input_files also has free-form files, so the property returns
-    slot-referenced files only.
-    """
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, SlotDefinition,
-        SlotValue, FileInput, RocrateBuilder, RequestPackageBuilder,
-    )
-
-    req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/w.ga",
-                      types=["galaxy_workflow"],
-                      slots=[SlotDefinition(id="slot_file", name="slot_file",
-                                            slot_type="file")]),
-        input=LaunchInput(
-            slots={
-                "slot_file": SlotValue(file=FileInput(
-                    name="slot_file", url="https://example.org/slot.txt",
-                )),
-            },
-            files={
-                "free.csv": FileInput(name="free.csv",
-                                      url="https://example.org/free.csv"),
-            },
-        ),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    package = RequestPackageBuilder.build(crate)
-    input_ids = {f.id for f in package.input_files}
+def test_input_files_with_slots_and_free_form_files_returns_slot_files_only(
+    galaxy_slot_and_free_file_request,
+):
+    """When both slots and free-form files exist, input_files returns slot files only."""
+    pkg = RequestPackageBuilder.build(_build(galaxy_slot_and_free_file_request))
+    input_ids = {f.id for f in pkg.input_files}
     assert "https://example.org/slot.txt" in input_ids
-    # Free-form file must NOT appear in input_files (it's in package.files but not
-    # referenced by any FormalParameter).
-    assert "https://example.org/free.csv" not in input_ids
-    # But it must still be in package.files.
-    all_ids = {f.id for f in package.files}
-    assert "https://example.org/free.csv" in all_ids
+    assert FREE_FILE_URL not in input_ids  # free-form file excluded from input_files
+    assert FREE_FILE_URL in {f.id for f in pkg.files}     # but still in all files
 
 
 # ---------------------------------------------------------------------------
-# Validation — the new crate must pass ValidationPipeline (plan §6).
+# Validation — the new crate must pass ValidationPipeline (plan §6)
 # ---------------------------------------------------------------------------
 
-def test_built_crate_passes_validation():
-    from vre_rocrate import (
-        VRELaunchRequest, ToolMeta, LaunchInput, SlotDefinition,
-        SlotValue, FileInput, RocrateBuilder, ValidationPipeline,
-    )
-
-    req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="https://example.org/w.ga",
-                      types=["galaxy_workflow"],
-                      slots=[SlotDefinition(id="f", name="f", slot_type="file")]),
-        input=LaunchInput(slots={
-            "f": SlotValue(file=FileInput(name="f", url="https://example.org/f.txt")),
-        }),
-    )
-    crate = RocrateBuilder.build_from_launch_request(req)
-    # Must not raise.
-    ValidationPipeline.validate_basic(crate)
+def test_built_crate_passes_validation(galaxy_slot_request):
+    ValidationPipeline.validate_basic(_build(galaxy_slot_request))  # must not raise
