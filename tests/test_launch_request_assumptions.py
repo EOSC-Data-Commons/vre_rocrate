@@ -18,6 +18,8 @@ import dataclasses
 
 import pytest
 
+from vre_rocrate.building.rocrate import RocrateBuilder
+
 # The new public API does not exist yet — eager top-level imports would make
 # the module fail to collect. Instead we load the symbols lazily on first use
 # and stash them as module globals, so pytest can always discover the tests
@@ -405,15 +407,16 @@ def test_input_files_returns_all_files_when_no_slots(binder_files_request):
     assert {f.id for f in pkg.input_files} == {FREE_FILE_URL}
 
 
-def test_input_files_with_slots_and_free_form_files_returns_slot_files_only(
+def test_input_files_returns_both_slot_and_free_form_files(
     galaxy_slot_and_free_file_request,
 ):
-    """When both slots and free-form files exist, input_files returns slot files only."""
+    """SlotsAndFiles tools (e.g. sciencemesh/cernbox) carry both slot parameters
+    and free-form data attachments. input_files must return both, not just the
+    slot-bound ones. Shared With is the slot; the CSV is the free-form file."""
     pkg = RequestPackageBuilder.build(_build(galaxy_slot_and_free_file_request))
     input_ids = {f.id for f in pkg.input_files}
-    assert "https://example.org/slot.txt" in input_ids
-    assert FREE_FILE_URL not in input_ids  # free-form file excluded from input_files
-    assert FREE_FILE_URL in {f.id for f in pkg.files}     # but still in all files
+    assert "https://example.org/slot.txt" in input_ids   # slot-bound file
+    assert FREE_FILE_URL in input_ids                    # free-form file, included
 
 
 # ---------------------------------------------------------------------------
