@@ -1,16 +1,7 @@
 """Assumption tests for the VRELaunchRequest transformation plan.
 
 These tests encode the behavioral assumptions stated in
-``plans/vre-launch-request-transformation.md`` against the *future* public API
-(``VRELaunchRequest``, ``ToolMeta``, ``LaunchInput``, ``SlotDefinition``,
-``SlotValue``, ``FileInput``, ``DatasetHandle``, ``RocrateBuilder.build_from_launch_request``,
-``resolve_vre_type``).
-
-They are written BEFORE the implementation exists. They are expected to FAIL
-with ImportError / AttributeError until the plan is implemented. Their purpose
-is to pin the plan's assumptions so that the implementation can be validated
-against them, and so that any drift between plan and implementation is caught.
-
+``plans/vre-launch-request-transformation.md`` against the public API.
 Only the public API is exercised — no internal helpers, no private methods.
 """
 
@@ -18,42 +9,24 @@ import dataclasses
 
 import pytest
 
-from vre_rocrate.building.rocrate import RocrateBuilder
-
-# The new public API does not exist yet — eager top-level imports would make
-# the module fail to collect. Instead we load the symbols lazily on first use
-# and stash them as module globals, so pytest can always discover the tests
-# and they error at runtime (not collection time) until the implementation lands.
-def _load_api():
-    import vre_rocrate
-    from vre_rocrate.constants import (
-        resolve_vre_type,
-        VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM,
-    )
-    g = globals()
-    g.update(
-        VRELaunchRequest=vre_rocrate.VRELaunchRequest,
-        ToolMeta=vre_rocrate.ToolMeta,
-        LaunchInput=vre_rocrate.LaunchInput,
-        SlotDefinition=vre_rocrate.SlotDefinition,
-        SlotValue=vre_rocrate.SlotValue,
-        FileInput=vre_rocrate.FileInput,
-        DatasetHandle=vre_rocrate.DatasetHandle,
-        RocrateBuilder=vre_rocrate.RocrateBuilder,
-        RequestPackageBuilder=vre_rocrate.RequestPackageBuilder,
-        RequestPackage=vre_rocrate.RequestPackage,
-        ValidationPipeline=vre_rocrate.ValidationPipeline,
-        WorkflowDescriptor=vre_rocrate.WorkflowDescriptor,
-        resolve_vre_type=resolve_vre_type,
-        VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM=VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM,
-    )
-    return True
-
-
-@pytest.fixture(autouse=True)
-def _api():
-    _load_api()
-    yield
+from vre_rocrate import (
+    VRELaunchRequest,
+    ToolMeta,
+    LaunchInput,
+    SlotDefinition,
+    SlotValue,
+    FileInput,
+    DatasetHandle,
+    RocrateBuilder,
+    RequestPackageBuilder,
+    RequestPackage,
+    WorkflowDescriptor,
+    ValidationPipeline,
+)
+from vre_rocrate.constants import (
+    resolve_vre_type,
+    VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM,
+)
 
 
 # ---------------------------------------------------------------------------
