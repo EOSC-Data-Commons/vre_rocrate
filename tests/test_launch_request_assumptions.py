@@ -52,8 +52,7 @@ def _load_api():
 
 @pytest.fixture(autouse=True)
 def _api():
-    if "VRELaunchRequest" not in globals():
-        _load_api()
+    _load_api()
     yield
 
 
