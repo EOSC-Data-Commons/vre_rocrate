@@ -1,23 +1,33 @@
-from vre_rocrate import MinimalVRERequest, MinimalFileInput, RocrateBuilder
 import json
 
-# DataLens notebook hosted on GitHub, replayed via the EOSC Replay Binder service.
-NOTEBOOK_REPO = "https://github.com/andrejcermak/DataLens"
-REPLAY_RUNTIME = "https://replay.notebooks.egi.eu"
-
-dataset = MinimalFileInput(
-    name="dataset",
-    url="https://github.com/EOSC-Data-Commons/dataplayer-example-dataset/blob/master/cernbox/CMSDimuon/MuRun2010B.csv",
-    encoding_format="text/csv",
+from vre_rocrate import (
+    VRELaunchRequest, ToolMeta, LaunchInput, FileInput, RocrateBuilder,
 )
 
-request = MinimalVRERequest(
-    vre_type="binder",
-    workflow=NOTEBOOK_REPO,
-    files=[dataset],
+REPLAY_RUNTIME = "https://replay.notebooks.egi.eu"
+
+request = VRELaunchRequest(
+    tool=ToolMeta(
+        id="datalens-notebook",
+        version="unknown",
+        name="DataLens notebook",
+        uri="https://github.com/andrejcermak/DataLens",
+        types=["egi-replay"],
+        description="DataLens notebook hosted on GitHub.",
+        slots=[],
+        raw_definition={},
+    ),
+    input=LaunchInput(
+        files={
+            "MuRun2010B.csv": FileInput(
+                name="MuRun2010B.csv",
+                url="https://github.com/EOSC-Data-Commons/dataplayer-example-dataset"
+                    "/blob/master/cernbox/CMSDimuon/MuRun2010B.csv",
+                mime_type="text/csv",
+            ),
+        },
+    ),
     runtime_platform=REPLAY_RUNTIME,
 )
 
-crate = RocrateBuilder.build_from_minimal(request)
-
-print(json.dumps(crate, indent=2))
+print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))

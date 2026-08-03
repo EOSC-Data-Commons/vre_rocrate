@@ -1,22 +1,43 @@
-from vre_rocrate import RocrateBuilder, MinimalVRERequest, MinimalFileInput
+import json
+
+from vre_rocrate import (
+    VRELaunchRequest, ToolMeta, LaunchInput,
+    SlotDefinition, SlotValue, FileInput, RocrateBuilder,
+)
 
 WORKFLOW_URL = (
     "https://raw.githubusercontent.com/dpiparo/swanExamples/"
     "refs/heads/master/notebooks/CMSDimuon_py.ipynb"
 )
 
-DATA_FILE = MinimalFileInput(
-    name="MuRun2010B.csv",
-    url="https://raw.githubusercontent.com/dpiparo/swanExamples/master/notebooks/MuRun2010B.csv",
-    encoding_format="text/csv",
+request = VRELaunchRequest(
+    tool=ToolMeta(
+        id="cms-dimuon-notebook",
+        version="1.0.0",
+        name="CMS Dimuon py notebook",
+        uri=WORKFLOW_URL,
+        types=["sciencemesh"],
+        description="Jupyter notebook for analyzing research data in ScienceMesh environment.",
+        slots=[
+            SlotDefinition(
+                id="Shared With",
+                name="Shared With",
+                slot_type="string",
+                is_optional=False,
+            ),
+        ],
+        raw_definition={},
+    ),
+    input=LaunchInput(
+        slots={"Shared With": SlotValue(value="rwelande@eosc.cernbox.cern.ch")},
+        files={
+            "MuRun2010B.csv": FileInput(
+                name="MuRun2010B.csv",
+                url="https://raw.githubusercontent.com/dpiparo/swanExamples/master/notebooks/MuRun2010B.csv",
+                mime_type="text/csv",
+            ),
+        },
+    ),
 )
 
-request = MinimalVRERequest(
-    vre_type="sciencemesh",
-    workflow=WORKFLOW_URL,
-    files=[DATA_FILE],
-    runtime_platform="https://eosc.cernbox.cern.ch",
-    receiver_userid="rwelande@eosc.cernbox.cern.ch",
-)
-
-print(RocrateBuilder.build_from_minimal(request))
+print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))
