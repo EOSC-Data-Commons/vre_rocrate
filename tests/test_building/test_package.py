@@ -12,7 +12,7 @@ BUILDER_CASES = [
     ("scipion_tosca/ro-crate-metadata.json", "http://scipion.i2pc.es/"),
     ("simple-binder/ro-crate-metadata.json", "https://jupyter.org/binder/"),
     ("jupyter/ro-crate-metadata.json", "https://jupyter.org"),
-    ("sciencemesh/ro-crate-metadata.json", "https://qa.cernbox.cern.ch"),
+    ("sciencemesh/ro-crate-metadata.json", "https://eosc.cernbox.cern.ch"),
 ]
 
 
@@ -75,7 +75,7 @@ class TestRequestPackageBuilder:
     def test_build_sciencemesh_package(self, fixtures_dir):
         source = load_json(fixtures_dir, "sciencemesh/ro-crate-metadata.json")
         package = RequestPackageBuilder.build(source)
-        assert package.vre_type == "https://qa.cernbox.cern.ch"
+        assert package.vre_type == "https://eosc.cernbox.cern.ch"
         receiver = package.get_entity("#receiver")
         assert receiver is not None
         assert "userid" in receiver
