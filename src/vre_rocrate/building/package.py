@@ -143,8 +143,6 @@ class RequestPackageBuilder:
                 entity_types = [entity_types]
             if "File" not in entity_types:
                 continue
-            if entity.get("@id") == self.main.get("@id"):
-                continue
             files.append(
                 FileReference(
                     id=entity.get("@id", ""),
