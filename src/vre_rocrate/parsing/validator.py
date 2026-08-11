@@ -52,23 +52,6 @@ def _resolve_ref(graph: list[dict[str, Any]], ref: object) -> object:
 
 
 def _validate_entity_ids(graph: list[dict[str, Any]]) -> None:
-    """Validate that every entity in the @graph declares a non-empty @id.
-
-    RO-Crate (unlike bare JSON-LD) requires every entity to be identified by
-    an @id; downstream helpers (e.g. the RequestPackage file triage) rely on
-    ids being present and unique.
-    """
-    for index, entity in enumerate(graph):
-        eid = entity.get("@id")
-        if not isinstance(eid, str) or not eid:
-            label = entity.get("name") or f"index {index}"
-            raise CrateValidationError(
-                f"Entity without @id in ROCrate graph ({label}); "
-                "RO-Crate requires every entity to have a unique @id"
-            )
-
-
-def _validate_entity_ids(graph: list[dict[str, Any]]) -> None:
     """Validate that every entity in the graph declares a non-empty @id.
 
     RO-Crate 1.1 requires each @graph entity to be identified by an @id
