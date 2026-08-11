@@ -44,6 +44,41 @@ class TestValidationPipeline:
         with pytest.raises(CrateValidationError, match="programmingLanguage"):
             ValidationPipeline.validate_basic(source)
 
+    def test_entity_without_id_raises(self):
+        """RO-Crate requires every @graph entity to declare an @id."""
+        source = {
+            "@context": "https://w3id.org/ro/crate/1.1/context",
+            "@graph": [
+                {"@id": "./", "@type": "Dataset", "mainEntity": {"@id": "#wf"}},
+                {
+                    "@id": "#wf",
+                    "@type": "File",
+                    "programmingLanguage": {"@id": "#lang"},
+                },
+                {"@id": "#lang", "@type": "ComputerLanguage", "identifier": "x"},
+                {"@type": "File", "name": "data.txt"},  # no @id
+            ],
+        }
+        with pytest.raises(CrateValidationError, match="without @id"):
+            ValidationPipeline.validate_basic(source)
+
+    def test_entity_with_empty_id_raises(self):
+        source = {
+            "@context": "https://w3id.org/ro/crate/1.1/context",
+            "@graph": [
+                {"@id": "./", "@type": "Dataset", "mainEntity": {"@id": "#wf"}},
+                {
+                    "@id": "#wf",
+                    "@type": "File",
+                    "programmingLanguage": {"@id": "#lang"},
+                },
+                {"@id": "#lang", "@type": "ComputerLanguage", "identifier": "x"},
+                {"@id": "", "@type": "File", "name": "data.txt"},
+            ],
+        }
+        with pytest.raises(CrateValidationError, match="without @id"):
+            ValidationPipeline.validate_basic(source)
+
     def test_missing_language_identifier_raises(self):
         source = {
             "@context": "https://w3id.org/ro/crate/1.1/context",

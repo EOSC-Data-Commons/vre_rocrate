@@ -114,20 +114,17 @@ class RequestPackage:
         default value) plus free-form file attachments — everything in
         ``files`` except the workflow descriptor itself, which is File-typed
         and therefore present in ``files``, but is never a data input.
-        The descriptor is excluded by id only when it has one; entities
-        without ids are always kept.
+
+        The descriptor is excluded by ``@id`` match; crates are validated to
+        carry unique non-empty ``@id``s (see :class:`ValidationPipeline`), so
+        the comparison cannot misfire on missing ids.
         """
         bound_ids = {
             f.id
             for f in (self.file_for_input(p) for p in self.workflow_inputs)
             if f is not None
         }
-        descriptor_id = self.workflow.id
-        return [
-            f
-            for f in self.files
-            if f.id in bound_ids or not descriptor_id or f.id != descriptor_id
-        ]
+        return [f for f in self.files if f.id in bound_ids or f.id != self.workflow.id]
 
     @property
     def fdl_url(self) -> str | None:
