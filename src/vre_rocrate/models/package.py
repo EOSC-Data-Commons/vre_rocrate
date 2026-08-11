@@ -90,7 +90,11 @@ class RequestPackage:
     @property
     def is_repository_only(self) -> bool:
         """True when workflow references a remote URL and no local files are provided."""
-        return self.workflow.url is not None and len(self.local_files) == 0 and len(self.remote_files) == 0
+        return (
+            self.workflow.url is not None
+            and len(self.local_files) == 0
+            and len(self.remote_files) == 0
+        )
 
     @property
     def workflow_url(self) -> str | None:
