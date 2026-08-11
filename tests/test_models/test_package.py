@@ -88,9 +88,25 @@ class TestRequestPackageHelpers:
         assert package.input_files[0].name == "simpletext_input"
 
     def test_input_files_falls_back_to_all_files(self, fixtures_dir):
-        """input_files returns all files when no workflow_inputs are declared."""
+        """input_files returns all data files when no workflow_inputs are declared."""
         source = load_json(fixtures_dir, "oscar/ro-crate-metadata.json")
         package = RequestPackageBuilder.build(source)
         # OSCAR fixture has no input parameter
         assert len(package.workflow_inputs) == 0
-        assert len(package.input_files) == len(package.files)
+        # all files except the workflow descriptor itself
+        assert {f.id for f in package.input_files} == {
+            f.id for f in package.files if f.id != package.workflow.id
+        }
+
+    def test_input_files_vip_slot_files_only(self, fixtures_dir):
+        """input_files returns the slot-bound input files, never the workflow descriptor."""
+        source = load_json(fixtures_dir, "vip/ro-crate-metadata.json")
+        package = RequestPackageBuilder.build(source)
+        assert len(package.workflow_inputs) == 3
+        assert len(package.input_files) == 3
+        assert package.workflow.id not in {f.id for f in package.input_files}
+        assert {f.name for f in package.input_files} == {
+            "parameter_file",
+            "data_file",
+            "zipped_folder",
+        }

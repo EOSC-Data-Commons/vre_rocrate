@@ -79,6 +79,12 @@ class RequestPackage:
                 return f
         return None
 
+    def file_for_input(self, param: FormalParameter) -> FileReference | None:
+        """Resolve an input slot's file binding via its default value, if any."""
+        dv = param.default_value
+        file_id = dv.get("@id") if isinstance(dv, dict) else dv
+        return self.file_by_id(str(file_id)) if file_id else None
+
     @property
     def local_files(self) -> list[FileReference]:
         return [f for f in self.files if not f.id.startswith(("http://", "https://"))]
@@ -102,12 +108,26 @@ class RequestPackage:
 
     @property
     def input_files(self) -> list[FileReference]:
-        """Slot-bound files plus free-form files.
+        """Input data files of the request.
 
-        SlotsAndFiles tools (e.g. sciencemesh/cernbox) carry both slot-bound
-        parameters and free-form data attachments. Both must be available.
+        Slot-bound files (resolved via each input ``FormalParameter``'s
+        default value) plus free-form file attachments — everything in
+        ``files`` except the workflow descriptor itself, which is File-typed
+        and therefore present in ``files``, but is never a data input.
+        The descriptor is excluded by id only when it has one; entities
+        without ids are always kept.
         """
-        return self.files
+        bound_ids = {
+            f.id
+            for f in (self.file_for_input(p) for p in self.workflow_inputs)
+            if f is not None
+        }
+        descriptor_id = self.workflow.id
+        return [
+            f
+            for f in self.files
+            if f.id in bound_ids or not descriptor_id or f.id != descriptor_id
+        ]
 
     @property
     def fdl_url(self) -> str | None:
