@@ -85,6 +85,13 @@ class RequestPackage:
         file_id = dv.get("@id") if isinstance(dv, dict) else dv
         return self.file_by_id(str(file_id)) if file_id else None
 
+    def input_by_name(self, name: str) -> FormalParameter | None:
+        """Return the declared input slot with the given name, if any."""
+        for p in self.workflow_inputs:
+            if p.name == name:
+                return p
+        return None
+
     @property
     def local_files(self) -> list[FileReference]:
         return [f for f in self.files if not f.id.startswith(("http://", "https://"))]

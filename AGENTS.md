@@ -13,7 +13,7 @@ RO-Crate parsing/building library for EOSC VRE dispatch. Python 3.10+, src layou
 .venv/bin/python examples/galaxy.py | jq .     # print a generated crate (one example per VRE type)
 ```
 
-Black (line-length 88) is configured in `pyproject.toml` but **not enforced** — no CI, no pre-commit, no lint/typecheck config. `black --check` currently fails on 3 files; reformatting everything creates diff noise.
+Black (line-length 88) is configured in `pyproject.toml` but **not enforced** — no CI, no pre-commit, no lint/typecheck config. `black --check` currently fails on 3 files; reformatting everything creates diff noise. **Do not run black (or any formatter) on files you edit** — diffs must contain only the intended change; write new/edited lines in the surrounding hand style (see `examples/sciencemesh.py` for the import-block convention). Only ever run black when formatting is the explicit task.
 
 ## Architecture (three layers, per README)
 

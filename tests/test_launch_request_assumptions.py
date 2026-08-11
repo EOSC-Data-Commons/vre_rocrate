@@ -36,6 +36,7 @@ from vre_rocrate.constants import (
 GALAXY_URI = "https://example.org/wf.ga"
 BINDER_URI = "https://example.org/nb.ipynb"
 SCIENCEMESH_URI = "https://example.org/nb.ipynb"
+MDDASH_URI = "https://github.com/sb-ncbr/mddash-notebooks.git"
 FILE_URL = "https://example.org/p.txt"
 FREE_FILE_URL = "https://example.org/free.csv"
 DATASET_URL = "https://example.org/dataset"
@@ -119,6 +120,17 @@ def galaxy_dataset_request():
         input=LaunchInput(dataset=DatasetHandle(
             url=DATASET_URL, title="DS", description="A dataset",
         )),
+    )
+
+
+@pytest.fixture
+def mddash_scalar_slot_request():
+    """MDDash request with a scalar pdb_id slot (no files at all)."""
+    return VRELaunchRequest(
+        tool=_tool(MDDASH_URI, ["mddash"],
+                   slots=[SlotDefinition(id="pdb_id", name="pdb_id",
+                                          slot_type="string")]),
+        input=LaunchInput(slots={"pdb_id": SlotValue(value="1L2Y")}),
     )
 
 
@@ -248,6 +260,20 @@ def test_slot_value_literal_becomes_default_value_literal(sciencemesh_literal_sl
 def test_slot_value_file_becomes_default_value_id_ref(galaxy_slot_request):
     fp = _entity(_graph(_build(galaxy_slot_request)), "#input-f")
     assert fp["defaultValue"] == {"@id": FILE_URL}
+
+
+def test_mddash_scalar_slot_produces_no_file_and_roundtrips(
+    mddash_scalar_slot_request,
+):
+    """A scalar (string) slot produces no File entity; value survives the round-trip."""
+    crate = _build(mddash_scalar_slot_request)
+    file_entities = [e for e in _graph(crate) if e.get("@type") == "File"]
+    assert file_entities == []
+    pkg = RequestPackageBuilder.build(crate)
+    param = pkg.input_by_name("pdb_id")
+    assert param is not None
+    assert param.default_value == "1L2Y"
+    assert pkg.input_files == []
 
 
 def test_free_form_file_appears_as_standalone_file_entity(binder_files_request):

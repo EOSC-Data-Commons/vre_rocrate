@@ -234,7 +234,7 @@ as new optional fields on `FileReference`.
 | **VREOSCAR** | `workflow_url`, `oscar_input_files[]`, `oscar_input_files[].url` | FDL JSON URL + input file URLs for job invocation |
 | **VREScipion** | (nothing) | Just returns `svc_url` — no data from package |
 | **VREJupyter** | `files[]`, `files[].id`, `files[].properties.content` | Notebook .ipynb file content |
-| **VREMDDash** | `workflow.url`, `input_files[]`, `input_files[].name` | PDB filename + notebooks repo URL |
+| **VREMDDash** | `workflow.url`, `workflow_inputs["pdb_id"].default_value` | PDB accession (scalar slot) + notebooks repo URL |
 | **VREScienceMesh** | `ocm_data`, `files[]`, `raw_crate` | OCM share metadata + raw crate as embedded payload |
 
 **Observation**: Most handlers only need (a) a workflow identifier URL, (b) file URLs or file content.
