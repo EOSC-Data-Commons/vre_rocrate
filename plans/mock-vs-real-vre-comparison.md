@@ -251,7 +251,7 @@ The real `VREBinder` already handles EGI Replay via `runtimePlatform`. When the 
 1. Reads OCM parties from generic `RequestPackage` accessors (`OCMData` was retired):
    - `Shared With` slot value via `RequestPackage.input_by_name("Shared With")`
    - `root_name`, `root_description` from root Dataset ( `get_entity("./")` )
-   - `resource_id` from `#identifier` entity if present, else generated UUID
+   - `resource_id` always a fresh UUID (crate-stable ID derivation is still a TODO; nothing emits `#identifier`)
 2. Extracts `sender_userid` and `sender_name` from the **JWT access token** (not from crate)
 3. Posts `RequestPackage.raw_crate` directly as `protocol.embedded.payload`
 4. POSTs to `{svc_url}/ocm/shares`
@@ -264,7 +264,7 @@ The real `VREBinder` already handles EGI Replay via `runtimePlatform`. When the 
 | **Receiver identity** | From `input.slots["Shared With"]` (slot value) | From the `"Shared With"` input slot value (no `#receiver` entity anymore) |
 | **Sender identity** | From `user_info.email` + `user_info.name` | From JWT token (`extract_user_from_token`) |
 | **Sender OCM address** | Constructed as `{email}@eosc-coordinator.ethz.ch` | Constructed as `{email}@{host}` |
-| **Resource ID** | Uses `task_id` (UUID) | From `#identifier` entity if present, otherwise generated UUID |
+| **Resource ID** | Uses `task_id` (UUID) | Always a fresh UUID (crate-stable derivation TODO) |
 | **Crate structure** | Custom minimal crate (only root + files + receiver/creator/sender) | Uses existing `raw_crate` from the incoming RO-Crate |
 | **File encoding** | `mime_type` from `FileEntry` | Already in crate entities |
 | **File URL** | `download_url` from `FileEntry` | Already in crate entities |

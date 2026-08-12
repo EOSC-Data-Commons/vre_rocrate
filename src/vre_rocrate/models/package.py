@@ -134,6 +134,16 @@ class RequestPackage:
                 return item
         return None
 
+    @property
+    def root_name(self) -> str:
+        """Name of the crate root dataset (./), empty if unavailable."""
+        return (self.get_entity("./") or {}).get("name", "")
+
+    @property
+    def root_description(self) -> str:
+        """Description of the crate root dataset (./), empty if unavailable."""
+        return (self.get_entity("./") or {}).get("description", "")
+
     # -- serialization -------------------------------------------------------
 
     def to_dict(self) -> dict[str, Any]:

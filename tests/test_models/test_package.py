@@ -66,6 +66,12 @@ class TestRequestPackageHelpers:
         assert len(package.workflow_outputs) == 1
         assert package.workflow_outputs[0].name == "reversed_text"
 
+    def test_root_metadata(self, fixtures_dir):
+        source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
+        package = RequestPackageBuilder.build(source)
+        assert package.root_name == "Galaxy Example Workflow"
+        assert "example of a workflow" in package.root_description
+
     def test_mixed_local_remote_files(self, fixtures_dir):
         """Verify local_files and remote_files partition correctly with mixed data."""
         source = load_json(fixtures_dir, "oscar/ro-crate-metadata.json")
