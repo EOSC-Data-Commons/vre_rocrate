@@ -7,7 +7,6 @@ from ..models.package import (
     WorkflowDescriptor,
     FileReference,
     FormalParameter,
-    OCMData,
 )
 from ..models.infrastructure import RuntimePlatform
 from ..parsing.infrastructure import runtime_platform_from_dict
@@ -60,7 +59,6 @@ class RequestPackageBuilder:
         files = self._extract_files()
         workflow_inputs = self._extract_parameters(self.main.get("input", []))
         workflow_outputs = self._extract_parameters(self.main.get("output", []))
-        ocm_data = self._build_ocm_data()
         raw_definition = self._extract_raw_definition()
 
         return RequestPackage(
@@ -71,7 +69,6 @@ class RequestPackageBuilder:
             workflow_inputs=workflow_inputs,
             workflow_outputs=workflow_outputs,
             raw_crate=self.crate,
-            ocm_data=ocm_data,
             raw_definition=raw_definition,
         )
 
@@ -113,17 +110,6 @@ class RequestPackageBuilder:
             runtime_platform=runtime_platform,
             properties=dict(self.main),
             tool_version=self.main.get("version"),
-        )
-
-    def _build_ocm_data(self) -> OCMData:
-        return OCMData(
-            receiver_userid=self._entity_prop("#receiver", "userid"),
-            owner_userid=self._entity_prop("#owner", "userid"),
-            sender_userid=self._entity_prop("#sender", "userid"),
-            sender_name=self._entity_prop("#sender", "name"),
-            root_name=self._entity_prop("./", "name"),
-            root_description=self._entity_prop("./", "description"),
-            resource_id=self._entity_prop("#identifier", "userid"),
         )
 
     # ------------------------------------------------------------------
@@ -228,9 +214,3 @@ class RequestPackageBuilder:
             return self._find_entity(ref["@id"])
         return ref
 
-    def _entity_prop(self, entity_id: str, prop: str) -> str | None:
-        """Read a property from a crate entity, returning None if missing."""
-        entity = self._find_entity(entity_id)
-        if entity is None:
-            return None
-        return entity.get(prop)

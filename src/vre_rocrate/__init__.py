@@ -1,7 +1,6 @@
 """VRE RO-Crate library — parsing, validation, building, and launch-request handling."""
 
 from .models import (
-    OCMData,
     RequestPackage,
     WorkflowDescriptor,
     FileReference,
@@ -35,7 +34,6 @@ from .constants import (
 from .exceptions import VreRocrateError, CrateValidationError
 
 __all__ = [
-    "OCMData",
     "RequestPackage",
     "WorkflowDescriptor",
     "FileReference",

@@ -39,19 +39,6 @@ class WorkflowDescriptor:
 
 
 @dataclass
-class OCMData:
-    """Data extracted from RO-Crate entities for OCM / ScienceMesh sharing."""
-
-    receiver_userid: str | None = None
-    owner_userid: str | None = None
-    sender_userid: str | None = None
-    sender_name: str | None = None
-    root_name: str | None = None
-    root_description: str | None = None
-    resource_id: str | None = None
-
-
-@dataclass
 class RequestPackage:
     """Pure data container for a VRE request package.
 
@@ -65,7 +52,6 @@ class RequestPackage:
     workflow_inputs: list[FormalParameter] = field(default_factory=list)
     workflow_outputs: list[FormalParameter] = field(default_factory=list)
     raw_crate: dict[str, Any] = field(default_factory=dict, repr=False)
-    ocm_data: OCMData | None = None
     raw_definition: dict[str, Any] = field(default_factory=dict, repr=False)
 
     # -- data-access helpers -------------------------------------------------

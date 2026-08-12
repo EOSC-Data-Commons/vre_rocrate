@@ -128,10 +128,8 @@ Instead, the root dataset IS the entity:
 │   ├── sha256: <checksum>
 │   └── ...
 │
-├── #receiver                             (Person — OCM receiver)
-│   ├── @id: "#receiver"
-│   ├── @type: "Person"
-│   └── userid: <resolved from slot or explicitly passed>
+├── (no #receiver — retired by the seam decision: OCM parties
+│   travel as input-slot FormalParameters, consumer-side resolves them)
 │
 ├── #author-dispatcher                    (Person — unchanged)
 ├── #workflow-hub                         (Organization — unchanged)
@@ -174,7 +172,7 @@ Changes needed:
    - `programming_language_id`: front root's `programmingLanguage` if present
    - `runtime_platform`: from root's `runtimePlatform` if present
 
-2. **`VREScienceMesh` handler**: continues to work — it reads `pkg.ocm_data`, `pkg.raw_crate`, not `pkg.workflow.*` in ways that would crash.
+2. **`VREScienceMesh` handler**: reads sharing parties from the input slot (`pkg.input_by_name("Shared With")`) and embeds `pkg.raw_crate`; `OCMData` was dropped from the package, so only the slot path exists.
 
 3. **`VREFactory.__call__`**: still resolves `vre_type` from `programming_language` — parsing the root's `programmingLanguage` reference gives this back.
 

@@ -1,5 +1,4 @@
 from .package import (
-    OCMData,
     RequestPackage,
     WorkflowDescriptor,
     FileReference,
@@ -17,7 +16,6 @@ from .launch import (
 from .infrastructure import RuntimePlatform, IMInputFile
 
 __all__ = [
-    "OCMData",
     "RequestPackage",
     "WorkflowDescriptor",
     "FileReference",

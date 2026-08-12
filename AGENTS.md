@@ -31,7 +31,7 @@ Note: models use stdlib dataclasses even though `pyproject.toml` declares `pydan
 - **Every `@graph` entity must declare a non-empty `@id`** (RO-Crate 1.1); blank nodes are rejected at parse time by `ValidationPipeline._validate_entity_ids`. Downstream code relies on ids being present and unique — do not add silent tolerance for missing ids elsewhere.
 - **Slots vs files**: `ToolMeta.slots` → `FormalParameter` entities (`#input-<slot.id>`); `LaunchInput.files` (free-form) → plain `File` entities in root `hasPart`, never `FormalParameter`. `RequestPackage.input_files` must return **both** slot-bound and free-form files — everything in `files` except the workflow descriptor (itself File-typed; excluded by id only when it has one, so id-less entities are always kept).
 - `resolve_vre_type()` in `constants.py`: 3-layer fallback — `raw_definition["vre_type"]` → `tool.types` via `TOOL_TYPE_TO_VRE_TYPE` → URI pattern match; raises `ValueError` if unresolvable.
-- `raw_definition` round-trips through the `#tool-metadata` entity; the `"Shared With"` slot additionally produces a `#receiver` Person (OCM/ScienceMesh sharing).
+- `raw_definition` round-trips through the `#tool-metadata` entity. The `"Shared With"` slot is a plain `FormalParameter` — the lib builds **no** `#receiver` entity and carries **no** `OCMData`: named domain conventions live on the consumer side (ScienceMesh reads parties from slots).
 - `RequestPackage` changes must be **additive only** — external VRE handlers (in other repos) read it and must not break.
 - The 4 `*_tosca*` fixtures are parse-only; `RocrateBuilder` intentionally cannot generate them (see `plans/fixture-generation-analysis.md`).
 

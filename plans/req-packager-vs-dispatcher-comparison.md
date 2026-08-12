@@ -235,7 +235,7 @@ as new optional fields on `FileReference`.
 | **VREScipion** | (nothing) | Just returns `svc_url` — no data from package |
 | **VREJupyter** | `files[]`, `files[].id`, `files[].properties.content` | Notebook .ipynb file content |
 | **VREMDDash** | `workflow.url`, `workflow_inputs["pdb_id"].default_value` | PDB accession (scalar slot) + notebooks repo URL |
-| **VREScienceMesh** | `ocm_data`, `files[]`, `raw_crate` | OCM share metadata + raw crate as embedded payload |
+| **VREScienceMesh** | `workflow_inputs["Shared With"]`, `files[]`, `raw_crate` | OCM parties from input slot + raw crate as embedded payload |
 
 **Observation**: Most handlers only need (a) a workflow identifier URL, (b) file URLs or file content.
 None of the current handlers use slot values, dataset handles, tool version, or tool kind.

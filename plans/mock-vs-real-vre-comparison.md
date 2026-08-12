@@ -248,10 +248,10 @@ The real `VREBinder` already handles EGI Replay via `runtimePlatform`. When the 
 **Trigger**: `programming_language == "https://eosc.cernbox.cern.ch"`
 
 **What it does**:
-1. Reads OCM data from `RequestPackage.ocm_data`:
-   - `receiver_userid` from `#receiver` Person entity
-   - `root_name`, `root_description` from root Dataset
-   - `resource_id` from `#identifier` entity
+1. Reads OCM parties from generic `RequestPackage` accessors (`OCMData` was retired):
+   - `Shared With` slot value via `RequestPackage.input_by_name("Shared With")`
+   - `root_name`, `root_description` from root Dataset ( `get_entity("./")` )
+   - `resource_id` from `#identifier` entity if present, else generated UUID
 2. Extracts `sender_userid` and `sender_name` from the **JWT access token** (not from crate)
 3. Posts `RequestPackage.raw_crate` directly as `protocol.embedded.payload`
 4. POSTs to `{svc_url}/ocm/shares`
@@ -261,10 +261,10 @@ The real `VREBinder` already handles EGI Replay via `runtimePlatform`. When the 
 | Aspect | Mock | Real VREScienceMesh |
 |---|---|---|
 | **RO-Crate construction** | Built inline in `create_rocrate()` function | Uses `RequestPackage.raw_crate` (parsed from JSON) |
-| **Receiver identity** | From `input.slots["Shared With"]` (slot value) | From `ocm_data.receiver_userid` (from `#receiver` entity in crate) |
+| **Receiver identity** | From `input.slots["Shared With"]` (slot value) | From the `"Shared With"` input slot value (no `#receiver` entity anymore) |
 | **Sender identity** | From `user_info.email` + `user_info.name` | From JWT token (`extract_user_from_token`) |
 | **Sender OCM address** | Constructed as `{email}@eosc-coordinator.ethz.ch` | Constructed as `{email}@{host}` |
-| **Resource ID** | Uses `task_id` (UUID) | From `ocm_data.resource_id` or generates UUID |
+| **Resource ID** | Uses `task_id` (UUID) | From `#identifier` entity if present, otherwise generated UUID |
 | **Crate structure** | Custom minimal crate (only root + files + receiver/creator/sender) | Uses existing `raw_crate` from the incoming RO-Crate |
 | **File encoding** | `mime_type` from `FileEntry` | Already in crate entities |
 | **File URL** | `download_url` from `FileEntry` | Already in crate entities |
@@ -273,7 +273,7 @@ The real `VREBinder` already handles EGI Replay via `runtimePlatform`. When the 
 
 **Critical semantic gap**: The mock **builds its own ad-hoc RO-Crate inside the dispatcher logic**. This is exactly what the `VRELaunchRequest → RocrateBuilder` transformation is meant to replace — instead of constructing crates inline, the mock should pass `ToolMeta + LaunchInput` through `vre_rocrate` to get a properly structured RO-Crate. Then the real `VREScienceMesh` can use `RequestPackage.raw_crate` as it already does.
 
-The mock's slot-based `"Shared With"` → receiver pattern also differs from the real handler's `#receiver` entity approach. The transformation plan already accounts for this: `input.slots["Shared With"]` → `#receiver` Person entity in the RO-Crate.
+The mock's slot-based `"Shared With"` → receiver pattern is now aligned with the real handler: both read the receiver as a slot value. The crate no longer materializes a `#receiver` entity — `OCMData` and the special-cased receiver generation were removed from the library.
 
 ---
 
@@ -338,7 +338,7 @@ The `VREFactory` raises `ValueError(f"Unsupported workflow language {elang}")` w
 
 ### Actions for the VRELaunchRequest Plan
 
-1. **ScienceMesh** is the clearest win — the mock's inline `create_rocrate()` should become `RocrateBuilder.build_from_launch_request()`, and the `"Shared With"` slot should map to the `#receiver` entity.
+1. **ScienceMesh** is the clearest win — the mock's inline `create_rocrate()` should become `RocrateBuilder.build_from_launch_request()`; the `"Shared With"` slot stays a `FormalParameter` (no `#receiver` entity is generated).
 
 2. **Galaxy** — the mock's slot→file mapping is richer than the real handler's simple FormalParameter→file approach. The plan already accounts for this via `FormalParameter.defaultValue`.
 

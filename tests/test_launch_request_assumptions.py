@@ -378,8 +378,9 @@ def test_roundtrip_workflow_version():
 def test_request_package_existing_fields_unchanged():
     names = {f.name for f in dataclasses.fields(RequestPackage)}
     assert {"vre_type", "programming_language", "workflow", "files",
-            "workflow_inputs", "workflow_outputs", "raw_crate", "ocm_data",
+            "workflow_inputs", "workflow_outputs", "raw_crate",
             "raw_definition"}.issubset(names)
+    assert "ocm_data" not in names  # OCMData dropped; parties travel as input slots
 
 
 def test_request_package_raw_definition_is_new_and_optional():

@@ -259,18 +259,6 @@ class RocrateBuilder:
             }
         )
 
-    def _add_receiver_entity(self) -> None:
-        sv = self.request.input.slots.get("Shared With")
-        if sv is None or sv.value is None:
-            return
-        self.graph.append(
-            {
-                "@id": "#receiver",
-                "@type": "Person",
-                "userid": sv.value,
-            }
-        )
-
     def build(self) -> dict[str, Any]:
         self._add_metadata_descriptor()
         self._add_root_dataset()
@@ -281,7 +269,6 @@ class RocrateBuilder:
         self._add_dataset_entity()
         self._add_tool_metadata_entity()
         self._add_supporting_entities()
-        self._add_receiver_entity()
         return {
             "@context": "https://w3id.org/ro/crate/1.1/context",
             "@graph": self.graph,

@@ -307,7 +307,8 @@ class RequestPackage:
     workflow_inputs: list[FormalParameter] = field(default_factory=list)
     workflow_outputs: list[FormalParameter] = field(default_factory=list)
     raw_crate: dict[str, Any] = field(default_factory=dict, repr=False)
-    ocm_data: OCMData | None = None
+    # ocm_data removed — OCMData was dropped; receiverId comes from the
+    # "Shared With" input slot via RequestPackage.input_by_name("Shared With")
     # ─── NEW ───
     raw_definition: dict[str, Any] = field(default_factory=dict)  # from ToolMeta.raw_definition
 ```
@@ -398,7 +399,7 @@ This replaces `build_from_minimal()` entirely. Key building logic:
 6. **Build File entities from `SlotValue::File`** — referenced by their owning FormalParameter
 7. **Build Dataset entity from `input.dataset`**
 8. **Build `#tool-metadata` entity from `tool.raw_definition`**
-9. **Build `#receiver` entity** if `input.slots["Shared With"].value` is set (ScienceMesh)
+9. **No `#receiver` entity** — the `"Shared With"` slot is emitted only as a `FormalParameter`; receivers travel as slot values, not named entities
 
 ---
 
@@ -410,7 +411,7 @@ This replaces `build_from_minimal()` entirely. Key building logic:
 
 ## 9. What Stays Unchanged
 
-- `src/vre_rocrate/models/package.py` — `RequestPackage` (one additive field: `raw_definition`), `WorkflowDescriptor` (one additive field: `tool_version`), `FileReference`, `FormalParameter`, `OCMData`
+- `src/vre_rocrate/models/package.py` — `RequestPackage` (one additive field: `raw_definition`), `WorkflowDescriptor` (one additive field: `tool_version`), `FileReference`, `FormalParameter`
 - `src/vre_rocrate/models/infrastructure.py` — `RuntimePlatform`, `IMInputFile`
 - `src/vre_rocrate/parsing/infrastructure.py` — unchanged
 - `src/vre_rocrate/exceptions.py`
