@@ -264,7 +264,7 @@ The real `VREBinder` already handles EGI Replay via `runtimePlatform`. When the 
 | **Receiver identity** | From `input.slots["Shared With"]` (slot value) | From the `"Shared With"` input slot value (no `#receiver` entity anymore) |
 | **Sender identity** | From `user_info.email` + `user_info.name` | From JWT token (`extract_user_from_token`) |
 | **Sender OCM address** | Constructed as `{email}@eosc-coordinator.ethz.ch` | Constructed as `{email}@{host}` |
-| **Resource ID** | Uses `task_id` (UUID) | Always a fresh UUID (crate-stable derivation TODO) |
+| **Resource ID** | Uses `task_id` (UUID) | Deterministic UUID derived from SHA-256 of the canonicalized raw crate (same crate → same resourceId) |
 | **Crate structure** | Custom minimal crate (only root + files + receiver/creator/sender) | Uses existing `raw_crate` from the incoming RO-Crate |
 | **File encoding** | `mime_type` from `FileEntry` | Already in crate entities |
 | **File URL** | `download_url` from `FileEntry` | Already in crate entities |
