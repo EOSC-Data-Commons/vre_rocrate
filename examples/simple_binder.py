@@ -22,7 +22,7 @@ request = VRELaunchRequest(
         raw_definition={},
     ),
     input=LaunchInput(),
-    runtime_platform="https://replay.notebooks.egi.eu/v2",
+    runtime_platform="https://replay.notebooks.egi.eu",
 )
 
 print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))
