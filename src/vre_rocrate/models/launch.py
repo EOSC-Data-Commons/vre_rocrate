@@ -8,14 +8,11 @@ from typing import Any
 
 @dataclass
 class DatasetHandle:
-    """Packaged dataset; when set, the crate root is named after it."""
+    """Dataset packaged by the request producer."""
 
-    url: str  # → Dataset entity @id + hasPart
-    # → Dataset.name; when set, ./ (root) name → sciencemesh share "name"
-    # (otherwise root name falls back to tool.name)
-    title: str
-    # → Dataset.description; when set, ./ description → sciencemesh share "description"
-    description: str
+    url: str  # → Dataset entity @id + hasPart; unread
+    title: str  # → Dataset.name of this Dataset entity; unread
+    description: str  # → Dataset.description of this Dataset entity; unread
 
 
 @dataclass
@@ -56,7 +53,7 @@ class SlotValue:
 class ToolMeta:
     id: str  # ignored — never serialized
     version: str  # → workflow.version; surfaced to handlers/logs only
-    name: str  # → workflow.name (fallback: uri filename); ./ name if no dataset
+    name: str  # → workflow.name (fallback: uri filename); ./ root name
     uri: str  # → workflow.@id / mainEntity; workflow_id / pipeline / notebooks-repo
     types: list[str]  # only used to resolve vre_type → programmingLanguage.identifier
     description: str = ""  # → workflow.description ("placeholder" fallback)

@@ -93,8 +93,8 @@ class RocrateBuilder:
 
     def _add_root_dataset(self) -> None:
         dataset = self.request.input.dataset
-        name = dataset.title if dataset else self.tool.name
-        description = dataset.description if dataset else self.tool.description
+        name = self.tool.name
+        description = self.tool.description or "placeholder"
 
         has_part: list[dict[str, str]] = [{"@id": self.tool.uri}]
         for sv in self.request.input.slots.values():
