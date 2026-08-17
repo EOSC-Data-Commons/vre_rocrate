@@ -8,61 +8,78 @@ from typing import Any
 
 @dataclass
 class DatasetHandle:
-    url: str
-    title: str
-    description: str
+    url: str  # → Dataset entity @id + hasPart; unread by handlers today
+    title: str  # → Dataset.name (+ ./ name); sciencemesh share name
+    description: str  # → Dataset.description; sciencemesh share description
 
 
 @dataclass
 class SlotDefinition:
-    id: str
-    name: str
+    """Slots are looked up by name in every VRE: galaxy request_state,
+    vip inputValues, mddash pdb_id, sciencemesh "Shared With"."""
+
+    id: str  # → FormalParameter @id (#input-<id>) + workflow.input ref (structural)
+    name: str  # → FormalParameter.name — the lookup key in every VRE
     slot_type: str  # "string" | "file" | "data_input" | "data_collection"
-    is_optional: bool = False
+    is_optional: bool = False  # → FormalParameter.required (inverted); unread
 
 
 @dataclass
 class FileInput:
-    name: str
-    path: str | None = None
-    url: str | None = None
-    size_bytes: int | None = None
-    mime_type: str | None = None
-    checksum: str | None = None
-    checksum_type: str | None = None  # "sha256", "md5"
-    onedata_domain: str | None = None
-    onedata_file_id: str | None = None
+    """onedata fields drive the galaxy onedata upload location."""
+
+    name: str  # → File.name — debug label only; no handler keys by it
+    path: str | None = None  # ignored — never serialized
+    url: str | None = None  # → File.@id + File.url; galaxy/vip fetch target
+    size_bytes: int | None = None  # → File.contentSize; unread by VREs
+    mime_type: str | None = None  # → File.encodingFormat; galaxy "filetype"
+    checksum: str | None = None  # → File.sha256; unread by VREs
+    checksum_type: str | None = None  # only "sha256" honored; others dropped
+    onedata_domain: str | None = None  # → onedata:onezoneDomain (see class doc)
+    onedata_file_id: str | None = None  # → onedata:fileId (see class doc)
 
 
 @dataclass
 class SlotValue:
     """Either a primitive value OR a file filling a tool-declared parameter."""
-    value: Any = None          # str | int | float | bool | None
-    file: FileInput | None = None
+
+    value: Any = None  # scalar → defaultValue literal (mddash pdb_id, vip params)
+    file: FileInput | None = None  # → File entity + defaultValue {"@id"} (binding)
 
 
 @dataclass
 class ToolMeta:
-    id: str
-    version: str
-    name: str
-    uri: str
-    types: list[str]
-    description: str = ""
-    slots: list[SlotDefinition] = field(default_factory=list)
-    raw_definition: dict[str, Any] = field(default_factory=dict)
+    id: str  # ignored — never serialized
+    version: str  # → workflow.version; surfaced to handlers/logs only
+    name: str  # → workflow.name (fallback: uri filename); ./ name if no dataset
+    uri: str  # → workflow.@id / mainEntity; workflow_id / pipeline / notebooks-repo
+    types: list[str]  # only used to resolve vre_type → programmingLanguage.identifier
+    description: str = ""  # → workflow.description ("placeholder" fallback)
+    slots: list[SlotDefinition] = field(default_factory=list)  # → FormalParameters
+    raw_definition: dict[str, Any] = field(
+        default_factory=dict
+    )  # → #tool-metadata.rawDefinition (future-facing)
 
 
 @dataclass
 class LaunchInput:
-    dataset: DatasetHandle | None = None
-    slots: dict[str, SlotValue] = field(default_factory=dict)
-    files: dict[str, FileInput] = field(default_factory=dict)
+    """files: standalone File entities (sciencemesh payload, binder/jupyter)."""
+
+    dataset: DatasetHandle | None = None  # → Dataset entity; unread today
+    slots: dict[str, SlotValue] = field(
+        default_factory=dict
+    )  # names match slots → each defaultValue
+    files: dict[str, FileInput] = field(
+        default_factory=dict
+    )  # → standalone File entities (class doc)
 
 
 @dataclass
 class VRELaunchRequest:
     """Top-level input model — replaces MinimalVRERequest."""
-    tool: ToolMeta
-    input: LaunchInput
-    runtime_platform: str | None = None
+
+    tool: ToolMeta  # → workflow entity + FormalParameters
+    input: LaunchInput  # → hasPart files + slot defaultValues + optional Dataset
+    runtime_platform: str | None = (
+        None  # → runtimePlatform (installUrl / svc_url); default from VRE_TYPE constants
+    )
