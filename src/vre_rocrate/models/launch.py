@@ -8,9 +8,14 @@ from typing import Any
 
 @dataclass
 class DatasetHandle:
-    url: str  # → Dataset entity @id + hasPart; unread by handlers today
-    title: str  # → Dataset.name (+ ./ name); sciencemesh share name
-    description: str  # → Dataset.description; sciencemesh share description
+    """Packaged dataset; when set, the crate root is named after it."""
+
+    url: str  # → Dataset entity @id + hasPart
+    # → Dataset.name; when set, ./ (root) name → sciencemesh share "name"
+    # (otherwise root name falls back to tool.name)
+    title: str
+    # → Dataset.description; when set, ./ description → sciencemesh share "description"
+    description: str
 
 
 @dataclass
