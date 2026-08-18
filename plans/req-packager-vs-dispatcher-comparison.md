@@ -69,9 +69,9 @@ The `token` is also extracted from the `Authorization: Bearer` header by the sam
 | **User identity** | Passed as explicit `user_info: &UserInfo` param | Extracted from JWT by OAuth2 middleware (`request.auth.provider.access_token`) | Different plumbing — identity flows out-of-band in real dispatcher |
 | **Auth token** | Passed as explicit `token: &RawToken` param | Same — extracted from JWT by OAuth2 middleware | Same concern, different plumbing |
 | **Tool identity** | `ToolMeta` (rich: id, version, slots, kind, raw_definition) | `RequestPackage.workflow` (URL/DOI) + `RequestPackage.vre_type` + `RequestPackage.workflow_inputs` (FormalParameter list) | **Largest semantic gap** — see §4 |
-| **Files** | `LaunchInput.files: HashMap<RenameName, FileEntry>` (with size, checksum, mime, path) | `RequestPackage.files: list[FileReference]` (id, name, encoding_format, url) | `FileEntry` is richer; real `FileReference` lacks size/checksum/path |
-| **Slot parameters** | `LaunchInput.slots: HashMap<SlotName, SlotValue>` (values or files per tool-defined slot) | `RequestPackage.workflow_inputs: list[FormalParameter]` (parameter definitions + optional defaults) | Slot *values* (user-filled) don't exist in real dispatcher yet — only declarations |
-| **Dataset handle** | `LaunchInput.dataset: DatasetHandle` (url, title, description) | **Not present** in current RO-Crate or `RequestPackage` | Entirely new concept |
+| **Files** | `LaunchInput.files: HashMap<RenameName, FileEntry>` (with size, checksum, mime, path) | `RequestPackage.files: list[FileReference]` (id, name, encoding_format, url, onedata_*, properties) | `FileEntry` is richer; rich fields land in `FileReference.properties` (`contentSize`, `sha256`), not first-class fields; original `path` is dropped at build time |
+| **Slot parameters** | `LaunchInput.slots: HashMap<SlotName, SlotValue>` (values or files per tool-defined slot) | `RequestPackage.workflow_inputs: list[FormalParameter]` (definitions + `defaultValue` carrying scalar literals OR file {@id} refs) | **Delivered.** Scalar `defaultValue` is read by MDDash (`pdb_id`), ScienceMesh (`Shared With`), and VIP scalar args; file-@{id resolution via `file_for_input`. See §6 rows below |
+| **Dataset handle** | `LaunchInput.dataset: DatasetHandle` (url, title, description) | Emitted by the builder as a standalone `Dataset` entity in hasPart when set, parsed into crate, **unread by handlers today** | Parsed but has no consumer yet — it never renames the crate root `./` (which is always tool-named) |
 | **API keys** | `api_keys: &HashMap<String, String>` | Hardcoded per-VRE (e.g. `VIP_API_KEY` in `vip.py:13`, `token` from JWT) | Per-service keys are hardcoded, not passed dynamically |
 | **Return value** | `Uuid` (task handler ID) | `{"task_id": "<celery-uuid>"}` | Same semantics: opaque task ID |
 
@@ -158,14 +158,14 @@ The real dispatcher resolves VRE handlers via **programming language URL** (from
 
 | Programming Language URL | VRE Handler | Registration |
 |---|---|---|
-| `https://galaxyproject.org/` | `VREGalaxy` | `galaxy.py:113` |
-| `https://jupyter.org/binder/` | `VREBinder` | `binder.py:81` |
-| `https://vip.creatis.insa-lyon.fr/` | `VREVIP` | `vip.py:87` |
-| `https://oscar.grycap.net/` | `VREOSCAR` | `oscar.py:113` |
-| `http://scipion.i2pc.es/` | `VREScipion` | `scipion.py:18` |
-| `https://jupyter.org` | `VREJupyter` | `jupyter.py:120` |
-| `https://eosc.cernbox.cern.ch` | `VREScienceMesh` | `sciencemesh.py:94` |
-| `https://github.com/CERIT-SC/mddash` | `VREMDDash` | `mddash.py:185` |
+| `https://galaxyproject.org/` | `VREGalaxy` | `galaxy.py:15` |
+| `https://jupyter.org/binder/` | `VREBinder` | `binder.py:20` |
+| `https://vip.creatis.insa-lyon.fr/` | `VREVIP` | `vip.py:12` |
+| `https://oscar.grycap.net/` | `VREOSCAR` | `oscar.py:17` |
+| `http://scipion.i2pc.es/` | `VREScipion` | `scipion.py:10` |
+| `https://jupyter.org` | `VREJupyter` | `jupyter.py:14` |
+| `https://eosc.cernbox.cern.ch` | `VREScienceMesh` | `sciencemesh.py:16` |
+| `https://github.com/CERIT-SC/mddash` | `VREMDDash` | `mddash.py:28` |
 
 ### Gap
 
@@ -228,9 +228,9 @@ as new optional fields on `FileReference`.
 
 | VRE Handler | Reads from `RequestPackage` | What it actually uses |
 |---|---|---|
-| **VREBinder** | `workflow.zenodo_doi`, `local_files[]`, `local_files[].id`, `local_files[].properties.content` | Workflow identifier (DOI or git) + notebook file content |
-| **VREGalaxy** | `workflow_url`, `input_files[]`, `input_files[].name`, `input_files[].url`, `input_files[].encoding_format`, `input_files[].onedata_file_id` | Workflow URL + file URLs + MIME-derived filetype |
-| **VREVIP** | `workflow_url`, `input_files[]`, `input_files[].url`, `input_files[].name` | Pipeline identifier (from workflow URL) + input file URLs |
+| **VREBinder** | `workflow.url` (+ `is_repository_only`), `local_files[]`, `local_files[].properties.content` | Workflow repo URL (Zenodo DOI path) or local git staging + notebook content |
+| **VREGalaxy** | `workflow_url`, `workflow_inputs[]` (+ `file_for_input` → file url/alias, `encoding_format`, `onedata_file_id`) | Workflow URL + file URLs keyed by **input parameter name** + MIME-derived filetype |
+| **VREVIP** | `workflow_url`, `workflow_inputs[]` (+ `file_for_input`), scalar `defaultValue` | Pipeline identifier + input URLs keyed by **input parameter name**; scalar params pass through literally; API key from vault (`vault_get_api_key`) |
 | **VREOSCAR** | `workflow_url`, `oscar_input_files[]`, `oscar_input_files[].url` | FDL JSON URL + input file URLs for job invocation |
 | **VREScipion** | (nothing) | Just returns `svc_url` — no data from package |
 | **VREJupyter** | `files[]`, `files[].id`, `files[].properties.content` | Notebook .ipynb file content |
@@ -238,9 +238,7 @@ as new optional fields on `FileReference`.
 | **VREScienceMesh** | `workflow_inputs["Shared With"]`, `files[]`, `raw_crate` | OCM parties from input slot + raw crate as embedded payload |
 
 **Observation**: Most handlers only need (a) a workflow identifier URL, (b) file URLs or file content.
-None of the current handlers use slot values, dataset handles, tool version, or tool kind.
-Those are future-facing concepts that would be needed once the dispatcher consumes
-`VRELaunchRequest`-shaped input.
+Slot values are already consumed: MDDash (scalar `pdb_id`), ScienceMesh (`Shared With`), VIP (scalar pipeline args). Dataset handles and tool kind are still future-facing — `ToolMeta.slots` is projected into `workflow_inputs` and read via `input_by_name` / `file_for_input`; `ToolMeta.id` is dropped at build time.
 
 ---
 

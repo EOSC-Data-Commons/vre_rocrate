@@ -10,9 +10,12 @@ so that it matches `req-packager`'s domain language (`ToolMeta`, `LaunchInput`, 
 
 1. **RO-Crate JSON output format can change** — restructure freely to properly represent
    the slots-vs-files distinction, dataset handle, and tool metadata from req-packager.
-2. **`RequestPackage` entity changes must be minimal** — only additive fields.
-3. **VRE handlers must not change** — they consume `RequestPackage` and the few fields
-   they read must stay present and unchanged.
+2. **`RequestPackage` entity changes should be minimal** — one additive field was planned
+   (`raw_definition`); one deliberate removal (`ocm_data`) was later accepted during
+   implementation as the better seam.
+3. **VRE handlers should not change** — initial aspiration; in practice handlers now read
+   named inputs **only** via package accessors (`input_by_name`, `file_for_input`,
+   `root_name`/`root_description`). No crate introspection is left in any handler.
 4. **`RequestPackageBuilder` gets updated** to parse the new RO-Crate format.
 5. **Old test fixtures get updated** to the new RO-Crate format.
 6. **`MinimalVRERequest` is removed** — `VRELaunchRequest` is the sole input model.
@@ -221,8 +224,8 @@ The RO-Crate is restructured to properly separate slots from files:
 ├── ./                                (root Dataset)
 │   ├── @id: "./"
 │   ├── @type: "Dataset"
-│   ├── name: <input.dataset.title or tool.name>
-│   ├── description: <input.dataset.description or tool.description>
+│   ├── name: <tool.name>
+│   ├── description: <tool.description or "placeholder">
 │   ├── datePublished: <now>
 │   ├── mainEntity → <workflow @id>
 │   ├── hasPart → [<workflow @id>, <file @ids...>, <dataset entity @id>]
@@ -277,7 +280,7 @@ The RO-Crate is restructured to properly separate slots from files:
 ├── #author-dispatcher                (Person — unchanged)
 ├── #workflow-hub                     (Organization — unchanged)
 ├── <license entity>                  (CreativeWork — unchanged)
-└── #receiver                         (Person — optional, from ScienceMesh "Shared With" slot)
+└── (removed — no #receiver entity; "Shared With" travels only as a FormalParameter slot value)
 ```
 
 ### Key structural differences from old format:
@@ -295,7 +298,7 @@ The RO-Crate is restructured to properly separate slots from files:
 
 ## 5. RequestPackage — Minimal Changes
 
-The `RequestPackage` dataclass gains exactly **one** new optional field:
+The `RequestPackage` dataclass gains **one additive field (`raw_definition`) and one deliberate removal (`ocm_data` — OCMData was dropped from the library; receivers travel as input slots; the dispatcher's ScienceMesh reads them via `input_by_name`)**:
 
 ```python
 @dataclass
@@ -313,7 +316,7 @@ class RequestPackage:
     raw_definition: dict[str, Any] = field(default_factory=dict)  # from ToolMeta.raw_definition
 ```
 
-All existing fields stay **unchanged**. All existing properties (`input_files`, `oscar_input_files`, `local_files`, `remote_files`, `zenodo_doi`, etc.) stay **unchanged**. No VRE handler reads `raw_definition` — it is a future-facing addition. `ToolKind` is intentionally excluded (derived from `tool.types`, not upstream metadata).
+All other existing fields stay unchanged. Deliberate deviation from additive-only: **`OCMData`/`ocm_data` was removed** (implemented). `zenodo_doi` had already been removed from the library before this transformation — it is no longer part of the contract. Additive properties (`input_files`, `oscar_input_files`, `local_files`, `remote_files`, etc.) stay unchanged. No VRE handler reads `raw_definition` — it is a future-facing addition. `ToolKind` is intentionally excluded (derived from `tool.types`, not upstream metadata). `root_name`/`root_description` accessors were added alongside (`./` metadata consumed by ScienceMesh).
 
 `WorkflowDescriptor` gains one new field:
 
@@ -367,8 +370,9 @@ The descriptor is excluded by `@id` match. `ValidationPipeline.validate_basic` e
 
 ### Validation update
 
-The `ValidationPipeline` must be updated to validate the new crate structure:
+The `ValidationPipeline` must be updated to validate the new crate structure (implemented since):
 
+- **Every `@graph` entity must declare a non-empty `@id`** (RO-Crate 1.1; blank nodes rejected at parse time via `ValidationPipeline._validate_entity_ids` — implemented)
 - `programmingLanguage` must resolve (unchanged)
 - `#tool-metadata` entity is optional (not present for crates not built from `VRELaunchRequest`)
 
@@ -415,7 +419,7 @@ This replaces `build_from_minimal()` entirely. Key building logic:
 - `src/vre_rocrate/models/infrastructure.py` — `RuntimePlatform`, `IMInputFile`
 - `src/vre_rocrate/parsing/infrastructure.py` — unchanged
 - `src/vre_rocrate/exceptions.py`
-- **All dispatcher VRE handlers** — zero changes
+- ~~All dispatcher VRE handlers — zero changes~~ — *aspirational at write time; revised during implementation.* Handlers changed **only** in how they read named inputs (every read goes through package accessors: `input_by_name`, `file_for_input`, `root_name`/`root_description`). No crate introspection (`get_entity`, raw-graph access) remains anywhere in `app/vres/` or `app/services/.
 - Dispatcher tasks (`app/celery/tasks.py`) — still calls `RequestPackageBuilder.build(crate_dict)`
 
 ## 10. What Gets Updated
@@ -423,8 +427,8 @@ This replaces `build_from_minimal()` entirely. Key building logic:
 - `src/vre_rocrate/building/package.py` — `RequestPackageBuilder` updated to parse new format, extract `raw_definition`
 - `src/vre_rocrate/parsing/validator.py` — validation for new crate entities
 - **All test fixtures** (`tests/fixtures/*/ro-crate-metadata.json`) — reformatted to new RO-Crate structure
-- Test builder (`tests/test_building/test_rocrate.py`) — uses `VRELaunchRequest`
-- Test models (`tests/test_models/`) — new `test_launch.py`, updated `test_package.py`
+- Test builder (`tests/test_building/test_package.py`) — uses `VRELaunchRequest`
+- Test models (`tests/test_models/`) — new `test_launch_request_assumptions.py`, updated `test_package.py`
 - **All `examples/*.py`** — converted from `MinimalVRERequest` to `VRELaunchRequest`
 
 ## 11. Examples Conversion
@@ -603,8 +607,8 @@ request = VRELaunchRequest(
     ),
     input=LaunchInput(
         # dataset=None — sciencemesh OCM share doesn't need it;
-        # the title/description come from the dispatcher-side OCMData
-        # (root dataset name/description) instead.
+        # the share's name/description come from the crate root (./) name/description,
+        # which is always the tool name/description (root never renamed by an input).
         dataset=None,
         slots={"Shared With": SlotValue(value="rwelande@eosc.cernbox.cern.ch")},
         files={

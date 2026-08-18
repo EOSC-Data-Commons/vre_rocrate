@@ -108,7 +108,9 @@ Instead, the root dataset IS the entity:
 ├── ./                                    (root Dataset)
 │   ├── @id: "./"
 │   ├── @type: "Dataset"
-│   ├── name: <share title OR "Data Package"
+│   ├── name: <share title OR "Data Package">         ← naming rule TODO: in a tool-None world,
+│   │                                                       there is no tool to name ./ after; decide
+│   │                                                       what ./ identifies there (the share itself)
 │   ├── description: <share desc OR "Data sharing package">
 │   ├── datePublished: <now>
 │   ├── creator → #author-dispatcher

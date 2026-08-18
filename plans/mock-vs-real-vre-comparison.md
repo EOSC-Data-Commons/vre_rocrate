@@ -45,7 +45,7 @@ but not the focus — the comparison targets *behavioral* and *structural* gaps.
 
 **What it does**:
 1. Reads `workflow_url` from `RequestPackage.workflow.url`
-2. Reads files from `RequestPackage.input_files` (resolved from FormalParameters)
+2. Resolves file-bound workflow inputs via `RequestPackage.workflow_inputs` + `file_for_input()` (matches mock slot semantics) — falls back to `local_files` where a crate has no workflow inputs
 3. For each file, extracts `encoding_format` (split on `/` for filetype), `url` as location
    - Special case for `onedata_file_id`: constructs onedata share URL as location
 4. POSTs to `{svc_url}/api/workflow_landings` with:
@@ -66,7 +66,7 @@ but not the focus — the comparison targets *behavioral* and *structural* gaps.
 | **Trigger mechanism** | `tool.types` intersection check | `programming_language` URL match in `VREFactory` |
 | **Workflow URL source** | `tool.uri` → WorkflowHub TRS version resolution | `RequestPackage.workflow.url` (already resolved) |
 | **Version resolution** | Calls WorkflowHub TRS API to map version name → version ID | None — version must already be in the URL |
-| **Input files source** | `input.slots` (keyed by slot name) | `RequestPackage.input_files` (from FormalParameter defaults) |
+| **Input files source** | `input.slots` (keyed by slot name) | `RequestPackage.workflow_inputs` resolved via `file_for_input()`, keyed by **parameter name** (same direction as the mock) |
 | **File location** | `SlotValue::File.download_url` | `FileReference.url` or `FileReference.id` |
 | **Filetype deduction** | `file.path.rsplit('.').next()` | `encoding_format.split("/")[-1]` |
 | **Onedata support** | ❌ Not present | ✅ Constructs onedata share URL from `onedata_file_id`/`onedata_domain` |
@@ -109,9 +109,9 @@ but not the focus — the comparison targets *behavioral* and *structural* gaps.
 **Trigger**: `programming_language == "https://vip.creatis.insa-lyon.fr/"`
 
 **What it does**:
-1. Uses hardcoded `VIP_API_KEY = "9pr5fpfnom57hphp06ee9co70f"` (not from api_keys param)
+1. Looks up the API key from the vault: `vault_get_api_key(token, "vip")` (was hardcoded before the vault migration)
 2. Extracts pipeline identifier by parsing the last two path segments of `workflow_url`
-3. Maps `input_files` → `inputValues` keyed by `FileReference.name`
+3. Maps workflow inputs → `inputValues`, keyed by **input parameter name** (file slots resolved via `file_for_input`; scalar `defaultValue` literals pass through)
 4. POSTs to `{svc_url}/rest/executions`:
    ```json
    {
@@ -127,11 +127,11 @@ but not the focus — the comparison targets *behavioral* and *structural* gaps.
 
 | Aspect | Mock | Real VREVIP |
 |---|---|---|
-| **API key** | From `api_keys["vip"]` (passed dynamically) | Hardcoded `VIP_API_KEY` constant |
+| **API key** | From `api_keys["vip"]` (passed dynamically) | Vault lookup `vault_get_api_key(token, "vip")` |
 | **Pipeline identifier** | `tool.name/tool.version` | Parsed from last two path segments of `workflow_url` |
-| **Input values source** | `input.slots`, mapped by `slot.id` | `input_files`, mapped by `FileReference.name` |
+| **Input values source** | `input.slots`, mapped by `slot.id` | `workflow_inputs` resolved via `file_for_input()`, keyed by **input parameter name** |
 | **Slot ID resolution** | Looks up `tool.slots` to find `slot.id` by matching `slot.name` | No slot concept — uses file names directly |
-| **Primitive values in slots** | Supported: `SlotValue::Value(v)` → raw JSON | Not supported — only file URLs |
+| **Primitive values in slots** | Supported: `SlotValue::Value(v)` → raw JSON | Supported: scalar `defaultValue` literals pass through verbatim |
 | **VIP endpoint** | Hardcoded `https://vip.creatis.insa-lyon.fr/test/` | `svc_url` from runtimePlatform or default |
 | **Execution name** | `"eosc-{task_id}"` | `"vip-execution-{request_id}"` |
 
@@ -152,9 +152,9 @@ but not the focus — the comparison targets *behavioral* and *structural* gaps.
 **Trigger**: `programming_language == "https://jupyter.org/binder/"`
 
 **What it does**:
-1. Checks for Zenodo DOI in `workflow.zenodo_doi`
-2. If DOI: returns `{svc_url}/v2/zenodo/{doi}/`
-3. If no DOI: creates a local git repo from `local_files`, initializes git, returns `{svc_url}/git/{encoded_url}/HEAD`
+1. Checks whether the workflow references a URL (`workflow.url`) and no files — `request_package.is_repository_only`
+2. If repository-only (Zenodo DOI URL or git URL): returns the derived BinderHub URL (DOI → `{svc_url}/v2/zenodo/{doi}/`; git repo → `/v2/gh/...`)
+3. If any files exist: creates a local git repo from their content, registers it, returns `{svc_url}/git/{encoded_url}/HEAD`
 
 ### Comparison
 
@@ -214,7 +214,7 @@ The real `VREBinder` already handles EGI Replay via `runtimePlatform`. When the 
 | Aspect | Mock "egi-replay" | Real VREBinder |
 |---|---|---|
 | **Base URL** | Hardcoded `https://replay.notebooks.egi.eu/v2/gh` | From `runtimePlatform` (or `BINDER_DEFAULT_SERVICE`) |
-| **Tool repo** | `tool.name` (e.g. `EOSC-Data-Commons/binder-python-tool`) | From `workflow.zenodo_doi` or local git repo |
+| **Tool repo** | `tool.name` (e.g. `EOSC-Data-Commons/binder-python-tool`) | From `workflow.url` (DOI or git repo URL) or generated local git repo from files |
 | **Version** | `tool.version` (e.g. `v0.1.1`) | In Zenodo mode: embedded in DOI. In git mode: uses main branch |
 | **Notebook path** | `tool.raw_definition["urlpath"]` | N/A (Zenodo DOI points to full repo, git mode uses repo contents) |
 | **Dataset URL** | Appended as `?dataset_url=...` | ❌ Not passed |
@@ -328,8 +328,8 @@ The `VREFactory` raises `ValueError(f"Unsupported workflow language {elang}")` w
 
 | VRE | Mock uses... | Real handler uses... | Gap |
 |---|---|---|---|
-| **Galaxy** | `input.slots` + direct Galaxy API call | `input_files` (from FormalParameter defaults) + Galaxy API | Slot→File mapping vs FormalParameter→File mapping. Mock resolves workflow version from TRS. |
-| **VIP** | `input.slots` keyed by `slot.id` + dynamic API key | `input_files` keyed by `file.name` + hardcoded API key | Key mapping difference. Slot IDs vs file names. |
+| **Galaxy** | `input.slots` + direct Galaxy API call | `workflow_inputs` → `file_for_input` (slot-keyed) + Galaxy API | Now aligned on slot mapping; only `slot.id` (mock) vs param.name (real) naming convention differs. Mock resolves workflow version from TRS. |
+| **VIP** | `input.slots` keyed by `slot.id` + dynamic API key | `workflow_inputs` → `file_for_input` (param.name keyed) + scalar defaultValue literals + vault API key | Key mapping aligned on parameter names; only `slot.id` vs `param.name` convention + key origin (api_keys param vs vault). |
 | **Binder** | `input.dataset.url` passthrough | Zenodo DOI + local git repo construction | Completely different. Mock is a stub. |
 | **Binder-Launcher** | `raw_definition` + `input.files` + `input.dataset` → URL construction | **No equivalent** | Entirely new handler needed. |
 | **EGI Replay** | `raw_definition.urlpath` + `tool.name/version` + `dataset.url` → URL | `VREBinder` with `runtimePlatform` = replay URL | Different approach; mock is URL constructor, real is git provisioner. |

@@ -1,5 +1,13 @@
 # Fixture Generation Analysis & Plan
 
+> **Status note (post-launch-request state)**: Suite is fully green against the
+> hand-authored fixtures — nothing currently blocks. Regenerating the 10 non-Tosca
+> fixtures remains a cleanup backlog item, not a blocker. Two extra things to record
+> whenever regeneration happens: (a) `#receiver` does **not** come back — it is
+> intentionally not emitted by `RocrateBuilder` anymore (receivers travel as slot
+> values); and (b) the crate root `./` is **always** named after `tool.name` —
+> an attached `DatasetHandle` no longer shadows it.
+
 ## Goal
 
 Determine which existing `tests/fixtures/*/ro-crate-metadata.json` crates can be
