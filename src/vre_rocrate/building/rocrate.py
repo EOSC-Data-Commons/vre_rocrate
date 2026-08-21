@@ -116,9 +116,17 @@ class RocrateBuilder:
         encoding_format = _infer_encoding_format(self.workflow_id)
         now_date = datetime.now(timezone.utc).date().isoformat()
 
+        # "File" only applies to actual downloadable workflow files (e.g. .ga,
+        # .ipynb, .json). Repository/pipeline URLs (no inferable encoding) are
+        # fetched by the runtime platform and must not be staged as data, so
+        # they are typed SoftwareSourceCode + ComputationalWorkflow only.
+        workflow_types = ["SoftwareSourceCode", "ComputationalWorkflow"]
+        if encoding_format:
+            workflow_types.insert(0, "File")
+
         workflow_entity: dict[str, Any] = {
             "@id": self.workflow_id,
-            "@type": ["File", "SoftwareSourceCode", "ComputationalWorkflow"],
+            "@type": workflow_types,
             "conformsTo": {
                 "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
             },

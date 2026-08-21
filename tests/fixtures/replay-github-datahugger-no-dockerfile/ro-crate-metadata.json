@@ -1,0 +1,57 @@
+{
+  "@context": "https://w3id.org/ro/crate/1.1/context",
+  "@graph": [
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      },
+      "conformsTo": {
+        "@id": "https://w3id.org/ro/crate/1.1"
+      }
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "name": "DataLens Binder notebook example",
+      "description": "An RO-Crate describing the DataLens notebook, its Binder execution environment, staged input data and non-sensitive launch parameters.",
+      "datePublished": "2026-07-15",
+      "mainEntity": {
+        "@id": "https://github.com/recap/DataLens"
+      },
+      "hasPart": [
+        {
+          "@id": "https://github.com/recap/DataLens"
+        },
+        {
+          "@id": "https://github.com/EOSC-Data-Commons/dataplayer-example-dataset/blob/master/cernbox/CMSDimuon/MuRun2010B.csv"
+        }
+      ]
+    },
+    {
+      "@id": "https://github.com/recap/DataLens",
+      "@type": "SoftwareSourceCode",
+      "name": "DataLens",
+      "programmingLanguage": {
+        "@id": "#binder-lang"
+      },
+      "codeRepository": "https://github.com/recap/DataLens",
+      "url": "https://github.com/recap/DataLens",
+      "runtimePlatform": "https://replay.notebooks.egi.eu/v2"
+    },
+    {
+        "@id": "#binder-lang",
+        "@type": "ComputerLanguage",
+        "identifier": "https://jupyter.org/binder/",
+        "name": "Jupyter Notebook",
+        "url": "https://jupyter.org"
+    },
+    {
+      "@id": "https://github.com/EOSC-Data-Commons/dataplayer-example-dataset/blob/master/cernbox/CMSDimuon/MuRun2010B.csv",
+      "@type": "File",
+      "name": "dataset",
+      "encodingFormat": "text/csv"
+    }
+  ]
+}
