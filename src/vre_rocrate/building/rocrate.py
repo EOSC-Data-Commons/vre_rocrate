@@ -57,6 +57,11 @@ def _file_id(f: FileInput) -> str:
     return f.url or f.name
 
 
+# Placeholder license entity — the builder cannot assert a concrete license
+# on behalf of crate producers; consumers see an honest "Unspecified" node.
+_LICENSE_PLACEHOLDER_ID = "#license-unspecified"
+
+
 class RocrateBuilder:
     """Builds a complete ROCrate JSON dict from a VRELaunchRequest."""
 
@@ -112,7 +117,7 @@ class RocrateBuilder:
                 "name": name,
                 "description": description,
                 "datePublished": self.now_iso,
-                "license": {"@id": "https://spdx.org/licenses/GPL-3.0"},
+                "license": {"@id": _LICENSE_PLACEHOLDER_ID},
                 "creator": {"@id": "#author-dispatcher"},
                 "mainEntity": {"@id": self.tool.uri},
                 "hasPart": has_part,
@@ -138,7 +143,7 @@ class RocrateBuilder:
             "programmingLanguage": {"@id": self.lang_id},
             "creator": {"@id": "#author-dispatcher"},
             "dateCreated": now_date,
-            "license": {"@id": "https://spdx.org/licenses/GPL-3.0"},
+            "license": {"@id": _LICENSE_PLACEHOLDER_ID},
             "sdPublisher": {"@id": "#workflow-hub"},
             "version": self.tool.version,
             "runtimePlatform": self._runtime_platform(),
@@ -170,7 +175,7 @@ class RocrateBuilder:
             "@id": _file_id(f),
             "@type": "File",
             "name": f.name,
-            "license": {"@id": "https://spdx.org/licenses/GPL-3.0"},
+            "license": {"@id": _LICENSE_PLACEHOLDER_ID},
         }
         if f.mime_type:
             file_entity["encodingFormat"] = f.mime_type
@@ -252,10 +257,10 @@ class RocrateBuilder:
         )
         self.graph.append(
             {
-                "@id": "https://spdx.org/licenses/GPL-3.0",
+                "@id": _LICENSE_PLACEHOLDER_ID,
                 "@type": "CreativeWork",
-                "name": "GNU General Public License v3.0",
-                "alternateName": "GPL-3.0",
+                "name": "Unspecified license",
+                "description": "License not specified by the crate producer",
             }
         )
 
