@@ -95,17 +95,25 @@ class RocrateBuilder:
             }
         )
 
+    def _slot_files(self) -> list[FileInput]:
+        return [sv for sv in self.request.input.slots.values()
+                if isinstance(sv, FileInput)]
+
+    def _input_files(self) -> list[FileInput]:
+        return list(self.request.input.files.values())
+
+    def _all_files(self) -> list[FileInput]:
+        return self._slot_files() + self._input_files()
+
     def _add_root_dataset(self) -> None:
         dataset = self.request.input.dataset
         name = self.tool.name
         description = self.tool.description or "placeholder"
 
         has_part: list[dict[str, str]] = [{"@id": self.tool.uri}]
-        for sv in self.request.input.slots.values():
-            if sv.file is not None:
-                has_part.append({"@id": _file_id(sv.file)})
-        for f in self.request.input.files.values():
-            has_part.append({"@id": _file_id(f)})
+        for file in self._all_files():
+            has_part.append({"@id": _file_id(file)})
+
         if dataset is not None:
             has_part.append({"@id": dataset.url})
 
@@ -191,10 +199,7 @@ class RocrateBuilder:
         return file_entity
 
     def _add_file_entities(self) -> None:
-        for sv in self.request.input.slots.values():
-            if sv.file is not None:
-                self.graph.append(self._build_file_entity(sv.file))
-        for f in self.request.input.files.values():
+        for f in self._all_files():
             self.graph.append(self._build_file_entity(f))
 
     def _add_formal_parameters(self) -> None:
@@ -206,12 +211,12 @@ class RocrateBuilder:
                 "additionalType": slot.slot_type,
                 "required": not slot.is_optional,
             }
-            sv = self.request.input.slots.get(slot.name)
-            if sv is not None:
-                if sv.file is not None:
-                    fp["defaultValue"] = {"@id": _file_id(sv.file)}
-                elif sv.value is not None:
-                    fp["defaultValue"] = sv.value
+            slot_value = self.request.input.slots.get(slot.name)
+            if slot_value is not None:
+                if isinstance(slot_value, FileInput):
+                    fp["defaultValue"] = {"@id": _file_id(slot_value)}
+                else:
+                    fp["defaultValue"] = slot_value
             self.graph.append(fp)
 
     def _add_dataset_entity(self) -> None:
