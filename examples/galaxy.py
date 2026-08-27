@@ -2,7 +2,7 @@ import json
 
 from vre_rocrate import (
     VRELaunchRequest, ToolMeta, LaunchInput,
-    SlotDefinition, SlotValue, FileInput, RocrateBuilder,
+    SlotDefinition, FileInput, RocrateBuilder,
 )
 
 WORKFLOW_URL = (
@@ -31,12 +31,10 @@ request = VRELaunchRequest(
     ),
     input=LaunchInput(
         slots={
-            "simpletext_input": SlotValue(
-                file=FileInput(
-                    name="simpletext_input",
-                    url="https://example-files.online-convert.com/document/txt/example.txt",
-                    mime_type="text/plain",
-                )
+            "simpletext_input": FileInput(
+                name="simpletext_input",
+                url="https://example-files.online-convert.com/document/txt/example.txt",
+                mime_type="text/plain",
             ),
         },
     ),

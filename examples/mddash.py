@@ -5,7 +5,6 @@ from vre_rocrate import (
     ToolMeta,
     LaunchInput,
     SlotDefinition,
-    SlotValue,
     RocrateBuilder,
 )
 
@@ -30,7 +29,7 @@ request = VRELaunchRequest(
         raw_definition={},
     ),
     input=LaunchInput(
-        slots={"pdb_id": SlotValue(value=PDB_ID)},
+        slots={"pdb_id": PDB_ID},
     ),
 )
 

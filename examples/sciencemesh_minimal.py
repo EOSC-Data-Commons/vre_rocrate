@@ -2,7 +2,7 @@ import json
 
 from vre_rocrate import (
     VRELaunchRequest, ToolMeta, LaunchInput,
-    SlotDefinition, SlotValue, FileInput, RocrateBuilder,
+    SlotDefinition, FileInput, RocrateBuilder,
 )
 
 RECEIVER = "rwelande@eosc.cernbox.cern.ch"
@@ -30,7 +30,7 @@ request = VRELaunchRequest(
     ),
     input=LaunchInput(
         dataset=None,
-        slots={"Shared With": SlotValue(value=RECEIVER)},
+        slots={"Shared With": RECEIVER},
         files={
             "MuRun2010B.csv": FileInput(
                 name="MuRun2010B.csv",

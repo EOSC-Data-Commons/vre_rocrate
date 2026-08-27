@@ -2,7 +2,7 @@ import json
 
 from vre_rocrate import (
     VRELaunchRequest, ToolMeta, LaunchInput,
-    SlotDefinition, SlotValue, FileInput, RocrateBuilder,
+    SlotDefinition, FileInput, RocrateBuilder,
 )
 
 WORKFLOW_URL = (
@@ -29,7 +29,7 @@ request = VRELaunchRequest(
         raw_definition={},
     ),
     input=LaunchInput(
-        slots={"Shared With": SlotValue(value="rwelande@eosc.cernbox.cern.ch")},
+        slots={"Shared With": "rwelande@eosc.cernbox.cern.ch"},
         files={
             "MuRun2010B.csv": FileInput(
                 name="MuRun2010B.csv",

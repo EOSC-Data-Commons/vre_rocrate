@@ -2,7 +2,7 @@ import json
 
 from vre_rocrate import (
     VRELaunchRequest, ToolMeta, LaunchInput,
-    SlotDefinition, SlotValue, FileInput, RocrateBuilder,
+    SlotDefinition, FileInput, RocrateBuilder,
 )
 
 parameter_file = FileInput(
@@ -38,9 +38,9 @@ request = VRELaunchRequest(
     ),
     input=LaunchInput(
         slots={
-            "parameter_file": SlotValue(file=parameter_file),
-            "data_file": SlotValue(file=data_file),
-            "zipped_folder": SlotValue(file=zipped_folder),
+            "parameter_file": parameter_file,
+            "data_file": data_file,
+            "zipped_folder": zipped_folder,
         },
     ),
 )
