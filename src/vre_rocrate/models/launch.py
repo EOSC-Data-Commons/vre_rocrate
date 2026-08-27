@@ -41,12 +41,10 @@ class FileInput:
     onedata_file_id: str | None = None  # → onedata:fileId (see class doc)
 
 
-@dataclass
-class SlotValue:
-    """Either a primitive value OR a file filling a tool-declared parameter."""
-
-    value: Any = None  # scalar → defaultValue literal (mddash pdb_id, vip params)
-    file: FileInput | None = None  # → File entity + defaultValue {"@id"} (binding)
+# A slot is filled by a scalar literal → defaultValue literal (mddash pdb_id,
+# vip params) or by a file → File entity + defaultValue {"@id"} (binding).
+# Unfilled slots are simply absent from LaunchInput.slots.
+SlotValue = str | int | float | bool | FileInput
 
 
 @dataclass

@@ -14,7 +14,6 @@ from vre_rocrate import (
     ToolMeta,
     LaunchInput,
     SlotDefinition,
-    SlotValue,
     FileInput,
     DatasetHandle,
     RocrateBuilder,
@@ -58,7 +57,7 @@ def galaxy_slot_request():
         tool=_tool(GALAXY_URI, ["galaxy_workflow"],
                    slots=[SlotDefinition(id="f", name="f", slot_type="file")]),
         input=LaunchInput(slots={
-            "f": SlotValue(file=FileInput(name="f", url=FILE_URL)),
+            "f": FileInput(name="f", url=FILE_URL),
         }),
     )
 
@@ -82,8 +81,8 @@ def galaxy_slot_and_free_file_request():
                    slots=[SlotDefinition(id="slot_file", name="slot_file", slot_type="file")]),
         input=LaunchInput(
             slots={
-                "slot_file": SlotValue(file=FileInput(name="slot_file",
-                                                     url="https://example.org/slot.txt")),
+                "slot_file": FileInput(name="slot_file",
+                                       url="https://example.org/slot.txt"),
             },
             files={
                 "free.csv": FileInput(name="free.csv", url=FREE_FILE_URL),
@@ -108,7 +107,7 @@ def sciencemesh_literal_slot_request():
         tool=_tool(SCIENCEMESH_URI, ["sciencemesh"],
                    slots=[SlotDefinition(id="Shared With", name="Shared With",
                                          slot_type="string")]),
-        input=LaunchInput(slots={"Shared With": SlotValue(value="user@e.org")}),
+        input=LaunchInput(slots={"Shared With": "user@e.org"}),
     )
 
 
@@ -130,7 +129,7 @@ def mddash_scalar_slot_request():
         tool=_tool(MDDASH_URI, ["mddash"],
                    slots=[SlotDefinition(id="pdb_id", name="pdb_id",
                                           slot_type="string")]),
-        input=LaunchInput(slots={"pdb_id": SlotValue(value="1L2Y")}),
+        input=LaunchInput(slots={"pdb_id": "1L2Y"}),
     )
 
 
@@ -184,11 +183,6 @@ def test_file_input_fields():
     assert all(getattr(f, a) is None for a in (
         "path", "url", "size_bytes", "mime_type", "checksum",
         "checksum_type", "onedata_domain", "onedata_file_id"))
-
-
-def test_slot_value_is_value_or_file():
-    assert SlotValue(value="hi").file is None
-    assert SlotValue(file=FileInput(name="x")).value is None
 
 
 def test_tool_meta_fields_and_defaults():

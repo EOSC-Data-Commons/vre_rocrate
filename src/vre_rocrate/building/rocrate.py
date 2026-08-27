@@ -16,7 +16,6 @@ from ..models.launch import (
     ToolMeta,
     LaunchInput,
     SlotDefinition,
-    SlotValue,
     FileInput,
     DatasetHandle,
 )
