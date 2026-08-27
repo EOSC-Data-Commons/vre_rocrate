@@ -106,7 +106,7 @@ class RocrateBuilder:
         return self._slot_files() + self._input_files()
 
     def _add_root_dataset(self) -> None:
-        dataset = self.request.input.dataset
+        input_dataset = self.request.input.dataset
         name = self.tool.name
         description = self.tool.description or "placeholder"
 
@@ -114,8 +114,8 @@ class RocrateBuilder:
         for file in self._all_files():
             has_part.append({"@id": _file_id(file)})
 
-        if dataset is not None:
-            has_part.append({"@id": dataset.url})
+        if input_dataset is not None:
+            has_part.append({"@id": input_dataset.url})
 
         self.graph.append(
             {
