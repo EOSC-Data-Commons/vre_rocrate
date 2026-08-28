@@ -25,7 +25,7 @@ Note: models use stdlib dataclasses even though `pyproject.toml` declares `pydan
 
 ## Invariants the tests enforce (easy to break)
 
-`tests/test_launch_request_assumptions.py` encodes `plans/vre-launch-request-transformation.md`:
+`tests/test_launch_request_assumptions.py` encodes `docs/design/vre-launch-request-transformation.md`:
 
 - **Round-trip**: `RocrateBuilder.build_from_launch_request()` output must pass `ValidationPipeline.validate_basic` and be consumable by `RequestPackageBuilder.build` with data preserved.
 - **Every `@graph` entity must declare a non-empty `@id`** (RO-Crate 1.1); blank nodes are rejected at parse time by `ValidationPipeline._validate_entity_ids`. Downstream code relies on ids being present and unique — do not add silent tolerance for missing ids elsewhere.
@@ -33,7 +33,7 @@ Note: models use stdlib dataclasses even though `pyproject.toml` declares `pydan
 - `resolve_vre_type()` in `constants.py`: 3-layer fallback — `raw_definition["vre_type"]` → `tool.types` via `TOOL_TYPE_TO_VRE_TYPE` → URI pattern match; raises `ValueError` if unresolvable.
 - `raw_definition` round-trips through the `#tool-metadata` entity. The `"Shared With"` slot is a plain `FormalParameter` — the lib builds **no** `#receiver` entity and carries **no** `OCMData`: named domain conventions live on the consumer side (ScienceMesh reads parties from slots).
 - `RequestPackage` changes must be **additive only** — external VRE handlers (in other repos) read it and must not break.
-- The 4 `*_tosca*` fixtures are parse-only; `RocrateBuilder` intentionally cannot generate them (see `plans/fixture-generation-analysis.md`).
+- The 4 `*_tosca*` fixtures are parse-only; `RocrateBuilder` intentionally cannot generate them (see `plans/tosca-fixture-generation-support.md`).
 
 ## Repo state gotchas
 
@@ -41,7 +41,7 @@ Note: models use stdlib dataclasses even though `pyproject.toml` declares `pydan
 - **Test suite is green** (68/68 as of Aug 5 2026): input-files semantics implemented (slot-bound ∪ free-form, descriptor excluded); the sciencemesh `qa.cernbox→eosc.cernbox` test expectation was fixed in the same pass.
 - `tests/fixtures/*/simple_example.json` files are legacy (old minimal-request format), unreferenced by current tests — not API examples.
 - `build/` and `*.egg-info/` contain stale artifacts from an old flat-layout build; ignore them (gitignored).
-- `plans/` holds design docs (untracked); new tests sometimes encode a plan as executable assumptions — check the referenced plan file.
+- `plans/` holds *pending* design docs; once a plan lands, it moves to `docs/design/` as a design note. New tests sometimes encode a design doc as executable assumptions — check the referenced file.
 
 ## Testing conventions
 

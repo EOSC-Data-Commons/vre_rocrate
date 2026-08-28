@@ -1,4 +1,9 @@
-# VRELaunchRequest Transformation Plan (v2)
+# VRELaunchRequest Transformation — Design Note
+
+> Status: **implemented**. Retained as design rationale for the `VRELaunchRequest`
+> input model and the RO-Crate structure it generates. Written as a pre-implementation
+> plan and kept in plan voice; see `tests/test_launch_request_assumptions.py` for the
+> executable assumptions derived from it.
 
 ## Goal
 

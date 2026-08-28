@@ -1,7 +1,7 @@
-"""Assumption tests for the VRELaunchRequest transformation plan.
+"""Assumption tests for the VRELaunchRequest transformation.
 
-These tests encode the behavioral assumptions stated in
-``plans/vre-launch-request-transformation.md`` against the public API.
+These tests encode the behavioral assumptions stated in the design note
+``docs/design/vre-launch-request-transformation.md`` against the public API.
 Only the public API is exercised — no internal helpers, no private methods.
 """
 
