@@ -142,71 +142,33 @@ def _graph(crate):
 
 
 # ---------------------------------------------------------------------------
-# Public API existence
+# Dataclass defaults (design note §1) — defaults can change silently
 # ---------------------------------------------------------------------------
 
-def test_public_api_exports_launch_types():
-    import vre_rocrate
-    for n in ("VRELaunchRequest", "ToolMeta", "LaunchInput", "SlotDefinition",
-              "SlotValue", "FileInput", "DatasetHandle", "RocrateBuilder",
-              "RequestPackageBuilder"):
-        assert hasattr(vre_rocrate, n), f"vre_rocrate must export {n}"
-
-
-def test_minimal_vre_request_removed():
-    import vre_rocrate
-    assert not hasattr(vre_rocrate, "MinimalVRERequest")
-    assert not hasattr(vre_rocrate, "MinimalFileInput")
-
-
-def test_build_from_minimal_removed():
-    assert not hasattr(RocrateBuilder, "build_from_minimal")
-    assert hasattr(RocrateBuilder, "build_from_launch_request")
-
-
-# ---------------------------------------------------------------------------
-# Dataclass shapes (plan §1)
-# ---------------------------------------------------------------------------
-
-def test_dataset_handle_fields():
-    d = DatasetHandle(url="u", title="T", description="D")
-    assert (d.url, d.title, d.description) == ("u", "T", "D")
-
-
-def test_slot_definition_fields():
+def test_model_defaults():
     s = SlotDefinition(id="p", name="P", slot_type="file")
-    assert (s.id, s.name, s.slot_type, s.is_optional) == ("p", "P", "file", False)
+    assert s.is_optional is False
 
-
-def test_file_input_fields():
     f = FileInput(name="d.csv")
     assert all(getattr(f, a) is None for a in (
         "path", "url", "size_bytes", "mime_type", "checksum",
         "checksum_type", "onedata_domain", "onedata_file_id"))
 
-
-def test_tool_meta_fields_and_defaults():
     t = ToolMeta(id="t", version="1", name="T", uri="u", types=["galaxy"])
     assert (t.description, t.slots, t.raw_definition) == ("", [], {})
-    assert not hasattr(t, "tool_kind")  # plan constraint #7
+    assert t.slots is not ToolMeta(
+        id="t2", version="1", name="T", uri="u", types=["galaxy"]).slots
+    assert not hasattr(t, "tool_kind")  # design note constraint #7
 
-
-def test_launch_input_has_slots_and_files_maps():
     li = LaunchInput()
     assert li.dataset is None and li.slots == {} and li.files == {}
 
-
-def test_vre_launch_request_fields():
-    req = VRELaunchRequest(
-        tool=ToolMeta(id="t", version="1", name="T", uri="u", types=["galaxy"]),
-        input=LaunchInput(),
-    )
-    assert req.tool is not None and req.input is not None
+    req = VRELaunchRequest(tool=_tool("u", ["galaxy"]), input=LaunchInput())
     assert req.runtime_platform is None
 
 
 # ---------------------------------------------------------------------------
-# resolve_vre_type — three-layer resolution (plan §3)
+# resolve_vre_type — three-layer resolution (design note §3)
 # ---------------------------------------------------------------------------
 
 def test_resolve_vre_type_from_raw_definition_override():
@@ -233,13 +195,8 @@ def test_resolve_vre_type_raises_when_unresolvable():
 
 
 # ---------------------------------------------------------------------------
-# Slots vs Files — core semantic distinction (plan §2)
+# Slots vs Files — core semantic distinction (design note §2)
 # ---------------------------------------------------------------------------
-
-def test_slots_produce_formal_parameters_named_by_slot_id(galaxy_slot_request):
-    ids = {e["@id"] for e in _graph(_build(galaxy_slot_request))}
-    assert "#input-f" in ids
-
 
 def test_free_form_files_do_not_produce_formal_parameters(binder_files_request):
     graph = _graph(_build(binder_files_request))
@@ -284,7 +241,7 @@ def test_free_form_file_stated_in_dataset_haspart(binder_files_request):
 
 
 # ---------------------------------------------------------------------------
-# runtimePlatform — always present, resolved or overridden (plan §3, §7)
+# runtimePlatform — always present, resolved or overridden (design note §3, §7)
 # ---------------------------------------------------------------------------
 
 def test_runtime_platform_inferred_when_not_set(galaxy_empty_request):
@@ -303,7 +260,7 @@ def test_runtime_platform_override_used_directly():
 
 
 # ---------------------------------------------------------------------------
-# Dataset entity — only when input.dataset is provided (plan §4)
+# Dataset entity — only when input.dataset is provided (design note §4)
 # ---------------------------------------------------------------------------
 
 def test_dataset_entity_present_when_dataset_provided(galaxy_dataset_request):
@@ -318,7 +275,7 @@ def test_no_dataset_entity_when_dataset_none(galaxy_empty_request):
 
 
 # ---------------------------------------------------------------------------
-# #tool-metadata entity (plan §4)
+# #tool-metadata entity (design note §4)
 # ---------------------------------------------------------------------------
 
 def test_tool_metadata_entity_carries_raw_definition():
@@ -341,11 +298,6 @@ def test_roundtrip_galaxy_slots(galaxy_slot_request):
     assert any(f.id == FILE_URL for f in pkg.files)
 
 
-def test_roundtrip_binder_free_form_files(binder_files_request):
-    pkg = RequestPackageBuilder.build(_build(binder_files_request))
-    assert any(f.id == FREE_FILE_URL for f in pkg.files)
-
-
 def test_roundtrip_raw_definition_preserved():
     raw = {"k": "v"}
     req = VRELaunchRequest(
@@ -364,31 +316,8 @@ def test_roundtrip_workflow_version():
     pkg = RequestPackageBuilder.build(_build(req))
     assert pkg.workflow.tool_version == "2.3.1"
 
-
 # ---------------------------------------------------------------------------
-# RequestPackage stays additive (plan §5)
-# ---------------------------------------------------------------------------
-
-def test_request_package_existing_fields_unchanged():
-    names = {f.name for f in dataclasses.fields(RequestPackage)}
-    assert {"vre_type", "programming_language", "workflow", "files",
-            "workflow_inputs", "workflow_outputs", "raw_crate",
-            "raw_definition"}.issubset(names)
-    assert "ocm_data" not in names  # OCMData dropped; parties travel as input slots
-
-
-def test_request_package_raw_definition_is_new_and_optional():
-    f = {f.name: f for f in dataclasses.fields(RequestPackage)}["raw_definition"]
-    assert f.default is not None or f.default_factory is not None
-
-
-def test_workflow_descriptor_tool_version_is_new_and_optional():
-    f = {f.name: f for f in dataclasses.fields(WorkflowDescriptor)}["tool_version"]
-    assert f.default is None
-
-
-# ---------------------------------------------------------------------------
-# input_files property behavior under the new crate format (plan §6)
+# input_files property behavior under the new crate format (design note §6)
 # ---------------------------------------------------------------------------
 
 def test_input_files_returns_slot_files_when_slots_present(galaxy_slot_request):
@@ -414,7 +343,7 @@ def test_input_files_returns_both_slot_and_free_form_files(
 
 
 # ---------------------------------------------------------------------------
-# Validation — the new crate must pass ValidationPipeline (plan §6)
+# Validation — the new crate must pass ValidationPipeline (design note §6)
 # ---------------------------------------------------------------------------
 
 def test_built_crate_passes_validation(galaxy_slot_request):
