@@ -56,7 +56,7 @@ def _validate_entity_ids(graph: list[dict[str, Any]]) -> None:
 
     RO-Crate 1.1 requires each @graph entity to be identified by an @id
     (unlike bare JSON-LD, which permits blank nodes). Downstream helpers
-    (e.g. RequestPackage file triage) exclude and match entities by id.
+    (e.g. VREPayload file triage) exclude and match entities by id.
 
     Raises:
         CrateValidationError: If an entity lacks an @id or it is empty.

@@ -1,7 +1,7 @@
 """VRE RO-Crate library — parsing, validation, building, and launch-request handling."""
 
 from .models import (
-    RequestPackage,
+    VREPayload,
     WorkflowDescriptor,
     FileReference,
     FormalParameter,
@@ -18,7 +18,7 @@ from .models import (
 from .parsing import (
     ValidationPipeline,
 )
-from .building import RequestPackageBuilder, RocrateBuilder
+from .building import VREPayloadBuilder, RocrateBuilder
 from .constants import (
     VRE_TYPES,
     VRE_TYPE_TO_PROGRAMMING_LANGUAGE,
@@ -34,7 +34,7 @@ from .constants import (
 from .exceptions import VreRocrateError, CrateValidationError
 
 __all__ = [
-    "RequestPackage",
+    "VREPayload",
     "WorkflowDescriptor",
     "FileReference",
     "FormalParameter",
@@ -48,7 +48,7 @@ __all__ = [
     "FileInput",
     "DatasetHandle",
     "ValidationPipeline",
-    "RequestPackageBuilder",
+    "VREPayloadBuilder",
     "RocrateBuilder",
     "VRE_TYPES",
     "VRE_TYPE_TO_PROGRAMMING_LANGUAGE",

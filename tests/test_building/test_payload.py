@@ -1,8 +1,8 @@
-"""Tests for RequestPackageBuilder — building RequestPackage from ROCrate dict."""
+"""Tests for VREPayloadBuilder — building VREPayload from ROCrate dict."""
 
 import pytest
 
-from vre_rocrate import RequestPackageBuilder, RuntimePlatform
+from vre_rocrate import VREPayloadBuilder, RuntimePlatform
 from conftest import load_json
 
 BUILDER_CASES = [
@@ -16,18 +16,18 @@ BUILDER_CASES = [
 ]
 
 
-class TestRequestPackageBuilder:
-    """Unit tests for RequestPackageBuilder.build()."""
+class TestVREPayloadBuilder:
+    """Unit tests for VREPayloadBuilder.build()."""
 
     @pytest.mark.parametrize("fixture_path,expected_vre", BUILDER_CASES)
     def test_build_package(self, fixtures_dir, fixture_path, expected_vre):
         source = load_json(fixtures_dir, fixture_path)
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         assert package.vre_type == expected_vre
 
     def test_build_galaxy_package_details(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         assert package.workflow_url is not None
         txt_files = [f for f in package.files if f.encoding_format == "text/txt"]
         assert len(txt_files) == 1
@@ -35,13 +35,13 @@ class TestRequestPackageBuilder:
 
     def test_build_oscar_package_details(self, fixtures_dir):
         source = load_json(fixtures_dir, "oscar/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         assert package.fdl_url is not None
         assert len(package.oscar_input_files) == 1
 
     def test_build_galaxy_tosca_package(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy_tosca/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         rp = package.workflow.runtime_platform
         assert rp is not None
         assert rp.install_url == (
@@ -51,7 +51,7 @@ class TestRequestPackageBuilder:
 
     def test_build_scipion_tosca_package(self, fixtures_dir):
         source = load_json(fixtures_dir, "scipion_tosca/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         rp = package.workflow.runtime_platform
         assert rp is not None
         assert rp.install_url == (
@@ -61,20 +61,20 @@ class TestRequestPackageBuilder:
 
     def test_build_binder_package(self, fixtures_dir):
         source = load_json(fixtures_dir, "simple-binder/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         assert package.vre_type == "https://jupyter.org/binder/"
         assert len(package.local_files) == 1
         assert len(package.remote_files) == 0
 
     def test_build_jupyter_package(self, fixtures_dir):
         source = load_json(fixtures_dir, "jupyter/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         assert package.vre_type == "https://jupyter.org"
         assert len(package.files) == 1
 
     def test_build_sciencemesh_package(self, fixtures_dir):
         source = load_json(fixtures_dir, "sciencemesh/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         assert package.vre_type == "https://eosc.cernbox.cern.ch"
         receiver = package.get_entity("#receiver")
         assert receiver is not None
@@ -82,7 +82,7 @@ class TestRequestPackageBuilder:
 
     def test_runtime_platform_plain_url(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         rp = package.workflow.runtime_platform
         assert rp is not None
         assert isinstance(rp, str)
@@ -90,7 +90,7 @@ class TestRequestPackageBuilder:
 
     def test_runtime_platform_im_dict(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy_tosca/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         rp = package.workflow.runtime_platform
         assert isinstance(rp, RuntimePlatform)
         assert rp.install_url == (

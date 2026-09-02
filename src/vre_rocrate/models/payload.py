@@ -39,10 +39,13 @@ class WorkflowDescriptor:
 
 
 @dataclass
-class RequestPackage:
-    """Pure data container for a VRE request package.
+class VREPayload:
+    """Pure data container for a VRE launch payload.
 
-    Construction logic lives in ``RequestPackageBuilder``.
+    This is the Dispatcher's view of the crate: parsed from the RO-Crate
+    posted by req-packager and handed to VRE handlers.
+
+    Construction logic lives in ``VREPayloadBuilder``.
     """
 
     vre_type: str
@@ -150,7 +153,7 @@ class RequestPackage:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> RequestPackage:
+    def from_dict(cls, data: dict[str, Any]) -> VREPayload:
         workflow = WorkflowDescriptor(**data.pop("workflow"))
         files = [FileReference(**f) for f in data.pop("files", [])]
         workflow_inputs = [

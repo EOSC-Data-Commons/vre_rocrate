@@ -4,6 +4,13 @@
 > input model and the RO-Crate structure it generates. Written as a pre-implementation
 > plan and kept in plan voice; see `tests/test_launch_request_assumptions.py` for the
 > executable assumptions derived from it.
+>
+> Rename note: this document was edited after the fact to use the output model's
+> current name. At implementation time it was called `RequestPackage` /
+> `RequestPackageBuilder` in `models/package.py` / `building/package.py`; it is
+> now `VREPayload` / `VREPayloadBuilder` in `models/payload.py` /
+> `building/payload.py` — the parsed crate is the Dispatcher's domain object,
+> not req-packager's.
 
 ## Goal
 
@@ -15,13 +22,13 @@ so that it matches `req-packager`'s domain language (`ToolMeta`, `LaunchInput`, 
 
 1. **RO-Crate JSON output format can change** — restructure freely to properly represent
    the slots-vs-files distinction, dataset handle, and tool metadata from req-packager.
-2. **`RequestPackage` entity changes should be minimal** — one additive field was planned
+2. **`VREPayload` entity changes should be minimal** — one additive field was planned
    (`raw_definition`); one deliberate removal (`ocm_data`) was later accepted during
    implementation as the better seam.
 3. **VRE handlers should not change** — initial aspiration; in practice handlers now read
    named inputs **only** via package accessors (`input_by_name`, `file_for_input`,
    `root_name`/`root_description`). No crate introspection is left in any handler.
-4. **`RequestPackageBuilder` gets updated** to parse the new RO-Crate format.
+4. **`VREPayloadBuilder` gets updated** to parse the new RO-Crate format.
 5. **Old test fixtures get updated** to the new RO-Crate format.
 6. **`MinimalVRERequest` is removed** — `VRELaunchRequest` is the sole input model.
 7. **`ToolKind` is NOT in the RO-Crate** — it's a req-packager-internal derived value
@@ -41,12 +48,12 @@ LaunchInput┘                    │ build_from_launch │                     
                                 └──────────────────┘                     │
                                                                          ▼
                                                               ┌──────────────────┐
-                                                              │ RequestPackage   │
-                                                              │ Builder (updated)│
+                                                               │ VREPayloadBuilder│
+                                                               │ (updated)        │
                                                               └──────┬───────────┘
                                                                      │
                                                               ┌──────▼───────────┐
-                                                              │ RequestPackage   │ ← minimal new fields
+                                                               │ VREPayload       │ ← minimal new fields
                                                               │ (mostly same)    │
                                                               └──────┬───────────┘
                                                                      │
@@ -301,13 +308,13 @@ The RO-Crate is restructured to properly separate slots from files:
 
 ---
 
-## 5. RequestPackage — Minimal Changes
+## 5. VREPayload — Minimal Changes
 
-The `RequestPackage` dataclass gains **one additive field (`raw_definition`) and one deliberate removal (`ocm_data` — OCMData was dropped from the library; receivers travel as input slots; the dispatcher's ScienceMesh reads them via `input_by_name`)**:
+The `VREPayload` dataclass gains **one additive field (`raw_definition`) and one deliberate removal (`ocm_data` — OCMData was dropped from the library; receivers travel as input slots; the dispatcher's ScienceMesh reads them via `input_by_name`)**:
 
 ```python
 @dataclass
-class RequestPackage:
+class VREPayload:
     vre_type: str
     programming_language: str
     workflow: WorkflowDescriptor
@@ -316,7 +323,7 @@ class RequestPackage:
     workflow_outputs: list[FormalParameter] = field(default_factory=list)
     raw_crate: dict[str, Any] = field(default_factory=dict, repr=False)
     # ocm_data removed — OCMData was dropped; receiverId comes from the
-    # "Shared With" input slot via RequestPackage.input_by_name("Shared With")
+    # "Shared With" input slot via VREPayload.input_by_name("Shared With")
     # ─── NEW ───
     raw_definition: dict[str, Any] = field(default_factory=dict)  # from ToolMeta.raw_definition
 ```
@@ -339,14 +346,14 @@ class WorkflowDescriptor:
 
 ---
 
-## 6. RequestPackageBuilder — Updated Parser
+## 6. VREPayloadBuilder — Updated Parser
 
 The parser is updated to extract from the new RO-Crate format but still populates the
-same `RequestPackage` shape:
+same `VREPayload` shape:
 
 | New RO-Crate entity/property | How parser reads it | Maps to |
 |---|---|---|
-| `#tool-metadata.rawDefinition` | `_resolve_ref("#tool-metadata")` → `get("rawDefinition")` | `RequestPackage.raw_definition` |
+| `#tool-metadata.rawDefinition` | `_resolve_ref("#tool-metadata")` → `get("rawDefinition")` | `VREPayload.raw_definition` |
 | `workflow.version` | Already exists in `_build_workflow` via `main.get("version")` | `WorkflowDescriptor.tool_version` |
 | `#input-<slot.id>` FormalParameters | `_extract_parameters` already handles them | `workflow_inputs` (unchanged path) |
 | Literal `defaultValue` on FormalParameter | Already handled — `isinstance(dv, str)` fallback | Falls through to `file_ids.add(dv)` — same behavior |
@@ -357,7 +364,7 @@ same `RequestPackage` shape:
 
 ### `input_files` property — no change needed
 
-The [`input_files`](src/vre_rocrate/models/package.py:97) property resolves files through `FormalParameter.default_value` and excludes the workflow descriptor (itself File-typed in `files`):
+The [`input_files`](src/vre_rocrate/models/payload.py:106) property resolves files through `FormalParameter.default_value` and excludes the workflow descriptor (itself File-typed in `files`):
 - If `workflow_inputs` is empty → returns all **data** files (descriptor excluded)
 - If `workflow_inputs` has FormalParameters → returns slot-referenced files **plus** free-form files (descriptor excluded)
 
@@ -371,7 +378,7 @@ This means:
 | Tool with files only (e.g. binder-launcher) | empty | all data files (descriptor excluded) | No real handler yet |
 | Tool with slots + files (e.g. cernbox) | has FormalParameters | slot-referenced **and** free-form files | Both available, as required for SlotsAndFiles tools |
 
-The descriptor is excluded by `@id` match. `ValidationPipeline.validate_basic` enforces that every `@graph` entity declares a non-empty `@id` (RO-Crate 1.1 requirement; blank nodes are rejected at parse time), so the id comparison cannot misfire on missing ids. Slot-bound files are resolvable individually via `RequestPackage.file_for_input(param)`.
+The descriptor is excluded by `@id` match. `ValidationPipeline.validate_basic` enforces that every `@graph` entity declares a non-empty `@id` (RO-Crate 1.1 requirement; blank nodes are rejected at parse time), so the id comparison cannot misfire on missing ids. Slot-bound files are resolvable individually via `VREPayload.file_for_input(param)`.
 
 ### Validation update
 
@@ -420,20 +427,20 @@ This replaces `build_from_minimal()` entirely. Key building logic:
 
 ## 9. What Stays Unchanged
 
-- `src/vre_rocrate/models/package.py` — `RequestPackage` (one additive field: `raw_definition`), `WorkflowDescriptor` (one additive field: `tool_version`), `FileReference`, `FormalParameter`
+- `src/vre_rocrate/models/payload.py` — `VREPayload` (one additive field: `raw_definition`), `WorkflowDescriptor` (one additive field: `tool_version`), `FileReference`, `FormalParameter`
 - `src/vre_rocrate/models/infrastructure.py` — `RuntimePlatform`, `IMInputFile`
 - `src/vre_rocrate/parsing/infrastructure.py` — unchanged
 - `src/vre_rocrate/exceptions.py`
 - ~~All dispatcher VRE handlers — zero changes~~ — *aspirational at write time; revised during implementation.* Handlers changed **only** in how they read named inputs (every read goes through package accessors: `input_by_name`, `file_for_input`, `root_name`/`root_description`). No crate introspection (`get_entity`, raw-graph access) remains anywhere in `app/vres/` or `app/services/.
-- Dispatcher tasks (`app/celery/tasks.py`) — still calls `RequestPackageBuilder.build(crate_dict)`
+- Dispatcher tasks (`app/celery/tasks.py`) — still calls `VREPayloadBuilder.build(crate_dict)`
 
 ## 10. What Gets Updated
 
-- `src/vre_rocrate/building/package.py` — `RequestPackageBuilder` updated to parse new format, extract `raw_definition`
+- `src/vre_rocrate/building/payload.py` — `VREPayloadBuilder` updated to parse new format, extract `raw_definition`
 - `src/vre_rocrate/parsing/validator.py` — validation for new crate entities
 - **All test fixtures** (`tests/fixtures/*/ro-crate-metadata.json`) — reformatted to new RO-Crate structure
-- Test builder (`tests/test_building/test_package.py`) — uses `VRELaunchRequest`
-- Test models (`tests/test_models/`) — new `test_launch_request_assumptions.py`, updated `test_package.py`
+- Test builder (`tests/test_building/test_payload.py`) — uses `VRELaunchRequest`
+- Test models (`tests/test_models/`) — new `test_launch_request_assumptions.py`, updated `test_payload.py`
 - **All `examples/*.py`** — converted from `MinimalVRERequest` to `VRELaunchRequest`
 
 ## 11. Examples Conversion
@@ -706,13 +713,13 @@ print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))
 4. Update `tools/rocrate.py` — remove `build_from_minimal()`
 5. Update `models/__init__.py` — export launch types, drop minimal
 6. Delete `models/minimal.py`
-7. Update `building/package.py` — `RequestPackageBuilder` parses new format
+7. Update `building/payload.py` — `VREPayloadBuilder` parses new format
 8. Update `parsing/validator.py` — validate new format
 9. Update `vre_rocrate/__init__.py` — expose new public API
 10. Update all test fixtures to new RO-Crate format
 11. Rewrite test_minimal.py → test_launch.py
 12. Update test_rocrate.py to use VRELaunchRequest
-13. Update test_package.py for new RequestPackage fields
+13. Update test_payload.py for new VREPayload fields
 14. Convert all `examples/*.py` to `VRELaunchRequest`
 15. Run full test suite (including examples as smoke test)
 16. Verify dispatcher still boots and VRE handlers still work

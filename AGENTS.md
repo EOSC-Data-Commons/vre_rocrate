@@ -17,9 +17,9 @@ Black (line-length 88) is configured in `pyproject.toml` but **not enforced** �
 
 ## Architecture (three layers, per README)
 
-- `models/` — plain `@dataclass` containers, no logic. `launch.py` = `VRELaunchRequest` & friends (the only input model), `package.py` = `RequestPackage` (the output consumed by external VRE handlers), `infrastructure.py` = `RuntimePlatform`.
+- `models/` — plain `@dataclass` containers, no logic. `launch.py` = `VRELaunchRequest` & friends (the only input model), `payload.py` = `VREPayload` (the parsed crate — the Dispatcher's view, consumed by external VRE handlers; renamed from `RequestPackage`/`package.py`), `infrastructure.py` = `RuntimePlatform`.
 - `parsing/` — `ValidationPipeline` (crate dict → raises `CrateValidationError`), `runtime_platform_from_dict`.
-- `building/` — `RocrateBuilder.build_from_launch_request(req)` (VRELaunchRequest → crate dict) and `RequestPackageBuilder.build(crate)` (crate dict → RequestPackage). Despite the package name, `RequestPackageBuilder` is the *parser*; `RocrateBuilder` is the *generator*.
+- `building/` — `RocrateBuilder.build_from_launch_request(req)` (VRELaunchRequest → crate dict) and `VREPayloadBuilder.build(crate)` (crate dict → VREPayload). Despite the package name, `VREPayloadBuilder` is the *parser*; `RocrateBuilder` is the *generator*.
 
 Note: models use stdlib dataclasses even though `pyproject.toml` declares `pydantic`, `fastapi`, `rocrate` — none are imported in `src/`. Follow the dataclass style; don't introduce pydantic.
 
@@ -27,12 +27,12 @@ Note: models use stdlib dataclasses even though `pyproject.toml` declares `pydan
 
 `tests/test_launch_request_assumptions.py` encodes `docs/design/vre-launch-request-transformation.md`:
 
-- **Round-trip**: `RocrateBuilder.build_from_launch_request()` output must pass `ValidationPipeline.validate_basic` and be consumable by `RequestPackageBuilder.build` with data preserved.
+- **Round-trip**: `RocrateBuilder.build_from_launch_request()` output must pass `ValidationPipeline.validate_basic` and be consumable by `VREPayloadBuilder.build` with data preserved.
 - **Every `@graph` entity must declare a non-empty `@id`** (RO-Crate 1.1); blank nodes are rejected at parse time by `ValidationPipeline._validate_entity_ids`. Downstream code relies on ids being present and unique — do not add silent tolerance for missing ids elsewhere.
-- **Slots vs files**: `ToolMeta.slots` → `FormalParameter` entities (`#input-<slot.id>`); `LaunchInput.files` (free-form) → plain `File` entities in root `hasPart`, never `FormalParameter`. `RequestPackage.input_files` must return **both** slot-bound and free-form files — everything in `files` except the workflow descriptor (itself File-typed; excluded by id only when it has one, so id-less entities are always kept).
+- **Slots vs files**: `ToolMeta.slots` → `FormalParameter` entities (`#input-<slot.id>`); `LaunchInput.files` (free-form) → plain `File` entities in root `hasPart`, never `FormalParameter`. `VREPayload.input_files` must return **both** slot-bound and free-form files — everything in `files` except the workflow descriptor (itself File-typed; excluded by id only when it has one, so id-less entities are always kept).
 - `resolve_vre_type()` in `constants.py`: 3-layer fallback — `raw_definition["vre_type"]` → `tool.types` via `TOOL_TYPE_TO_VRE_TYPE` → URI pattern match; raises `ValueError` if unresolvable.
 - `raw_definition` round-trips through the `#tool-metadata` entity. The `"Shared With"` slot is a plain `FormalParameter` — the lib builds **no** `#receiver` entity and carries **no** `OCMData`: named domain conventions live on the consumer side (ScienceMesh reads parties from slots).
-- `RequestPackage` changes must be **additive only** — external VRE handlers (in other repos) read it and must not break.
+- `VREPayload` changes must be **additive only** — external VRE handlers (in the Dispatcher repo) read it and must not break.
 - The 4 `*_tosca*` fixtures are parse-only; `RocrateBuilder` intentionally cannot generate them (see `plans/tosca-fixture-generation-support.md`).
 
 ## Repo state gotchas

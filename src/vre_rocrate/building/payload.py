@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..models.package import (
-    RequestPackage,
+from ..models.payload import (
+    VREPayload,
     WorkflowDescriptor,
     FileReference,
     FormalParameter,
@@ -13,11 +13,11 @@ from ..parsing.infrastructure import runtime_platform_from_dict
 from ..parsing.validator import ValidationPipeline
 
 
-class RequestPackageBuilder:
-    """Builds RequestPackage instances from a raw ROCrate dict.
+class VREPayloadBuilder:
+    """Builds VREPayload instances from a raw ROCrate dict.
 
     Uses instance methods with shared state to construct individual components
-    and assemble them into a complete RequestPackage.
+    and assemble them into a complete VREPayload.
     """
 
     def __init__(self, crate: dict[str, Any]):
@@ -26,7 +26,7 @@ class RequestPackageBuilder:
         self.root = self._get_root_dataset()
         self.main = self._get_main_entity()
         if self.main is None:
-            raise ValueError("Cannot build RequestPackage without mainEntity")
+            raise ValueError("Cannot build VREPayload without mainEntity")
 
     # ------------------------------------------------------------------
     # Public API
@@ -37,8 +37,8 @@ class RequestPackageBuilder:
         cls,
         crate: dict[str, Any],
         file_bytes_map: dict[str, bytes] | None = None,
-    ) -> RequestPackage:
-        """Build a RequestPackage from a ROCrate dict."""
+    ) -> VREPayload:
+        """Build a VREPayload from a ROCrate dict."""
         ValidationPipeline.validate_basic(crate)
         builder = cls(crate)
         package = builder._build()
@@ -52,7 +52,7 @@ class RequestPackageBuilder:
     # Build orchestration
     # ------------------------------------------------------------------
 
-    def _build(self) -> RequestPackage:
+    def _build(self) -> VREPayload:
         lang_id = self._resolve_language_id()
         runtime_platform = self._resolve_runtime_platform()
         workflow = self._build_workflow(lang_id, runtime_platform)
@@ -61,7 +61,7 @@ class RequestPackageBuilder:
         workflow_outputs = self._extract_parameters(self.main.get("output", []))
         raw_definition = self._extract_raw_definition()
 
-        return RequestPackage(
+        return VREPayload(
             vre_type=lang_id or "unknown",
             programming_language=lang_id or "unknown",
             workflow=workflow,

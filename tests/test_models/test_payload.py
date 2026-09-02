@@ -1,8 +1,8 @@
-"""Tests for RequestPackage model helpers and serialization."""
+"""Tests for VREPayload model helpers and serialization."""
 
 import pytest
 
-from vre_rocrate import RequestPackageBuilder, RequestPackage
+from vre_rocrate import VREPayloadBuilder, VREPayload
 from conftest import load_json
 
 SERIALIZATION_CASES = [
@@ -12,15 +12,15 @@ SERIALIZATION_CASES = [
 ]
 
 
-class TestRequestPackageSerialization:
-    """Round-trip tests for RequestPackage.to_dict() / from_dict()."""
+class TestVREPayloadSerialization:
+    """Round-trip tests for VREPayload.to_dict() / from_dict()."""
 
     @pytest.mark.parametrize("fixture_path", SERIALIZATION_CASES)
     def test_to_dict_and_from_dict_roundtrip(self, fixtures_dir, fixture_path):
         source = load_json(fixtures_dir, fixture_path)
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         d = package.to_dict()
-        restored = RequestPackage.from_dict(d)
+        restored = VREPayload.from_dict(d)
         assert restored.vre_type == package.vre_type
         assert restored.workflow_url == package.workflow_url
         assert len(restored.files) == len(package.files)
@@ -28,24 +28,24 @@ class TestRequestPackageSerialization:
             assert restored.files[0].name == package.files[0].name
 
 
-class TestRequestPackageHelpers:
-    """Tests for RequestPackage helper properties and methods."""
+class TestVREPayloadHelpers:
+    """Tests for VREPayload helper properties and methods."""
 
     def test_local_vs_remote_files(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         assert len(package.local_files) == 0
         assert len(package.remote_files) == 2
 
     def test_files_by_encoding_no_match(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         result = package.files_by_encoding("application/octet-stream")
         assert result == []
 
     def test_file_by_id(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         f = package.file_by_id(
             "https://example-files.online-convert.com/document/txt/example.txt"
         )
@@ -54,13 +54,13 @@ class TestRequestPackageHelpers:
 
     def test_file_by_id_not_found(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         f = package.file_by_id("https://nonexistent.example.com/file.txt")
         assert f is None
 
     def test_workflow_inputs_outputs(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         assert len(package.workflow_inputs) == 1
         assert package.workflow_inputs[0].name == "simpletext_input"
         assert len(package.workflow_outputs) == 1
@@ -68,14 +68,14 @@ class TestRequestPackageHelpers:
 
     def test_root_metadata(self, fixtures_dir):
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         assert package.root_name == "Galaxy Example Workflow"
         assert "example of a workflow" in package.root_description
 
     def test_mixed_local_remote_files(self, fixtures_dir):
         """Verify local_files and remote_files partition correctly with mixed data."""
         source = load_json(fixtures_dir, "oscar/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         assert len(package.local_files) >= 0
         assert len(package.remote_files) >= 0
         assert len(package.local_files) + len(package.remote_files) == len(
@@ -85,7 +85,7 @@ class TestRequestPackageHelpers:
     def test_input_files_filters_by_workflow_inputs(self, fixtures_dir):
         """input_files returns only files whose @id matches a workflow input."""
         source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         # Galaxy fixture has input referencing the file entity directly
         assert len(package.workflow_inputs) == 1
         assert package.workflow_inputs[0].name == "simpletext_input"
@@ -96,7 +96,7 @@ class TestRequestPackageHelpers:
     def test_input_files_falls_back_to_all_files(self, fixtures_dir):
         """input_files returns all data files when no workflow_inputs are declared."""
         source = load_json(fixtures_dir, "oscar/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         # OSCAR fixture has no input parameter
         assert len(package.workflow_inputs) == 0
         # all files except the workflow descriptor itself
@@ -107,7 +107,7 @@ class TestRequestPackageHelpers:
     def test_input_files_vip_slot_files_only(self, fixtures_dir):
         """input_files returns the slot-bound input files, never the workflow descriptor."""
         source = load_json(fixtures_dir, "vip/ro-crate-metadata.json")
-        package = RequestPackageBuilder.build(source)
+        package = VREPayloadBuilder.build(source)
         assert len(package.workflow_inputs) == 3
         assert len(package.input_files) == 3
         assert package.workflow.id not in {f.id for f in package.input_files}

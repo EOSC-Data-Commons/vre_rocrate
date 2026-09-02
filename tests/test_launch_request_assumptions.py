@@ -17,8 +17,8 @@ from vre_rocrate import (
     FileInput,
     DatasetHandle,
     RocrateBuilder,
-    RequestPackageBuilder,
-    RequestPackage,
+    VREPayloadBuilder,
+    VREPayload,
     WorkflowDescriptor,
     ValidationPipeline,
 )
@@ -220,7 +220,7 @@ def test_mddash_scalar_slot_produces_no_file_and_roundtrips(
     crate = _build(mddash_scalar_slot_request)
     file_entities = [e for e in _graph(crate) if e.get("@type") == "File"]
     assert file_entities == []
-    pkg = RequestPackageBuilder.build(crate)
+    pkg = VREPayloadBuilder.build(crate)
     param = pkg.input_by_name("pdb_id")
     assert param is not None
     assert param.default_value == "1L2Y"
@@ -289,11 +289,11 @@ def test_tool_metadata_entity_carries_raw_definition():
 
 
 # ---------------------------------------------------------------------------
-# Round-trip: build_from_launch_request -> RequestPackageBuilder.build
+# Round-trip: build_from_launch_request -> VREPayloadBuilder.build
 # ---------------------------------------------------------------------------
 
 def test_roundtrip_galaxy_slots(galaxy_slot_request):
-    pkg = RequestPackageBuilder.build(_build(galaxy_slot_request))
+    pkg = VREPayloadBuilder.build(_build(galaxy_slot_request))
     assert pkg.workflow.id == GALAXY_URI
     assert any(f.id == FILE_URL for f in pkg.files)
 
@@ -304,7 +304,7 @@ def test_roundtrip_raw_definition_preserved():
         tool=_tool(GALAXY_URI, ["galaxy_workflow"], raw_definition=raw),
         input=LaunchInput(),
     )
-    pkg = RequestPackageBuilder.build(_build(req))
+    pkg = VREPayloadBuilder.build(_build(req))
     assert pkg.raw_definition == raw
 
 
@@ -313,20 +313,38 @@ def test_roundtrip_workflow_version():
         tool=_tool(GALAXY_URI, ["galaxy_workflow"], version="2.3.1"),
         input=LaunchInput(),
     )
-    pkg = RequestPackageBuilder.build(_build(req))
+    pkg = VREPayloadBuilder.build(_build(req))
     assert pkg.workflow.tool_version == "2.3.1"
+
+
+# ---------------------------------------------------------------------------
+# VREPayload stays additive (design note §5)
+# ---------------------------------------------------------------------------
+
+def test_vre_payload_existing_fields_unchanged():
+    names = {f.name for f in dataclasses.fields(VREPayload)}
+    assert {"vre_type", "programming_language", "workflow", "files",
+            "workflow_inputs", "workflow_outputs", "raw_crate",
+            "raw_definition"}.issubset(names)
+    assert "ocm_data" not in names  # OCMData dropped; parties travel as input slots
+
+
+def test_workflow_descriptor_tool_version_is_new_and_optional():
+    f = {f.name: f for f in dataclasses.fields(WorkflowDescriptor)}["tool_version"]
+    assert f.default is None
+
 
 # ---------------------------------------------------------------------------
 # input_files property behavior under the new crate format (design note §6)
 # ---------------------------------------------------------------------------
 
 def test_input_files_returns_slot_files_when_slots_present(galaxy_slot_request):
-    pkg = RequestPackageBuilder.build(_build(galaxy_slot_request))
+    pkg = VREPayloadBuilder.build(_build(galaxy_slot_request))
     assert FILE_URL in {f.id for f in pkg.input_files}
 
 
 def test_input_files_returns_all_files_when_no_slots(binder_files_request):
-    pkg = RequestPackageBuilder.build(_build(binder_files_request))
+    pkg = VREPayloadBuilder.build(_build(binder_files_request))
     assert {f.id for f in pkg.input_files} == {FREE_FILE_URL}
 
 
@@ -336,7 +354,7 @@ def test_input_files_returns_both_slot_and_free_form_files(
     """SlotsAndFiles tools (e.g. sciencemesh/cernbox) carry both slot parameters
     and free-form data attachments. input_files must return both, not just the
     slot-bound ones. Shared With is the slot; the CSV is the free-form file."""
-    pkg = RequestPackageBuilder.build(_build(galaxy_slot_and_free_file_request))
+    pkg = VREPayloadBuilder.build(_build(galaxy_slot_and_free_file_request))
     input_ids = {f.id for f in pkg.input_files}
     assert "https://example.org/slot.txt" in input_ids   # slot-bound file
     assert FREE_FILE_URL in input_ids                    # free-form file, included

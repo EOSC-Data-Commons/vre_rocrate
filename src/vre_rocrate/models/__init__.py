@@ -1,5 +1,5 @@
-from .package import (
-    RequestPackage,
+from .payload import (
+    VREPayload,
     WorkflowDescriptor,
     FileReference,
     FormalParameter,
@@ -16,7 +16,7 @@ from .launch import (
 from .infrastructure import RuntimePlatform, IMInputFile
 
 __all__ = [
-    "RequestPackage",
+    "VREPayload",
     "WorkflowDescriptor",
     "FileReference",
     "FormalParameter",
