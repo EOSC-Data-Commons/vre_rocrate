@@ -122,6 +122,48 @@ class VREPayload:
         }
         return [f for f in self.files if f.id in bound_ids or f.id != self.workflow.id]
 
+    def input_file_bindings(self) -> list[tuple[str, FileReference]]:
+        """(input name, bound file) pairs — the file half of the inputs.
+
+        Free-form file attachments and literal-value inputs are not
+        included — see :attr:`input_files` for the transport view and
+        :meth:`input_literal_bindings` for the literal half.
+        """
+        pairs = []
+        for param in self.workflow_inputs:
+            f = self.file_for_input(param)
+            if f is not None:
+                pairs.append((param.name, f))
+        return pairs
+
+    def input_literal_bindings(self) -> list[tuple[str, str | int | float | bool]]:
+        """(input name, literal value) pairs — the scalar half of the inputs.
+
+        A param is file-bound (see :meth:`input_file_bindings`) or
+        literal-bound, never both: a string default is only kept literal
+        when ``file_for_input`` cannot resolve it as a file.
+        """
+        pairs = []
+        for param in self.workflow_inputs:
+            if self.file_for_input(param) is not None:
+                continue
+            if isinstance(param.default_value, (str, int, float, bool)):
+                pairs.append((param.name, param.default_value))
+        return pairs
+
+    def input_value_bindings(
+        self,
+    ) -> list[tuple[str, FileReference | str | int | float | bool]]:
+        """All resolved input bindings as (name, value) pairs.
+
+        Concatenation of :meth:`input_literal_bindings` and
+        :meth:`input_file_bindings` — literals first, then files.
+        Unresolvable bindings (dangling ``@id`` refs) and value-less
+        params are omitted. Build a dict from the pairs to key by
+        input name; duplicates collapse there.
+        """
+        return self.input_literal_bindings() + self.input_file_bindings()
+
     @property
     def fdl_url(self) -> str | None:
         return self.workflow.url
