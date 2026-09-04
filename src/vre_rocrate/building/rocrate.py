@@ -108,7 +108,7 @@ class RocrateBuilder:
     def _add_root_dataset(self) -> None:
         input_dataset = self.request.input.dataset
         name = self.tool.name
-        description = self.tool.description or "placeholder"
+        description = self.tool.description or "N/A"
 
         has_part: list[dict[str, str]] = [{"@id": self.tool.uri}]
         for file in self._all_files():
@@ -146,7 +146,7 @@ class RocrateBuilder:
                 "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
             },
             "name": self.tool.name or _extract_filename_from_url(self.tool.uri),
-            "description": self.tool.description or "placeholder",
+            "description": self.tool.description or "N/A",
             "programmingLanguage": {"@id": self.lang_id},
             "creator": {"@id": "#author-dispatcher"},
             "dateCreated": now_date,
