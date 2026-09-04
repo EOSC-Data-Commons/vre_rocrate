@@ -361,53 +361,6 @@ def test_input_files_returns_both_slot_and_free_form_files(
 
 
 # ---------------------------------------------------------------------------
-# Input bindings accessors (design note §6) — name → file / scalar mapping
-# ---------------------------------------------------------------------------
-
-def test_input_file_bindings_pairs_named_inputs_with_files(galaxy_slot_request):
-    pkg = VREPayloadBuilder.build(_build(galaxy_slot_request))
-    bindings = pkg.input_file_bindings()
-    assert len(bindings) == 1
-    name, f = bindings[0]
-    assert name == "f"
-    assert (f.id, f.url) == (FILE_URL, FILE_URL)
-
-
-def test_input_file_bindings_skips_literal_slots(sciencemesh_literal_slot_request):
-    pkg = VREPayloadBuilder.build(_build(sciencemesh_literal_slot_request))
-    assert pkg.input_file_bindings() == []
-
-
-def test_input_literal_bindings_returns_scalar_slots(mddash_scalar_slot_request):
-    pkg = VREPayloadBuilder.build(_build(mddash_scalar_slot_request))
-    assert pkg.input_literal_bindings() == [("pdb_id", "1L2Y")]
-
-
-def test_input_literal_bindings_skips_file_slots(galaxy_slot_request):
-    pkg = VREPayloadBuilder.build(_build(galaxy_slot_request))
-    assert pkg.input_literal_bindings() == []
-
-
-def test_input_value_bindings_mixes_files_and_literals():
-    req = VRELaunchRequest(
-        tool=_tool(GALAXY_URI, ["galaxy_workflow"],
-                   slots=[SlotDefinition(id="f", name="f", slot_type="file"),
-                          SlotDefinition(id="n", name="n", slot_type="string")]),
-        input=LaunchInput(slots={
-            "f": FileInput(name="f", url=FILE_URL),
-            "n": "literal",
-        }),
-    )
-    pkg = VREPayloadBuilder.build(_build(req))
-    pairs = dict(pkg.input_value_bindings())
-    assert pairs["f"].id == FILE_URL   # FileReference for the file-bound slot
-    assert pairs["n"] == "literal"     # scalar passthrough for the literal slot
-    assert pkg.input_value_bindings() == (
-        pkg.input_literal_bindings() + pkg.input_file_bindings()
-    )
-
-
-# ---------------------------------------------------------------------------
 # Validation — the new crate must pass ValidationPipeline (design note §6)
 # ---------------------------------------------------------------------------
 

@@ -2,7 +2,13 @@
 
 import pytest
 
-from vre_rocrate import VREPayloadBuilder, VREPayload
+from vre_rocrate import (
+    VREPayloadBuilder,
+    VREPayload,
+    WorkflowDescriptor,
+    FileReference,
+    FormalParameter,
+)
 from conftest import load_json
 
 SERIALIZATION_CASES = [
@@ -116,3 +122,97 @@ class TestVREPayloadHelpers:
             "data_file",
             "zipped_folder",
         }
+
+
+# ---------------------------------------------------------------------------
+# Input bindings accessors — name → file / scalar mapping
+# ---------------------------------------------------------------------------
+
+
+def _payload(inputs, files):
+    return VREPayload(
+        vre_type="http://example.org/vre",
+        programming_language="http://example.org/vre",
+        workflow=WorkflowDescriptor(id="https://example.org/wf", type="File"),
+        files=files,
+        workflow_inputs=inputs,
+    )
+
+
+class TestInputBindings:
+    """Binding accessors resolve input params to files or literal values."""
+
+    def test_file_slot_binds_file_and_not_literal(self):
+        file = FileReference(id="https://example.org/p.txt",
+                             name="p.txt",
+                             url="https://example.org/p.txt")
+        pkg = _payload(
+            [FormalParameter(id="#input-input_file", name="input_file",
+                             default_value={"@id": file.id})],
+            [file],
+        )
+        assert pkg.input_file_bindings() == [("input_file", file)]
+        assert pkg.input_literal_bindings() == []
+
+    def test_literal_slot_binds_scalar_and_not_file(self):
+        pkg = _payload(
+            [FormalParameter(id="#input-pdb_id", name="pdb_id",
+                             default_value="1L2Y")],
+            [],
+        )
+        assert pkg.input_file_bindings() == []
+        assert pkg.input_literal_bindings() == [("pdb_id", "1L2Y")]
+
+    def test_dangling_ref_dropped_from_bindings(self):
+        """A slot bound to a file @id absent from files produces no binding in
+        any accessor: not file-bound (dangling ref), not literal-bound
+        (dict-shaped default), hence absent from the combined view."""
+        pkg = _payload(
+            [FormalParameter(id="#input-input_file", name="input_file",
+                             default_value={"@id": "https://example.org/missing"})],
+            [],
+        )
+        assert pkg.input_file_bindings() == []
+        assert pkg.input_literal_bindings() == []
+
+    def test_valueless_param_omitted_from_bindings(self):
+        """A declared input without defaultValue produces no binding in any
+        accessor: not file-bound, not literal-bound (no scalar value), hence
+        absent from the combined view."""
+        pkg = _payload([FormalParameter(id="#input-input_file", name="input_file")], [])
+        assert pkg.input_file_bindings() == []
+        assert pkg.input_literal_bindings() == []
+
+    def test_input_value_bindings_mixes_files_and_literals(self):
+        file = FileReference(id="https://example.org/p.txt",
+                             name="p.txt",
+                             url="https://example.org/p.txt")
+        pkg = _payload(
+            [
+                FormalParameter(id="#input-input_file", name="input_file",
+                                default_value={"@id": file.id}),
+                FormalParameter(id="#input-mode", name="mode",
+                                default_value="qual"),
+            ],
+            [file],
+        )
+        pairs = dict(pkg.input_value_bindings())
+        assert pairs["input_file"] is file   # FileReference for the file-bound slot
+        assert pairs["mode"] == "qual"       # scalar passthrough for the literal slot
+
+    def test_string_literal_matching_file_id_is_file_bound(self):
+        """A string default colliding with a file @id is file-bound, not literal.
+
+        Literals can be promoted by in-crate files: a pdb_id-style scalar is
+        kept literal only because no file entity carries that @id. If one does,
+        the input binds the file. The disjointness guard in
+        input_literal_bindings exists for exactly this case.
+        """
+        file = FileReference(id="1L2Y", name="1L2Y", url="1L2Y")
+        pkg = _payload(
+            [FormalParameter(id="#input-pdb_id", name="pdb_id",
+                             default_value="1L2Y")],
+            [file],
+        )
+        assert [name for name, _ in pkg.input_file_bindings()] == ["pdb_id"]
+        assert "pdb_id" not in [name for name, _ in pkg.input_literal_bindings()]
