@@ -156,11 +156,11 @@ class VREPayload:
     ) -> list[tuple[str, FileReference | str | int | float | bool]]:
         """All resolved input bindings as (name, value) pairs.
 
-        Concatenation of :meth:`input_literal_bindings` and
-        :meth:`input_file_bindings` — literals first, then files.
-        Unresolvable bindings (dangling ``@id`` refs) and value-less
-        params are omitted. Build a dict from the pairs to key by
-        input name; duplicates collapse there.
+        The disjoint union of :meth:`input_literal_bindings` and
+        :meth:`input_file_bindings` (order not specified). Unresolvable
+        bindings (dangling ``@id`` refs) and value-less params are
+        omitted. Build a dict from the pairs to key by input name;
+        duplicates collapse there.
         """
         return self.input_literal_bindings() + self.input_file_bindings()
 
