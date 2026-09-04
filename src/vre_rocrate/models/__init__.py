@@ -1,21 +1,32 @@
-from .package import (
-    OCMData,
-    RequestPackage,
+from .payload import (
+    VREPayload,
     WorkflowDescriptor,
     FileReference,
     FormalParameter,
 )
-from .minimal import MinimalVRERequest, MinimalFileInput
+from .launch import (
+    VRELaunchRequest,
+    ToolMeta,
+    LaunchInput,
+    SlotDefinition,
+    SlotValue,
+    FileInput,
+    DatasetHandle,
+)
 from .infrastructure import RuntimePlatform, IMInputFile
 
 __all__ = [
-    "OCMData",
-    "RequestPackage",
+    "VREPayload",
     "WorkflowDescriptor",
     "FileReference",
     "FormalParameter",
-    "MinimalVRERequest",
-    "MinimalFileInput",
+    "VRELaunchRequest",
+    "ToolMeta",
+    "LaunchInput",
+    "SlotDefinition",
+    "SlotValue",
+    "FileInput",
+    "DatasetHandle",
     "RuntimePlatform",
     "IMInputFile",
 ]

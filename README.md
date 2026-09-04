@@ -14,7 +14,7 @@ The library is organized into three layers:
 
 ### models/
 
-- **package.py** — [`RequestPackage`](src/vre_rocrate/models/package.py), [`WorkflowDescriptor`](src/vre_rocrate/models/package.py), [`FileReference`](src/vre_rocrate/models/package.py), [`FormalParameter`](src/vre_rocrate/models/package.py), [`OCMData`](src/vre_rocrate/models/package.py)
+- **payload.py** — [`VREPayload`](src/vre_rocrate/models/payload.py), [`WorkflowDescriptor`](src/vre_rocrate/models/payload.py), [`FileReference`](src/vre_rocrate/models/payload.py), [`FormalParameter`](src/vre_rocrate/models/payload.py), [`OCMData`](src/vre_rocrate/models/payload.py)
 - **rocrate.py** — [`ParsedCrate`](src/vre_rocrate/models/rocrate.py), [`Entity`](src/vre_rocrate/models/rocrate.py)
 - **minimal.py** — [`MinimalVRERequest`](src/vre_rocrate/models/minimal.py), [`MinimalFileInput`](src/vre_rocrate/models/minimal.py)
 - **infrastructure.py** — [`RuntimePlatform`](src/vre_rocrate/models/infrastructure.py), [`IMInputFile`](src/vre_rocrate/models/infrastructure.py)
@@ -27,7 +27,7 @@ The library is organized into three layers:
 
 ### building/
 
-- **package.py** — [`RequestPackageBuilder`](src/vre_rocrate/building/package.py): builds [`RequestPackage`](src/vre_rocrate/models/package.py) from either a [`ParsedCrate`](src/vre_rocrate/models/rocrate.py) or a [`MinimalVRERequest`](src/vre_rocrate/models/minimal.py)
+- **payload.py** — [`VREPayloadBuilder`](src/vre_rocrate/building/payload.py): builds [`VREPayload`](src/vre_rocrate/models/payload.py) from either a [`ParsedCrate`](src/vre_rocrate/models/rocrate.py) or a [`MinimalVRERequest`](src/vre_rocrate/models/minimal.py)
 - **rocrate.py** — [`RocrateBuilder`](src/vre_rocrate/building/rocrate.py): builds a complete RO-Crate JSON dict from a [`MinimalVRERequest`](src/vre_rocrate/models/minimal.py)
 
 ## Usage
@@ -35,24 +35,24 @@ The library is organized into three layers:
 ### Parse an existing RO-Crate
 
 ```python
-from vre_rocrate import ROCrateParser, RequestPackageBuilder
+from vre_rocrate import ROCrateParser, VREPayloadBuilder
 
 crate_dict = {"@context": "...", "@graph": [...]}
 parsed = ROCrateParser.parse(crate_dict)
-package = RequestPackageBuilder.build(parsed)
+package = VREPayloadBuilder.build(parsed)
 ```
 
-### Build a RequestPackage from a minimal VRE request
+### Build a VREPayload from a minimal VRE request
 
 ```python
-from vre_rocrate import MinimalVRERequest, MinimalFileInput, RequestPackageBuilder
+from vre_rocrate import MinimalVRERequest, MinimalFileInput, VREPayloadBuilder
 
 request = MinimalVRERequest(
     vre_type="galaxy",
     workflow="https://example.com/workflow.ga",
     files=[MinimalFileInput(name="data.fastq", url="https://example.com/data.fastq")],
 )
-package = RequestPackageBuilder.build_from_minimal(request, file_bytes_map={})
+package = VREPayloadBuilder.build_from_minimal(request, file_bytes_map={})
 ```
 
 ### Build an RO-Crate from a minimal VRE request

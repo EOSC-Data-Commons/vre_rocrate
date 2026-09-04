@@ -1,19 +1,36 @@
-from vre_rocrate import RocrateBuilder, MinimalVRERequest, MinimalFileInput
+import json
 
-PDB_NAME = "1L2Y"
-PDB_URL = "https://www.ebi.ac.uk/pdbe/entry-files/download/pdb1l2y.ent"
-PDB_ENCODING = "chemical/x-pdb"
-NOTEBOOKS_REPO = "https://github.com/sb-ncbr/mddash-notebooks.git"
-
-request = MinimalVRERequest(
-    vre_type="mddash",
-    workflow=NOTEBOOKS_REPO,
-    files=[
-        MinimalFileInput(
-            name=PDB_NAME,
-            url=PDB_URL,
-            encoding_format=PDB_ENCODING,
-        ),
-    ],
+from vre_rocrate import (
+    VRELaunchRequest,
+    ToolMeta,
+    LaunchInput,
+    SlotDefinition,
+    RocrateBuilder,
 )
-print(RocrateBuilder.build_from_minimal(request))
+
+PDB_ID = "1L2Y"
+
+request = VRELaunchRequest(
+    tool=ToolMeta(
+        id="mddash-example",
+        version="1.0.0",
+        name="MDDash notebook",
+        uri="https://github.com/sb-ncbr/mddash-notebooks.git",
+        types=["mddash"],
+        description="MDDash notebook for PDB analysis.",
+        slots=[
+            SlotDefinition(
+                id="pdb_id",
+                name="pdb_id",
+                slot_type="string",
+                is_optional=False,
+            ),
+        ],
+        raw_definition={},
+    ),
+    input=LaunchInput(
+        slots={"pdb_id": PDB_ID},
+    ),
+)
+
+print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))

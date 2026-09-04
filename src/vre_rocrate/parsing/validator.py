@@ -51,6 +51,25 @@ def _resolve_ref(graph: list[dict[str, Any]], ref: object) -> object:
     return ref
 
 
+def _validate_entity_ids(graph: list[dict[str, Any]]) -> None:
+    """Validate that every entity in the graph declares a non-empty @id.
+
+    RO-Crate 1.1 requires each @graph entity to be identified by an @id
+    (unlike bare JSON-LD, which permits blank nodes). Downstream helpers
+    (e.g. VREPayload file triage) exclude and match entities by id.
+
+    Raises:
+        CrateValidationError: If an entity lacks an @id or it is empty.
+    """
+    for index, entity in enumerate(graph):
+        eid = entity.get("@id")
+        if not isinstance(eid, str) or not eid:
+            label = entity.get("name") or f"graph index {index}"
+            raise CrateValidationError(
+                f"Entity without @id in ROCrate (@graph[{index}]: {label})"
+            )
+
+
 def _validate_main_entity(graph: list[dict[str, Any]]) -> None:
     """Validate that the crate has a valid mainEntity.
 
@@ -97,6 +116,7 @@ class ValidationPipeline:
         """Perform basic validation of a ROCrate dict.
 
         This validates:
+        - every @graph entity declares a non-empty @id (RO-Crate requirement)
         - mainEntity exists and is valid
         - programmingLanguage is defined and resolvable
         - programmingLanguage has an identifier
@@ -108,6 +128,7 @@ class ValidationPipeline:
             CrateValidationError: If any validation step fails.
         """
         graph: list[dict[str, Any]] = crate.get("@graph", [])
+        _validate_entity_ids(graph)
         _validate_main_entity(graph)
         _validate_programming_language(graph, _get_main_entity(graph))
 

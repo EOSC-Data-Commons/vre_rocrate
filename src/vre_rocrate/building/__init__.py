@@ -1,7 +1,7 @@
-from .package import RequestPackageBuilder
+from .payload import VREPayloadBuilder
 from .rocrate import RocrateBuilder
 
 __all__ = [
-    "RequestPackageBuilder",
+    "VREPayloadBuilder",
     "RocrateBuilder",
 ]

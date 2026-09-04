@@ -5,19 +5,19 @@ from vre_rocrate import (
     SlotDefinition, FileInput, RocrateBuilder,
 )
 
-WORKFLOW_URL = (
-    "https://raw.githubusercontent.com/dpiparo/swanExamples/"
-    "refs/heads/master/notebooks/CMSDimuon_py.ipynb"
-)
+RECEIVER = "rwelande@eosc.cernbox.cern.ch"
 
+# Minimal tool information required by RocrateBuilder to produce a
+# structurally valid crate — just enough for the shared dataset.
+# The mainEntity is named after the share itself, not a real workflow.
 request = VRELaunchRequest(
     tool=ToolMeta(
-        id="cms-dimuon-notebook",
+        id="sciencemesh-data-share",
         version="1.0.0",
-        name="CMS Dimuon py notebook",
-        uri=WORKFLOW_URL,
+        name="ScienceMesh data share",
+        uri="dummy-tool",
         types=["sciencemesh"],
-        description="Jupyter notebook for analyzing research data in ScienceMesh environment.",
+        description="Shared research data for ScienceMesh federation.",
         slots=[
             SlotDefinition(
                 id="Shared With",
@@ -29,13 +29,14 @@ request = VRELaunchRequest(
         raw_definition={},
     ),
     input=LaunchInput(
-        slots={"Shared With": "rwelande@eosc.cernbox.cern.ch"},
+        dataset=None,
+        slots={"Shared With": RECEIVER},
         files={
             "MuRun2010B.csv": FileInput(
                 name="MuRun2010B.csv",
                 url="https://raw.githubusercontent.com/dpiparo/swanExamples/master/notebooks/MuRun2010B.csv",
                 mime_type="text/csv",
-            ),
+            )
         },
     ),
 )

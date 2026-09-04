@@ -1,20 +1,24 @@
-"""VRE RO-Crate library — parsing, validation, building, and minimal-VRE handling."""
+"""VRE RO-Crate library — parsing, validation, building, and launch-request handling."""
 
 from .models import (
-    OCMData,
-    RequestPackage,
+    VREPayload,
     WorkflowDescriptor,
     FileReference,
     FormalParameter,
     RuntimePlatform,
     IMInputFile,
-    MinimalVRERequest,
-    MinimalFileInput,
+    VRELaunchRequest,
+    ToolMeta,
+    LaunchInput,
+    SlotDefinition,
+    SlotValue,
+    FileInput,
+    DatasetHandle,
 )
 from .parsing import (
     ValidationPipeline,
 )
-from .building import RequestPackageBuilder, RocrateBuilder
+from .building import VREPayloadBuilder, RocrateBuilder
 from .constants import (
     VRE_TYPES,
     VRE_TYPE_TO_PROGRAMMING_LANGUAGE,
@@ -30,17 +34,21 @@ from .constants import (
 from .exceptions import VreRocrateError, CrateValidationError
 
 __all__ = [
-    "OCMData",
-    "RequestPackage",
+    "VREPayload",
     "WorkflowDescriptor",
     "FileReference",
     "FormalParameter",
     "RuntimePlatform",
     "IMInputFile",
-    "MinimalVRERequest",
-    "MinimalFileInput",
+    "VRELaunchRequest",
+    "ToolMeta",
+    "LaunchInput",
+    "SlotDefinition",
+    "SlotValue",
+    "FileInput",
+    "DatasetHandle",
     "ValidationPipeline",
-    "RequestPackageBuilder",
+    "VREPayloadBuilder",
     "RocrateBuilder",
     "VRE_TYPES",
     "VRE_TYPE_TO_PROGRAMMING_LANGUAGE",

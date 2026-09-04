@@ -2,23 +2,22 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..models.package import (
-    RequestPackage,
+from ..models.payload import (
+    VREPayload,
     WorkflowDescriptor,
     FileReference,
     FormalParameter,
-    OCMData,
 )
 from ..models.infrastructure import RuntimePlatform
 from ..parsing.infrastructure import runtime_platform_from_dict
 from ..parsing.validator import ValidationPipeline
 
 
-class RequestPackageBuilder:
-    """Builds RequestPackage instances from a raw ROCrate dict.
+class VREPayloadBuilder:
+    """Builds VREPayload instances from a raw ROCrate dict.
 
     Uses instance methods with shared state to construct individual components
-    and assemble them into a complete RequestPackage.
+    and assemble them into a complete VREPayload.
     """
 
     def __init__(self, crate: dict[str, Any]):
@@ -27,7 +26,7 @@ class RequestPackageBuilder:
         self.root = self._get_root_dataset()
         self.main = self._get_main_entity()
         if self.main is None:
-            raise ValueError("Cannot build RequestPackage without mainEntity")
+            raise ValueError("Cannot build VREPayload without mainEntity")
 
     # ------------------------------------------------------------------
     # Public API
@@ -38,8 +37,8 @@ class RequestPackageBuilder:
         cls,
         crate: dict[str, Any],
         file_bytes_map: dict[str, bytes] | None = None,
-    ) -> RequestPackage:
-        """Build a RequestPackage from a ROCrate dict."""
+    ) -> VREPayload:
+        """Build a VREPayload from a ROCrate dict."""
         ValidationPipeline.validate_basic(crate)
         builder = cls(crate)
         package = builder._build()
@@ -53,16 +52,16 @@ class RequestPackageBuilder:
     # Build orchestration
     # ------------------------------------------------------------------
 
-    def _build(self) -> RequestPackage:
+    def _build(self) -> VREPayload:
         lang_id = self._resolve_language_id()
         runtime_platform = self._resolve_runtime_platform()
         workflow = self._build_workflow(lang_id, runtime_platform)
         files = self._extract_files()
         workflow_inputs = self._extract_parameters(self.main.get("input", []))
         workflow_outputs = self._extract_parameters(self.main.get("output", []))
-        ocm_data = self._build_ocm_data()
+        raw_definition = self._extract_raw_definition()
 
-        return RequestPackage(
+        return VREPayload(
             vre_type=lang_id or "unknown",
             programming_language=lang_id or "unknown",
             workflow=workflow,
@@ -70,7 +69,7 @@ class RequestPackageBuilder:
             workflow_inputs=workflow_inputs,
             workflow_outputs=workflow_outputs,
             raw_crate=self.crate,
-            ocm_data=ocm_data,
+            raw_definition=raw_definition,
         )
 
     # ------------------------------------------------------------------
@@ -110,17 +109,7 @@ class RequestPackageBuilder:
             programming_language_id=lang_id,
             runtime_platform=runtime_platform,
             properties=dict(self.main),
-        )
-
-    def _build_ocm_data(self) -> OCMData:
-        return OCMData(
-            receiver_userid=self._entity_prop("#receiver", "userid"),
-            owner_userid=self._entity_prop("#owner", "userid"),
-            sender_userid=self._entity_prop("#sender", "userid"),
-            sender_name=self._entity_prop("#sender", "name"),
-            root_name=self._entity_prop("./", "name"),
-            root_description=self._entity_prop("./", "description"),
-            resource_id=self._entity_prop("#identifier", "userid"),
+            tool_version=self.main.get("version"),
         )
 
     # ------------------------------------------------------------------
@@ -175,6 +164,17 @@ class RequestPackageBuilder:
         return params
 
     # ------------------------------------------------------------------
+    # Extraction helpers
+    # ------------------------------------------------------------------
+
+    def _extract_raw_definition(self) -> dict[str, Any]:
+        """Extract raw_definition from the #tool-metadata entity if present."""
+        tm = self._find_entity("#tool-metadata")
+        if tm is None:
+            return {}
+        return tm.get("rawDefinition", {})
+
+    # ------------------------------------------------------------------
     # Low-level helpers
     # ------------------------------------------------------------------
 
@@ -214,9 +214,3 @@ class RequestPackageBuilder:
             return self._find_entity(ref["@id"])
         return ref
 
-    def _entity_prop(self, entity_id: str, prop: str) -> str | None:
-        """Read a property from a crate entity, returning None if missing."""
-        entity = self._find_entity(entity_id)
-        if entity is None:
-            return None
-        return entity.get(prop)
