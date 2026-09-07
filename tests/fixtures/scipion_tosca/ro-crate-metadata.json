@@ -67,6 +67,9 @@
             "input": [
                 {
                     "@id": "#input-empiar-dataset"
+                },
+                {
+                    "@id": "#input-streaming"
                 }
             ],
             "output": [
@@ -85,6 +88,17 @@
             "defaultValue": {
                 "@id": "rsync://ftp.ebi.ac.uk/empiar/world_availability/12944/"
             }
+        },
+        {
+            "@id": "#input-streaming",
+            "@type": "FormalParameter",
+            "conformsTo": {
+                "@id": "https://bioschemas.org/profiles/FormalParameter/0.1-DRAFT-2020_07_21/"
+            },
+            "name": "streaming",
+            "description": "Whether data processing runs in streaming mode (true) or batch mode (false).",
+            "additionalType": "Boolean",
+            "defaultValue": false
         },
         {
             "@id": "#output-result",
