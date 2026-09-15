@@ -66,24 +66,21 @@ class RocrateBuilder:
 
     def __init__(
         self,
-        request: VRELaunchRequest,
+        tool: ToolMeta,
+        input: LaunchInput,
+        runtime_platform: str
     ):
-        self.request = request
-        self.tool: ToolMeta = request.tool
-        self.vre_type = resolve_vre_type(self.tool)
-        self.programming_language = VRE_TYPE_TO_PROGRAMMING_LANGUAGE.get(
-            self.vre_type, ""
-        )
-        self.display_name = VRE_TYPE_TO_DISPLAY_NAME.get(self.vre_type, "")
-        self.language_url = VRE_TYPE_TO_LANGUAGE_URL.get(self.vre_type, "")
-        self.lang_id = f"#{self.vre_type}-lang"
-        self.now_iso = datetime.now(timezone.utc).isoformat()
+        self.tool: ToolMeta = tool
+        self.input = input
+        self.runtime_platform = runtime_platform
         self.graph: list[dict[str, Any]] = []
+        self.vre_type = resolve_vre_type(self.tool)
+        
 
     def _runtime_platform(self) -> str:
-        if self.request.runtime_platform:
-            return self.request.runtime_platform
-        return VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM.get(self.vre_type, "")
+        if self.runtime_platform:
+            return self.runtime_platform
+        return VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM.get(resolve_vre_type(self.tool), "")
 
     def _add_metadata_descriptor(self) -> None:
         self.graph.append(
@@ -96,11 +93,11 @@ class RocrateBuilder:
         )
 
     def _slot_files(self) -> list[FileInput]:
-        return [sv for sv in self.request.input.slots.values()
+        return [sv for sv in self.input.slots.values()
                 if isinstance(sv, FileInput)]
 
     def _input_files(self) -> list[FileInput]:
-        return list(self.request.input.files.values())
+        return list(self.input.files.values())
 
     def _all_files(self) -> list[FileInput]:
         return self._slot_files() + self._input_files()
@@ -113,7 +110,7 @@ class RocrateBuilder:
         for file in self._all_files():
             has_part.append({"@id": _file_id(file)})
 
-        input_dataset = self.request.input.dataset
+        input_dataset = self.input.dataset
         if input_dataset is not None:
             has_part.append({"@id": input_dataset.url})
 
@@ -123,7 +120,7 @@ class RocrateBuilder:
                 "@type": "Dataset",
                 "name": name,
                 "description": description,
-                "datePublished": self.now_iso,
+                "datePublished": datetime.now(timezone.utc).isoformat(),
                 "license": {"@id": _LICENSE_PLACEHOLDER_ID},
                 "creator": {"@id": "#author-dispatcher"},
                 "mainEntity": {"@id": self.tool.uri},
@@ -147,7 +144,7 @@ class RocrateBuilder:
             },
             "name": self.tool.name or _extract_filename_from_url(self.tool.uri),
             "description": self.tool.description or "N/A",
-            "programmingLanguage": {"@id": self.lang_id},
+            "programmingLanguage": {"@id": self._lang_id()},
             "creator": {"@id": "#author-dispatcher"},
             "dateCreated": now_date,
             "license": {"@id": _LICENSE_PLACEHOLDER_ID},
@@ -167,13 +164,19 @@ class RocrateBuilder:
         self.graph.append(workflow_entity)
 
     def _add_programming_language(self) -> None:
+        programming_language = VRE_TYPE_TO_PROGRAMMING_LANGUAGE.get(
+                    self.vre_type, ""
+                )
+        display_name = VRE_TYPE_TO_DISPLAY_NAME.get(self.vre_type, "")
+        language_url = VRE_TYPE_TO_LANGUAGE_URL.get(self.vre_type, "")
+
         self.graph.append(
             {
-                "@id": self.lang_id,
+                "@id": self._lang_id(),
                 "@type": "ComputerLanguage",
-                "identifier": self.programming_language,
-                "name": self.display_name,
-                "url": self.language_url,
+                "identifier": programming_language,
+                "name": display_name,
+                "url": language_url,
             }
         )
 
@@ -211,16 +214,17 @@ class RocrateBuilder:
                 "additionalType": slot.slot_type,
                 "required": not slot.is_optional,
             }
-            slot_value = self.request.input.slots.get(slot.name)
+            slot_value = self.input.slots.get(slot.name)
             if slot_value is not None:
                 if isinstance(slot_value, FileInput):
                     fp["defaultValue"] = {"@id": _file_id(slot_value)}
                 else:
                     fp["defaultValue"] = slot_value
             self.graph.append(fp)
-
+    def _lang_id(self) -> str:
+        return f"#{self.vre_type}-lang"
     def _add_dataset_entity(self) -> None:
-        dataset = self.request.input.dataset
+        dataset = self.input.dataset
         if dataset is None:
             return
         self.graph.append(
@@ -286,4 +290,7 @@ class RocrateBuilder:
     @staticmethod
     def build_from_launch_request(request: VRELaunchRequest) -> dict[str, Any]:
         """Convert a VRELaunchRequest into a complete ROCrate JSON dict."""
-        return RocrateBuilder(request).build()
+        tool_meta = request.tool
+        input = request.input
+        runtime_platform = request.runtime_platform
+        return RocrateBuilder(tool_meta, input, runtime_platform).build()
