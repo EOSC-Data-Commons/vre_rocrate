@@ -1,0 +1,172 @@
+{
+  "@context": "https://w3id.org/ro/crate/1.1/context",
+  "@graph": [
+    {
+      "@id": "#author-dispatcher",
+      "@type": "Person",
+      "name": "Dispatcher System"
+    },
+    {
+      "@id": "#input-data_file",
+      "@type": "FormalParameter",
+      "additionalType": "file",
+      "defaultValue": {
+        "@id": "https://www.creatis.insa-lyon.fr/~abonnet/Rec003_Vox1.mrui"
+      },
+      "name": "data_file",
+      "required": true
+    },
+    {
+      "@id": "#input-parameter_file",
+      "@type": "FormalParameter",
+      "additionalType": "file",
+      "defaultValue": {
+        "@id": "https://www.creatis.insa-lyon.fr/~abonnet/quest_param_117T_A.txt"
+      },
+      "name": "parameter_file",
+      "required": true
+    },
+    {
+      "@id": "#input-zipped_folder",
+      "@type": "FormalParameter",
+      "additionalType": "file",
+      "defaultValue": {
+        "@id": "https://www.creatis.insa-lyon.fr/~abonnet/basis_11_7.zip"
+      },
+      "name": "zipped_folder",
+      "required": true
+    },
+    {
+      "@id": "#license-unspecified",
+      "@type": "CreativeWork",
+      "description": "License not specified by the crate producer",
+      "name": "Unspecified license"
+    },
+    {
+      "@id": "#vip-lang",
+      "@type": "ComputerLanguage",
+      "identifier": "https://vip.creatis.insa-lyon.fr/",
+      "name": "VIP",
+      "url": "https://vip.creatis.insa-lyon.fr/"
+    },
+    {
+      "@id": "#workflow-hub",
+      "@type": "Organization",
+      "name": "Example Workflow Hub",
+      "url": "http://example.com/workflows/"
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "datePublished": "2000-01-01T00:00:00+00:00",
+      "description": "N/A",
+      "hasPart": [
+        {
+          "@id": "https://vip.creatis.insa-lyon.fr/rest/pipelines/CQUEST/0.6"
+        },
+        {
+          "@id": "https://www.creatis.insa-lyon.fr/~abonnet/quest_param_117T_A.txt"
+        },
+        {
+          "@id": "https://www.creatis.insa-lyon.fr/~abonnet/Rec003_Vox1.mrui"
+        },
+        {
+          "@id": "https://www.creatis.insa-lyon.fr/~abonnet/basis_11_7.zip"
+        }
+      ],
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "mainEntity": {
+        "@id": "https://vip.creatis.insa-lyon.fr/rest/pipelines/CQUEST/0.6"
+      },
+      "name": "Root dataset for tool: CQUEST Pipeline"
+    },
+    {
+      "@id": "https://vip.creatis.insa-lyon.fr/rest/pipelines/CQUEST/0.6",
+      "@type": [
+        "SoftwareSourceCode",
+        "ComputationalWorkflow"
+      ],
+      "conformsTo": {
+        "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
+      },
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "dateCreated": "2000-01-01",
+      "description": "CQUEST pipeline for VIP platform.",
+      "input": [
+        {
+          "@id": "#input-parameter_file"
+        },
+        {
+          "@id": "#input-data_file"
+        },
+        {
+          "@id": "#input-zipped_folder"
+        }
+      ],
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "CQUEST Pipeline",
+      "programmingLanguage": {
+        "@id": "#vip-lang"
+      },
+      "runtimePlatform": "https://vip.creatis.insa-lyon.fr/",
+      "sdPublisher": {
+        "@id": "#workflow-hub"
+      },
+      "version": "0.6"
+    },
+    {
+      "@id": "https://www.creatis.insa-lyon.fr/~abonnet/Rec003_Vox1.mrui",
+      "@type": "File",
+      "encodingFormat": "application/octet-stream",
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "data_file",
+      "url": "https://www.creatis.insa-lyon.fr/~abonnet/Rec003_Vox1.mrui"
+    },
+    {
+      "@id": "https://www.creatis.insa-lyon.fr/~abonnet/basis_11_7.zip",
+      "@type": "File",
+      "encodingFormat": "application/zip",
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "zipped_folder",
+      "url": "https://www.creatis.insa-lyon.fr/~abonnet/basis_11_7.zip"
+    },
+    {
+      "@id": "https://www.creatis.insa-lyon.fr/~abonnet/quest_param_117T_A.txt",
+      "@type": "File",
+      "encodingFormat": "text/plain",
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "parameter_file",
+      "url": "https://www.creatis.insa-lyon.fr/~abonnet/quest_param_117T_A.txt"
+    },
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      },
+      "conformsTo": [
+        {
+          "@id": "https://w3id.org/ro/crate/1.1"
+        },
+        {
+          "@id": "https://w3id.org/eosc-vre/req-packager/1.0"
+        }
+      ]
+    }
+  ]
+}

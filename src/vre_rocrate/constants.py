@@ -1,5 +1,19 @@
 """Constants for VRE types and programming language mappings."""
 
+# ------------------------------------------------------------------
+# Wire format profile identification
+#
+# The crate root descriptor declares which RO-Crate profile this dialect
+# implements. Independent consumers (not all of them use this library) read
+# `ro-crate-metadata.json.conformsTo` as a SET: it always contains the base
+# RO-Crate version first and the profile URI second. Additive changes bump
+# the minor version; breaking changes bump the major and are never made
+# silently. See docs/spec/01-conformance.md.
+# ------------------------------------------------------------------
+
+ROCRATE_BASE_PROFILE = "https://w3id.org/ro/crate/1.1"
+WIRE_FORMAT_PROFILE = "https://w3id.org/eosc-vre/req-packager/1.0"
+
 GALAXY_PROGRAMMING_LANGUAGE = "https://galaxyproject.org/"
 BINDER_PROGRAMMING_LANGUAGE = "https://jupyter.org/binder/"
 SCIENCEMESH_PROGRAMMING_LANGUAGE = "https://eosc.cernbox.cern.ch"

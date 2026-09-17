@@ -1,0 +1,508 @@
+{
+  "_note": "Real crates for a consumer team to point their parser at. 'builder-output' is what RocrateBuilder emits (rebuilt from examples/*.py under a frozen clock and checked against what each example actually prints); 'fixture-input' is a crate some producer actually sent. @graph is sorted by @id; emission order is normative and lives in entities.json. Timestamps are real ISO 8601 values, not placeholders, so these files validate against the schema.",
+  "emittable_types": [
+    "ComputationalWorkflow",
+    "ComputerLanguage",
+    "CreativeWork",
+    "Dataset",
+    "File",
+    "FormalParameter",
+    "Organization",
+    "Person",
+    "SoftwareSourceCode",
+    "Thing"
+  ],
+  "entries": {
+    "examples/alphafind-notebook__ro-crate-metadata.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": false,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "fixture-input",
+      "profile": "core",
+      "source": "tests/fixtures/alphafind-notebook/ro-crate-metadata.json",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/alphafind_notebook.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/alphafind_notebook.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/galaxy.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/galaxy.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/galaxy__ro-crate-metadata.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": false,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "fixture-input",
+      "profile": "core",
+      "source": "tests/fixtures/galaxy/ro-crate-metadata.json",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/galaxy_and_onedata.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/galaxy_and_onedata.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/galaxy_and_onedata__ro-crate-metadata.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": false,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "fixture-input",
+      "profile": "core",
+      "source": "tests/fixtures/galaxy_and_onedata/ro-crate-metadata.json",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/galaxy_tosca__ro-crate-metadata.json": {
+      "builder_can_emit_all_types": false,
+      "declares_wire_profile": false,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "fixture-input",
+      "profile": "infrastructure",
+      "source": "tests/fixtures/galaxy_tosca/ro-crate-metadata.json",
+      "types_not_emittable": [
+        "RuntimePlatform"
+      ],
+      "violations_pre_profile": []
+    },
+    "examples/galaxy_tosca_stage__ro-crate-metadata.json": {
+      "builder_can_emit_all_types": false,
+      "declares_wire_profile": false,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "fixture-input",
+      "profile": "infrastructure",
+      "source": "tests/fixtures/galaxy_tosca_stage/ro-crate-metadata.json",
+      "types_not_emittable": [
+        "RuntimePlatform"
+      ],
+      "violations_pre_profile": [
+        "W008",
+        "W013"
+      ]
+    },
+    "examples/jupyter.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/jupyter.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/jupyter__ro-crate-metadata.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": false,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "fixture-input",
+      "profile": "core",
+      "source": "tests/fixtures/jupyter/ro-crate-metadata.json",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/mddash.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/mddash.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/oscar.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/oscar.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/oscar__ro-crate-metadata.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": false,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "fixture-input",
+      "profile": "core",
+      "source": "tests/fixtures/oscar/ro-crate-metadata.json",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/oscar_tosca__ro-crate-metadata.json": {
+      "builder_can_emit_all_types": false,
+      "declares_wire_profile": false,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "fixture-input",
+      "profile": "infrastructure",
+      "source": "tests/fixtures/oscar_tosca/ro-crate-metadata.json",
+      "types_not_emittable": [
+        "RuntimePlatform"
+      ],
+      "violations_pre_profile": []
+    },
+    "examples/probe_every_optional_input.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "tools/gen_wire_spec.py::_BASELINE (the probe matrix's superset case)",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/replay_github.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/replay_github.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/replay_github_datahugger_dockerfile.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/replay_github_datahugger_dockerfile.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/replay_github_datahugger_no_dockerfile.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/replay_github_datahugger_no_dockerfile.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/sciencemesh.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/sciencemesh.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/sciencemesh__ro-crate-metadata.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": false,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "fixture-input",
+      "profile": "core",
+      "source": "tests/fixtures/sciencemesh/ro-crate-metadata.json",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/sciencemesh_minimal.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/sciencemesh_minimal.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/scipion_tosca__ro-crate-metadata.json": {
+      "builder_can_emit_all_types": false,
+      "declares_wire_profile": false,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "fixture-input",
+      "profile": "infrastructure",
+      "source": "tests/fixtures/scipion_tosca/ro-crate-metadata.json",
+      "types_not_emittable": [
+        "RuntimePlatform"
+      ],
+      "violations_pre_profile": []
+    },
+    "examples/simple-binder__ro-crate-metadata-zenodo.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": false,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "fixture-input",
+      "profile": "core",
+      "source": "tests/fixtures/simple-binder/ro-crate-metadata-zenodo.json",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/simple-binder__ro-crate-metadata.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": false,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "fixture-input",
+      "profile": "core",
+      "source": "tests/fixtures/simple-binder/ro-crate-metadata.json",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/simple_binder.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/simple_binder.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/simple_binder_zenodo.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/simple_binder_zenodo.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/vip.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": true,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "builder-output",
+      "profile": "core",
+      "source": "examples/vip.py",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    },
+    "examples/vip__ro-crate-metadata.json": {
+      "builder_can_emit_all_types": true,
+      "declares_wire_profile": false,
+      "ignored_by_this_library": [
+        "@graph order",
+        "datePublished value",
+        "dateCreated value"
+      ],
+      "order_is_meaningful": [
+        "root hasPart -> VREPayload.files order"
+      ],
+      "origin": "fixture-input",
+      "profile": "core",
+      "source": "tests/fixtures/vip/ro-crate-metadata.json",
+      "types_not_emittable": [],
+      "violations_pre_profile": []
+    }
+  },
+  "timestamp_keys": {
+    "dateCreated": "full-date",
+    "datePublished": "date-time"
+  }
+}

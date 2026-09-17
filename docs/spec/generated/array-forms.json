@@ -1,0 +1,140 @@
+{
+  "_note": "Each row takes one list-valued property and parses the same crate twice: with the array wrapper intact ('as_list') and with the single element substituted for the array ('collapsed'). 'lost' names the parse-path collections that shrank, and 'violations' is what the dependency-free linter reports for the mutated crate - an empty list beside a non-empty 'lost' means the fault is SILENT at every layer this spec controls.",
+  "baseline": {
+    "files": 3,
+    "input_files": 2,
+    "workflow_inputs": 2,
+    "workflow_outputs": 0
+  },
+  "forms": [
+    {
+      "as_list": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "collapsed": {
+        "files": 0,
+        "input_files": 0,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "emitted_as": "list of 4",
+      "entity": "./",
+      "lost": {
+        "files": [
+          3,
+          0
+        ],
+        "input_files": [
+          2,
+          0
+        ]
+      },
+      "note": "root file enumeration",
+      "outcome": "parsed",
+      "property": "hasPart",
+      "silent_without_W014": false,
+      "violations": [
+        "W008",
+        "W014"
+      ],
+      "violations_without_W014": [
+        "W008"
+      ]
+    },
+    {
+      "as_list": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "collapsed": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 0,
+        "workflow_outputs": 0
+      },
+      "emitted_as": "list of 2",
+      "entity": "https://example.org/workflow.ga",
+      "lost": {
+        "workflow_inputs": [
+          2,
+          0
+        ]
+      },
+      "note": "workflow input slots",
+      "outcome": "parsed",
+      "property": "input",
+      "silent_without_W014": true,
+      "violations": [
+        "W014"
+      ],
+      "violations_without_W014": []
+    },
+    {
+      "as_list": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 2
+      },
+      "collapsed": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "emitted_as": "list of 2",
+      "entity": "https://example.org/workflow.ga",
+      "lost": {
+        "workflow_outputs": [
+          2,
+          0
+        ]
+      },
+      "note": "workflow output slots - the builder never emits one, so the list form is seeded here with two real FormalParameter references",
+      "outcome": "parsed",
+      "property": "output",
+      "silent_without_W014": true,
+      "violations": [
+        "W014"
+      ],
+      "violations_without_W014": []
+    },
+    {
+      "as_list": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "collapsed": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "emitted_as": "list of 2",
+      "entity": "ro-crate-metadata.json",
+      "lost": {},
+      "note": "root descriptor profiles",
+      "outcome": "parsed",
+      "property": "conformsTo",
+      "silent_without_W014": false,
+      "violations": [
+        "W012"
+      ],
+      "violations_without_W014": [
+        "W012"
+      ]
+    }
+  ],
+  "holes_W014_closes": [
+    "input on https://example.org/workflow.ga: workflow data workflow_inputs 2->0",
+    "output on https://example.org/workflow.ga: workflow data workflow_outputs 2->0"
+  ],
+  "silent_after_collapse": []
+}

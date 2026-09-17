@@ -23,6 +23,8 @@ from vre_rocrate import (
     ValidationPipeline,
 )
 from vre_rocrate.constants import (
+    ROCRATE_BASE_PROFILE,
+    WIRE_FORMAT_PROFILE,
     resolve_vre_type,
     VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM,
 )
@@ -286,6 +288,21 @@ def test_tool_metadata_entity_carries_raw_definition():
     )
     tm = _entity(_graph(_build(req)), "#tool-metadata")
     assert tm["rawDefinition"] == raw
+
+
+# ---------------------------------------------------------------------------
+# Profile identification — the payload travels between independent components
+# ---------------------------------------------------------------------------
+
+def test_descriptor_declares_base_profile_then_wire_profile(galaxy_empty_request):
+    """conformsTo is an ordered set: RO-Crate base first, this dialect second.
+    Components that do not use this library branch on the second entry to
+    detect a payload shape change, so the order and both URIs are contract."""
+    desc = _entity(_graph(_build(galaxy_empty_request)), "ro-crate-metadata.json")
+    assert desc["conformsTo"] == [
+        {"@id": ROCRATE_BASE_PROFILE},
+        {"@id": WIRE_FORMAT_PROFILE},
+    ]
 
 
 # ---------------------------------------------------------------------------
