@@ -6,7 +6,7 @@ Everything here is generated from `src/vre_rocrate/constants.py` at build time,
 so a new VRE type appears in these tables the moment it appears in the code —
 which matters more than it sounds, because this file's whole subject is a set of
 five dictionaries that a human must keep in step by hand and one of which already
-isn't (§gaps).
+isn't ([§Gaps](#gaps)).
 
 ## `vre_type` never appears in the crate
 
@@ -41,8 +41,8 @@ routes the launch:
   not resolve it. `https://github.com/CERIT-SC/mddash` is mddash's identity, not
   a link to follow.
 - Producers **MUST** emit `identifier`; consumers **MUST** tolerate the empty
-  string, which arrives as `vre_type == "unknown"` (§gaps) rather than as an
-  error.
+  string, which arrives as `vre_type == "unknown"`
+  ([§Gaps](#gaps)) rather than as an error.
 
 Note the trailing-slash inconsistency in the table — `https://galaxyproject.org/`
 has one, `https://jupyter.org` does not. That is verbatim from the source, it is
@@ -157,8 +157,8 @@ registry, no subclass, no plugin point. Check **all four** tables plus, if the
 type is reachable by URI, the fallback list: `VRE_TYPE_TO_PROGRAMMING_LANGUAGE`,
 `VRE_TYPE_TO_DISPLAY_NAME`, `VRE_TYPE_TO_LANGUAGE_URL`,
 `VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM`, `TOOL_TYPE_TO_VRE_TYPE`,
-`URI_FALLBACK_PATTERNS`. Adding to one and not the others is precisely how §gaps
-acquired its entry. `tests/test_spec/test_wire_spec.py` cross-checks the tables
+`URI_FALLBACK_PATTERNS`. Adding to one and not the others is precisely how
+[§Gaps](#gaps) acquired its entry. `tests/test_spec/test_wire_spec.py` cross-checks the tables
 against each other, and this document re-generates from them, so a new VRE type
 should show up here without anyone editing prose.
 

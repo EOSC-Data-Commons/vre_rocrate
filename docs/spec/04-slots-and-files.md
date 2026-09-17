@@ -39,13 +39,14 @@ is a complete one:
   fills `request_state`, vip fills `inputValues`, mddash reads `pdb_id`,
   sciencemesh shares with `Shared With`. A producer **MUST** emit `name` exactly
   as the target VRE expects it, spaces and all — sciencemesh's literally contains
-  a space, which is why `@id`s can contain spaces (`02-envelope.md` §`@id`
-  allocation).
+  a space, which is why `@id`s can contain spaces
+  ([`02-envelope.md` §`@id` allocation](02-envelope.md#id-allocation)).
 - **`@id` is structural.** It is `#input-` + the producer's slot id and is used
   only to build the `workflow.input` reference. A consumer **MUST NOT** derive
   meaning from it. The producer's `LaunchInput.slots` map is keyed by **name**,
   so `id` and `name` routinely differ and nothing correlates them in the crate.
-- **`additionalType` is informational** — see §binding below.
+- **`additionalType` is informational** — see
+  [§Binding](#binding-file-bound-versus-literal-slots) below.
 - **`required` is `not is_optional`,** and it is a pure carry-through: nothing in
   this library reads it. A producer **MUST** still set it correctly, because a
   consumer that *does* honour it will honour it.
@@ -62,7 +63,8 @@ values map keeps the old keys: the crate still contains both `FormalParameter`
 entities and both `workflow.input` references, and contains no `defaultValue` at
 all. `lint_report` returns `violations: []` and `undecidable: []`,
 `validate_basic` passes, and `VREPayloadBuilder.build` succeeds — because a slot
-with no value is legal (§above), not because anything here is wrong.
+with no value is legal ([§Slots](#slots) above), not because anything here is
+wrong.
 
 The part that makes this dangerous rather than merely lossy is the split at the
 top of this file: the **files survive**. `input_files` still returns both of them,
@@ -82,7 +84,7 @@ binding set rather than assuming a missing value is an error.
 `File` entities are enumerated by exactly one thing: `root.hasPart`. A `File`
 entity that is in `@graph` but not in `hasPart` is **invisible** — it validates,
 it parses, and no consumer ever sees it. Rule W008; real producer data does this
-(`06-payload-profile.md`).
+([`06-payload-profile.md` §The orphan file](06-payload-profile.md#the-orphan-file-in-the-same-fixture)).
 
 This is sciencemesh's data file, and the root that enumerates it:
 
@@ -134,8 +136,9 @@ This is sciencemesh's data file, and the root that enumerates it:
 
 Note the ordering inside `hasPart`: the workflow descriptor comes first and the
 data file second, and `VREPayload.files` comes back in precisely that order
-(`02-envelope.md` §order that matters). `VREPayload.input_files` then drops the
-descriptor **by `@id` match**, leaving only `MuRun2010B.csv`.
+([`02-envelope.md` §Order that matters](02-envelope.md#order-that-matters)).
+`VREPayload.input_files` then drops the descriptor **by `@id` match**, leaving only
+`MuRun2010B.csv`.
 
 A `File` with no `url` gets a bare-name `@id` (`notebook.ipynb`, not a URL) —
 see `examples/jupyter.py`. Consumers **MUST NOT** assume `@id` is a URI.

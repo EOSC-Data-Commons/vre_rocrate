@@ -14,7 +14,9 @@ infrastructure crate outright rather than ignore the parts it does not model.
 | extra rules | — | W013 |
 
 Which profile you are holding is **not declared**. `conformsTo` names the RO-Crate
-base and the req-packager profile (`01-conformance.md`) and says nothing about
+base and the req-packager profile
+([`01-conformance.md` §Profiles](01-conformance.md#profiles)) and says nothing
+about
 this axis — a builder-produced core crate and a hand-authored infrastructure
 crate would both declare `https://w3id.org/eosc-vre/req-packager/1.0`. Detection
 is therefore by inspection: does the workflow entity's `runtimePlatform` resolve
@@ -33,7 +35,9 @@ rather than retroactively calling real producer data invalid.
 
 `RocrateBuilder` writes `runtimePlatform` as a string, always — from
 `VRELaunchRequest.runtime_platform`, falling back to
-`VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM` (`05-vre-vocabulary.md`). There is no
+`VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM`
+([`05-vre-vocabulary.md` §`vre_type` never appears](05-vre-vocabulary.md#vre_type-never-appears-in-the-crate)).
+There is no
 code path that produces a `RuntimePlatform` entity.
 
 That asymmetry is the whole point of this file. Four test fixtures

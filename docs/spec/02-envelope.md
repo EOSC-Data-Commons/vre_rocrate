@@ -14,8 +14,8 @@ Exactly two keys. No other key is read by anything on either side.
 `@context` is that single string in every crate here — a URL, not an inline
 object. A producer **MUST** emit it (RO-Crate requires it) but a consumer
 **MUST NOT** branch on it: it has never varied and carries no profile
-information. Version information lives in `conformsTo` on the descriptor —
-see `01-conformance.md` §version negotiation.
+information. Version information lives in `conformsTo` on the descriptor — see
+[`01-conformance.md` §Version negotiation](01-conformance.md#version-negotiation).
 
 ## `@graph`
 
@@ -54,7 +54,8 @@ what you will actually see in the artefacts. A consumer **MUST NOT** depend on
 **SHOULD** emit the descriptor first, because that is the RO-Crate convention and
 some readers assume it.
 
-What *is* order-bearing is `root.hasPart` — see §order that matters below.
+What *is* order-bearing is `root.hasPart` — see
+[§Order that matters](#order-that-matters) below.
 
 ## `@id` allocation
 
@@ -103,7 +104,8 @@ identifier field for any of them: **the `@id` *is* the workflow/file/dataset
 identity.**
 
 A slot's `@id` is `#input-<slot.id>` while its `name` is `slot.name`, and the two
-serve different purposes (see `04-slots-and-files.md`). A name can therefore put
+serve different purposes (see
+[`04-slots-and-files.md`](04-slots-and-files.md)). A name can therefore put
 arbitrary text into an identifier — `examples/sciencemesh.py` produces
 `#input-Shared With`, with a space. Treat `@id` as an opaque string; **MUST NOT**
 parse structure out of it beyond exact-match on the reserved patterns above.
@@ -198,7 +200,7 @@ Observed consistently in the goldens:
 
 | entity | `@type` shape |
 |---|---|
-| workflow | **always an array**, `["File", "SoftwareSourceCode", "ComputationalWorkflow"]` — or two entries with no `File` (see `03-entities.md` §workflow) |
+| workflow | **always an array**, `["File", "SoftwareSourceCode", "ComputationalWorkflow"]` — or two entries with no `File` (see [`03-entities.md` §workflow](03-entities.md#workflow)) |
 | everything else | always the single string |
 
 Matching is on **type membership**, not equality — `"File" in types` — except in

@@ -52,7 +52,8 @@ stricter than the base profile, and it cuts both ways:
 - a `File` in `@graph` but not in `hasPart` is invisible (W008);
 - the workflow descriptor **is** `File`-typed, so "give me the files" returns the
   workflow too, and the way to tell them apart is to compare `@id` against
-  `mainEntity` — not to check `@type` (`04-slots-and-files.md`).
+  `mainEntity` — not to check `@type`
+  ([`04-slots-and-files.md` §Files](04-slots-and-files.md#files)).
 
 Both behaviours come from the same four lines in `building/payload.py`. They are
 the single largest source of confusion for consumers ported from other RO-Crate
@@ -65,13 +66,16 @@ inline. Here it **must** be `{"@id": ...}` naming a top-level entity, and the
 entity must carry a non-empty `identifier`. Inline is not merely discouraged: the
 bare-string form raises `AttributeError` mid-parse, and an object written inline
 without a graph entity to resolve to yields `identifier: None` and therefore
-`vre_type == "unknown"` (`02-envelope.md` §reference forms).
+`vre_type == "unknown"`
+([`02-envelope.md` §Reference forms](02-envelope.md#reference-forms)).
 
 ### `conformsTo` order is meaningful
 
 RO-Crate treats `conformsTo` as a set. Here it is a two-element **array** with
 base RO-Crate first and the profile URI second, and consumers keying on the
-second entry depend on that order (`01-conformance.md`). Emitting a bare object
+second entry depend on that order
+([`01-conformance.md` §Version negotiation](01-conformance.md#version-negotiation)).
+Emitting a bare object
 rather than an array is what all pre-profile producer data does, and trips W012.
 
 ### `input` is three different things
@@ -80,9 +84,11 @@ The key `input` appears in two places with two different semantics, and they are
 parsed by different code:
 
 - `workflow.input` — slot references, resolved against `@graph` by
-  `_extract_parameters` (`04-slots-and-files.md`);
+  `_extract_parameters`
+  ([`04-slots-and-files.md` §Binding](04-slots-and-files.md#binding-file-bound-versus-literal-slots));
 - `RuntimePlatform.input` — **inline** file specifications, never dereferenced,
-  exact-`@type`-matched (W013, `06-payload-profile.md`).
+  exact-`@type`-matched (W013,
+  [`06-payload-profile.md` §W013](06-payload-profile.md#w013--runtimeplatforminput-entries-are-not-references)).
 
 A reference that is correct in the first position is wrong in the second. Both
 failures are silent.
@@ -104,7 +110,7 @@ written as a bare object currently yields an empty slot list (W014). "Fixing" th
 by accepting a lone object in `as_list` would hide the producer's serialiser bug
 and turn a loud lint failure into permanently missing slots. Normalise on the
 consumer side if you must interoperate with a broken producer — see
-`02-envelope.md` §list-valued properties.
+[`02-envelope.md` §List-valued properties](02-envelope.md#list-valued-properties).
 
 **Do not rename or remove a field or accessor on `VREPayload`.** It is the
 contract with externally-written handlers in the Dispatcher repo, which is a
@@ -188,12 +194,12 @@ row, because the rows have very different consequences:
   the **unreadable** tier means.
 - `SlotDefinition.name` — a producer footgun with consequences for consumers,
   because the files survive while the slot bindings do not. Spelled out in
-  `04-slots-and-files.md` §slots.
+  [`04-slots-and-files.md` §Slots](04-slots-and-files.md#slots).
 - `ToolMeta.uri` — benign and already documented: the workflow's `@type` and
   `encodingFormat` are derived from the uri's file extension, so an unrecognised
   extension drops `File` from the type list and drops `encodingFormat` entirely.
   That rule, including which extensions are recognised, is
-  `03-entities.md` §workflow.
+  [`03-entities.md` §workflow](03-entities.md#workflow).
 
 Separately from losing a property, `SlotDefinition.is_optional` is *inverted* on
 the way in, not lost. The table carries a transition column precisely so a row can
@@ -207,13 +213,15 @@ it, add a rule, and it will appear in `03-entities.md` on the next generation.
 **Do not populate `workflow.output`.** Nothing in this library writes it, and the
 parse path reads it into `VREPayload.workflow_outputs`, so today that list is
 always empty. It is on the list of keys that can never arrive
-(`02-envelope.md` §unread keys). A hand-authored crate **may** emit it — the
+([`02-envelope.md` §Unread keys](02-envelope.md#unread-keys-and-keys-that-can-never-arrive)).
+A hand-authored crate **may** emit it — the
 parser handles it correctly and W011 covers its references — but do not assume a
 peer sends it, and do not be surprised that a round trip through this library
 produces `workflow_outputs == []`.
 
 **Do not fix the `rrp` vocabulary gap by inventing a URI.** See
-`05-vre-vocabulary.md` §gaps. The empty-`identifier` crate is currently the
+[`05-vre-vocabulary.md` §Gaps](05-vre-vocabulary.md#gaps). The empty-`identifier`
+crate is currently the
 documented behaviour of a live format; the fix is an identity decision, not a
 code change.
 
@@ -227,7 +235,7 @@ unformatted.
 
 Commit `04ff146` ("Transformation to req-packager domain language") renamed most of
 this vocabulary. Documents older than it — including both files in `plans/` and
-large parts of `README.md` — use the old names:
+large parts of the repo-root [`README.md`](../../README.md) — use the old names:
 
 | current | old |
 |---|---|
@@ -238,7 +246,8 @@ large parts of `README.md` — use the old names:
 | `building/payload.py` | `building/package.py` |
 | `SlotValue` = `str \| int \| float \| bool \| FileInput` | a `{value, file}` dataclass |
 
-`build_from_minimal()` and `ROCrateParser.parse()` in `README.md`'s snippets **do
+`build_from_minimal()` and `ROCrateParser.parse()` in
+the repo-root [`README.md`](../../README.md)'s snippets **do
 not exist**; the two entry points are `RocrateBuilder.build_from_launch_request`
 and `VREPayloadBuilder.build`. `tests/fixtures/*/simple_example.json` are legacy
 files in the pre-rename request format, referenced by no test — not API examples.

@@ -12,10 +12,10 @@ which forwards it to a VRE-specific handler.
 
 | You | Read |
 |---|---|
-| **Producing** a crate (emitting from Go / Java / TS / …) | `HANDOFF.md`, then `03-entities.md`, then work through `07-producer-checklist.md` and validate against `generated/negatives/` |
-| **Consuming** a crate (a dispatcher or VRE handler) | `01-conformance.md` §"What a consumer must tolerate", then `03-entities.md`, then `06-payload-profile.md` if you deploy infrastructure |
-| **Routing** on the target VRE | `05-vre-vocabulary.md`, `01-conformance.md` §version negotiation |
-| Reviewing a change to this repo's builder | `HANDOFF.md` §maintaining |
+| **Producing** a crate (emitting from Go / Java / TS / …) | [`HANDOFF.md`](HANDOFF.md), then [`03-entities.md`](03-entities.md), then work through [`07-producer-checklist.md`](07-producer-checklist.md) and validate against `generated/negatives/` |
+| **Consuming** a crate (a dispatcher or VRE handler) | [`01-conformance.md` §What a consumer must tolerate](01-conformance.md#what-a-consumer-must-tolerate), then [`03-entities.md`](03-entities.md), then [`06-payload-profile.md`](06-payload-profile.md) if you deploy infrastructure |
+| **Routing** on the target VRE | [`05-vre-vocabulary.md`](05-vre-vocabulary.md), [`01-conformance.md` §Version negotiation](01-conformance.md#version-negotiation) |
+| Reviewing a change to this repo's builder | [`HANDOFF.md` §Maintaining](HANDOFF.md#maintaining) |
 
 ## Normative language
 
@@ -26,7 +26,8 @@ that enforces or observes it. Where a rule is only advisory, the text says what
 degrades.
 
 Anything not marked is descriptive. The wire format is a dialect, not a superset
-of RO-Crate 1.1: see `08-migration-notes.md` for the deltas and the deliberate
+of RO-Crate 1.1: see
+[`08-migration-notes.md`](08-migration-notes.md) for the deltas and the deliberate
 omissions.
 
 ## Two guarantee layers, and why both exist
@@ -39,8 +40,8 @@ omissions.
 2. **JSON Schema 2020-12** — `generated/schema-core.json` and
    `generated/schema-infrastructure.json`. Portable to any language, which is
    why they exist. Together they cover **<!-- GEN:schema-encodable-count -->8
-   of <!-- GEN:rule-count -->14 rules**; see `01-conformance.md` §what a schema
-   cannot say.
+   of <!-- GEN:rule-count -->14 rules**; see
+   [`01-conformance.md` §What a schema cannot say](01-conformance.md#what-a-schema-cannot-say).
 
 **A crate that validates against the schema is not necessarily conformant.**
 <!-- GEN:unencodable-count -->6 rules require resolving references across
@@ -91,7 +92,7 @@ differs.
 | `examples/` | <!-- GEN:golden-count -->28 real crates with per-file provenance in `examples.json` |
 | `schema-*.json` | the two profiles' JSON Schema |
 | `schemas.json` | which rules each schema encodes, and which it structurally cannot |
-| `field-visibility.json` | which producer-side fields survive the round trip, and how far they get (`08-migration-notes.md`) |
+| `field-visibility.json` | which producer-side fields survive the round trip, and how far they get ([`08-migration-notes.md`](08-migration-notes.md)) |
 
 <details>
 <summary>Index of all <!-- GEN:golden-count -->28 crates in `generated/examples/` —
@@ -157,13 +158,15 @@ carries meaning the sort would lose, or if a schema stops behaving the way
 
 - **The `rrp` vocabulary gap.** `rrp` is a valid `vre_type` with no
   programming-language entry, so a crate for it carries an empty identity token.
-  See `05-vre-vocabulary.md` §known gap. Not fixed here because fixing it needs
+  See [`05-vre-vocabulary.md` §Gaps](05-vre-vocabulary.md#gaps). Not fixed here
+  because fixing it needs
   an identity token this repo's maintainers must supply.
 - **TOSCA emission.** Four fixtures carry a `RuntimePlatform` entity the builder
-  cannot produce. `06-payload-profile.md` documents the shape as parsed.
+  cannot produce. [`06-payload-profile.md`](06-payload-profile.md) documents the
+  shape as parsed.
 - **`@context`.** The crate emits the RO-Crate 1.1 context URL and nothing else;
   the vocabulary terms used are the base ones plus `onedata:*`, documented in
-  `08-migration-notes.md`.
+  [`08-migration-notes.md` §`@context` is a string](08-migration-notes.md#context-is-a-string-and-onedata-is-not-declared).
 - **What a VRE handler does with a slot.** Domain conventions (galaxy
   `filetype`, VIP `inputValues`, sciencemesh "Shared With") live on the consumer
   side and are named only as motivation.

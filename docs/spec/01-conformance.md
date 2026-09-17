@@ -63,9 +63,10 @@ policy:
   this library to accommodate that.
 - **Breaking change** — removing or renaming a property, changing a property's
   type, changing what a reserved `@id` means, changing which entity is the
-  anchor. Requires a new profile URI (`…/req-packager/2.0`) and a
-  `08-migration-notes.md` entry. A consumer **MAY** treat an unrecognised profile
-  URI as a hard error; that is the safety valve the URI exists for.
+  anchor. Requires a new profile URI (`…/req-packager/2.0`) and an entry in
+  [`08-migration-notes.md`](08-migration-notes.md). A consumer **MAY** treat an
+  unrecognised profile URI as a hard error; that is the safety valve the URI
+  exists for.
 
 The <!-- GEN:fixture-input-count -->13 fixtures under `generated/examples/`
 with `origin: "fixture-input"` carry
@@ -207,5 +208,6 @@ guarantees you may build on are exactly the MUSTs above plus:
 - a `File` entity listed in `hasPart` has `name` and `license`, and `url` unless
   it is a local file keyed by bare name.
 
-Everything else is conditional; `03-entities.md` states the condition for every
-property in the format.
+Everything else is conditional;
+[`03-entities.md`](03-entities.md) states the condition for every property in the
+format.

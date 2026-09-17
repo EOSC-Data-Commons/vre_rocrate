@@ -12,11 +12,14 @@ unless" is an observed condition, not a guess. The rule of reading:
   must tolerate absence; the condition column is the contract for when it appears.
 
 The *shape* column lists every JSON shape observed for that property. `reference`
-means `{"@id": ...}`; see `02-envelope.md` §reference forms before writing a bare
-string anywhere.
+means `{"@id": ...}`; see
+[`02-envelope.md` §Reference forms](02-envelope.md#reference-forms) before writing
+a bare string anywhere.
 
-Order of reading for a new implementation: **root-descriptor → root-dataset →
-workflow → computer-language → file → formal-parameter**. The three placeholder
+Order of reading for a new implementation:
+[root-descriptor](#root-descriptor) → [root-dataset](#root-dataset) →
+[workflow](#workflow) → [computer-language](#computer-language) →
+[file](#file) → [formal-parameter](#formal-parameter). The three placeholder
 entities exist only to satisfy references those six make.
 
 ---
@@ -65,7 +68,8 @@ A consumer **SHOULD** read `conformsTo[1]` before interpreting anything else, an
 **MAY** refuse an unrecognised profile URI. Note that all
 <!-- GEN:fixture-input-count -->13 real fixtures predate
 the URI, so refusing on absence will reject crates that work fine — see
-`01-conformance.md` §version negotiation for why the URI was added.
+[`01-conformance.md` §Version negotiation](01-conformance.md#version-negotiation)
+for why the URI was added.
 
 `about` points at `./`. It is emitted because RO-Crate requires it; this
 library's parser never reads it. **MUST** still be present for a conforming crate.
@@ -128,16 +132,18 @@ no other entity, so a well-formed root dataset on some *other* `@id` is inert.
 - `mainEntity` — a reference to the workflow entity. W003 (missing → rejected),
   W004 (dangling → rejected).
 - `hasPart` — the **only** enumeration of files, and its order is meaningful
-  (`02-envelope.md` §order that matters). W007 (missing → `TypeError` inside the
-  parser, not a clean validation error), W008 (a `File` not listed here is
-  invisible). `hasPart: []` is legal and means "no files".
+  ([`02-envelope.md` §Order that matters](02-envelope.md#order-that-matters)).
+  W007 (missing → `TypeError` inside the parser, not a clean validation error),
+  W008 (a `File` not listed here is invisible). `hasPart: []` is legal and means
+  "no files".
 - `name`, `description` — literals the builder derives as
   `"Root dataset for tool: <tool.name>"` and `"N/A"`. The exact strings are a
   builder convention, **not** a protocol feature: a consumer **MUST NOT** parse
   the tool name out of `name`. (`docs/design/` gets this wrong; the artefacts
   here are right.)
 - `datePublished` — full ISO 8601 with offset. Parsed, never compared. See
-  `02-envelope.md` before using it for anything.
+  [`02-envelope.md` §Order that matters](02-envelope.md#order-that-matters)
+  before using it for anything.
 
 ---
 
@@ -293,11 +299,11 @@ Other properties:
 
 - `programmingLanguage` — a **reference object**, never a bare string or an
   array. W005. The bare-string form crashes the parser outright
-  (`02-envelope.md` §reference forms).
+  ([`02-envelope.md` §Reference forms](02-envelope.md#reference-forms)).
 - `runtimePlatform` — a plain URL string in the core profile. It *may* also be a
   reference to a `RuntimePlatform` entity, which is the infrastructure profile;
   both are read, and that is the entire difference between the two schemas
-  (`06-payload-profile.md`).
+  ([`06-payload-profile.md`](06-payload-profile.md)).
 - `conformsTo` — the **BioSchema ComputationalWorkflow 0.5-DRAFT** profile URI.
   This is a *per-entity* `conformsTo` and is unrelated to the wire-format profile
   on the descriptor. Do not confuse the two; only the descriptor's is
@@ -359,7 +365,8 @@ sciencemesh entity proves why that distinction is load-bearing:
 
 `identifier` is an OpenCloudMesh domain while `name` says `Jupyter Notebook` and
 `url` says `https://jupyter.org/`. A consumer that routes on `name` or `url` sends
-sciencemesh jobs to the Jupyter handler. Full table: `05-vre-vocabulary.md`.
+sciencemesh jobs to the Jupyter handler. Full table:
+[`05-vre-vocabulary.md` §`vre_type` never appears](05-vre-vocabulary.md#vre_type-never-appears-in-the-crate).
 
 Note the asymmetry that makes this easy to get wrong: the *build* side's
 `vre_type` is the short name (`"sciencemesh"`) and the *parse* side's
@@ -408,7 +415,8 @@ A data file, reachable ONLY through root hasPart. Slot-bound and free-form files
 
 A file is reachable **only** through `root.hasPart`. Slot-bound and free-form
 files are structurally identical here — the difference lives in whether a
-`FormalParameter.defaultValue` references them (`04-slots-and-files.md`).
+`FormalParameter.defaultValue` references them
+([`04-slots-and-files.md` §Binding](04-slots-and-files.md#binding-file-bound-versus-literal-slots)).
 
 A file with no `url` is keyed by its bare name, so a local file's `@id` is
 `requirements.txt` rather than a URL:
@@ -484,7 +492,8 @@ protects against: a truncated or uppercase digest is published as-is and only
 fails a consumer that verifies it.
 
 `onedata:onezoneDomain` and `onedata:fileId` are this protocol's one deviation
-from RO-Crate's base vocabulary — see `08-migration-notes.md`.
+from RO-Crate's base vocabulary — see
+[`08-migration-notes.md` §`@context` is a string](08-migration-notes.md#context-is-a-string-and-onedata-is-not-declared).
 
 ---
 
@@ -601,8 +610,9 @@ appears in `root.hasPart` alongside the files and is `@type: Dataset`, so it is
 `files`.
 
 No example under `examples/` produces this entity; the excerpt comes from the
-probe-matrix golden (see §golden index in `README.md`). Treat it accordingly if
-you are implementing from scratch.
+probe-matrix golden (see [the golden index in
+`README.md`](README.md#generated-is-not-documentation-you-can-trust-by-reading)).
+Treat it accordingly if you are implementing from scratch.
 
 ---
 
@@ -710,7 +720,7 @@ not fetch it, do not index it, do not report it as a publisher in a UI.
 Two shapes occur in real crates that `RocrateBuilder` cannot emit. They are
 documented where they are consumed:
 
-- `RuntimePlatform` — `06-payload-profile.md`.
+- `RuntimePlatform` — [`06-payload-profile.md` §What a `RuntimePlatform`](06-payload-profile.md#what-a-runtimeplatform-entity-carries).
 - Bare `Thing` entities for vocabulary terms, e.g.
   `{"@id": "http://edamontology.org/format_2330", "@type": "Thing", "name": "Plain
   text format"}` in `galaxy_tosca_stage`. Inert to this library: not `File`, not

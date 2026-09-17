@@ -19,6 +19,7 @@ tests and 3 unformatted files.
 import json
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 import pytest
@@ -419,6 +420,182 @@ def test_inline_token_markers_round_trip(tmp_path, monkeypatch):
         "filling a token removed the marker, which would make the number correct "
         "once and uncheckable forever - exactly how the stale 13s got written")
     assert wrong not in text
+
+
+def test_github_anchor_algorithm_matches_the_one_ground_truth():
+    """The slug function below is also used by the link test, so pin it here.
+
+    Without this, a systematically wrong slug function would regenerate both the
+    links and their expectations and the link test would pass while every anchor
+    404s on GitHub. These five are independent of this repo: they follow from
+    GitHub's slug being lowercase, then DELETE punctuation/symbols (not
+    hyphenate), then space -> '-'.
+
+    The second and third are the ones actually got wrong on first writing:
+    github-slugger's strip class runs `!-,` (U+0021..U+002C) and then jumps over
+    U+002D to `\\.`, so HYPHEN-MINUS AND UNDERSCORE SURVIVE. Dropping them turns
+    `root-dataset` into `rootdataset`, which matches nothing. The `#` and em-dash
+    cases go the other way - deleted outright, so the spaces either side collapse
+    into a DOUBLE hyphen that looks like a typo and is not one.
+    """
+    cases = {
+        "List-valued properties": "list-valued-properties",   # '-' kept
+        "`@id` allocation": "id-allocation",                   # backticks deleted
+        "The `#` prefix": "the--prefix",                       # '#' deleted -> '--'
+        "W013 — `RuntimePlatform.input` entries are not references": (
+            "w013--runtimeplatforminput-entries-are-not-references"),
+        "tool.types → vre_type": "tooltypes--vre_type",        # '→' deleted -> '--'
+    }
+    for heading, expected in cases.items():
+        assert _heading_anchor(heading) == expected, (
+            f"slug for {heading!r} changed - every anchor in docs/spec is now "
+            f"computed wrong")
+
+
+def _heading_anchor(text):
+    """GitHub's heading slug, as computed by the link test below.
+
+    Equivalent to github-slugger's regex on this corpus because every heading
+    character here is ASCII alnum, '-', '_', a Unicode letter or a Unicode mark;
+    the `else: assert` fails if that ever stops being true rather than guessing.
+    """
+    out = []
+    for ch in text.lower():
+        category = unicodedata.category(ch)
+        if ch == " ":
+            out.append("-")
+        elif ch.isascii() and (ch.isalnum() or ch in "-_"):
+            out.append(ch)
+        elif category[0] in ("L", "M"):
+            out.append(ch)
+        else:
+            assert category[0] in ("P", "S", "Z"), f"unclassified char {ch!r}"
+    return "".join(out)
+
+
+def _heading_anchors(doc):
+    """Slug -> raw title for every heading outside a fenced block.
+
+    A heading inside a fence is not a heading, and GitHub appends `-1`, `-2` to
+    repeated slugs, which the numbering here reproduces.
+    """
+    anchors, seen, in_fence = {}, {}, False
+    for line in doc.read_text(encoding="utf-8").splitlines():
+        if re.match(r"^\s*(```|~~~)", line):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        m = re.match(r"^(#{1,6})\s+(.*?)\s*$", line)
+        if not m:
+            continue
+        title = m.group(2)
+        # GitHub slugs the rendered text: link text, no markup.
+        title = re.sub(r"\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)", r"\1", title)
+        base = _heading_anchor(re.sub(r"\*\*([^*]*)\*\*", r"\1",
+                                     re.sub(r"`([^`]*)`", r"\1", title)))
+        n = seen.get(base, 0)
+        seen[base] = n + 1
+        anchors[base if n == 0 else f"{base}-{n}"] = m.group(2)
+    return anchors
+
+
+def test_spec_cross_references_resolve_as_links():
+    """Every mutual reference between docs/spec pages is a clickable link, and
+    every link lands.
+
+    This prose is handed to teams implementing the format in another language,
+    who navigate it on GitHub. A `§version negotiation` is only useful if you can
+    jump to it, and a link whose anchor drifted from a renamed heading is worse
+    than the plain text it replaced: it looks authoritative and goes nowhere. A
+    heading rename is an entirely reasonable edit to make and nothing else in the
+    suite would notice.
+    """
+    prose = sorted((ROOT / "docs" / "spec").glob("*.md"))
+    assert len(prose) >= 8, f"expected the full spec set, found {len(prose)}"
+    index = {doc.name: _heading_anchors(doc) for doc in prose}
+
+    # Links must be found in the joined text, not line by line: a markdown link
+    # may wrap and GitHub resolves it anyway, so a line-based scan would skip it
+    # and then report the § inside its text as an unconverted reference.
+    link = re.compile(r"(?<!!)\[(?P<text>[^\]\[]*)\]\((?P<target>[^()\s]+)\)")
+    problems = []
+    checked = 0
+    for doc in prose:
+        text, in_fence = [], False
+        for line in doc.read_text(encoding="utf-8").splitlines(keepends=True):
+            if re.match(r"^\s*(```|~~~)", line):
+                in_fence = not in_fence
+            # Blank a fenced line, never drop it, so an offset in the joined text
+            # still maps back to the same line number in the file.
+            text.append("\n" * line.count("\n") if in_fence else line)
+        text = "".join(text)
+
+        spans = [(m.start(), m.end()) for m in link.finditer(text)]
+        lines = text.splitlines()
+
+        def line_no(offset):
+            return text.count("\n", 0, offset) + 1
+
+        for m in link.finditer(text):
+            checked += 1
+            target, where = m.group("target"), f"{doc.name}:{line_no(m.start())}"
+            if target.startswith(("http://", "https://", "mailto:")):
+                continue  # external, not this document's graph
+            file_part, _, frag = target.partition("#")
+            if not file_part:
+                if frag not in index[doc.name]:
+                    problems.append(f"{where} dead in-page anchor #{frag}")
+                continue
+            resolved = (doc.parent / file_part).resolve()
+            if not resolved.exists():
+                problems.append(f"{where} links to missing file {file_part}")
+                continue
+            if frag:
+                if resolved.suffix != ".md":
+                    problems.append(f"{where} puts an anchor on {file_part}")
+                    continue
+                if frag not in _heading_anchors(resolved):
+                    near = sorted(a for a in _heading_anchors(resolved)
+                                  if a.startswith(frag[:14]))
+                    problems.append(
+                        f"{where} dead anchor in {file_part}: #{frag} "
+                        f"(closest {near[:3]})")
+
+        # An unconverted section reference. A § inside link text is fine; one in a
+        # fence renders literally, so fences are already blanked above.
+        outside = text
+        for start, end in spans:
+            outside = outside[:start] + " " * (end - start) + outside[end:]
+        # Any surviving § at all: in this corpus the character has exactly one
+        # use, as a section reference, so matching it plainly is both stricter
+        # and simpler than a pattern that could miss an odd-shaped one.
+        for m in re.finditer("§", outside):
+            lineno = line_no(m.start())
+            problems.append(
+                f"{doc.name}:{lineno} section reference is not a link: "
+                f"{lines[lineno - 1].strip()[:76]}")
+
+        # A markdown link inside a fenced block renders as literal text, which is
+        # how the Layout tree in README.md must stay. Blanking fences above makes
+        # such a link invisible to both scans, so check the raw file separately -
+        # otherwise "the link is there" would be true of text nobody can click.
+        in_fence, opened_at = False, 0
+        for lineno, line in enumerate(doc.read_text(encoding="utf-8").splitlines(), 1):
+            if re.match(r"^\s*(```|~~~)", line):
+                in_fence = not in_fence
+                opened_at = lineno
+                continue
+            if in_fence and link.search(line):
+                problems.append(
+                    f"{doc.name}:{opened_at} link inside a fenced block renders "
+                    f"literally: {line.strip()[:70]}")
+
+    assert not problems, ("docs/spec cross-references are broken:\n  "
+                          + "\n  ".join(problems))
+    # Non-vacuity: the spec's whole premise is that these pages cross-reference
+    # each other heavily. Zero links would mean the scanner found nothing.
+    assert checked > 40, f"only {checked} links found - the scanner matched nothing"
 
 
 def test_spec_mentions_no_stale_test_counts_or_paths():

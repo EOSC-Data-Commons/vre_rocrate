@@ -36,9 +36,11 @@ workflow's `input` array; data files are `File` entities referenced from
 
 ## Give to a producer
 
-1. `README.md` → `01-conformance.md` → `03-entities.md`.
-2. `07-producer-checklist.md` — ordered, self-contained, cites the section for
-   every line.
+1. [`README.md`](README.md) →
+   [`01-conformance.md`](01-conformance.md) →
+   [`03-entities.md`](03-entities.md).
+2. [`07-producer-checklist.md`](07-producer-checklist.md) — ordered,
+   self-contained, cites the section for every line.
 3. `generated/examples/galaxy.json` as the shape to diff against; your crate
    should look like this modulo values.
 4. `tools/wire_spec_lint.py` — copy it, run it, exit 0 before shipping.
@@ -48,11 +50,12 @@ workflow's `input` array; data files are `File` entities referenced from
 
 ## Give to a consumer
 
-1. `01-conformance.md` §what a consumer must tolerate — unknown keys, unknown
+1. [`01-conformance.md` §What a consumer must tolerate](01-conformance.md#what-a-consumer-must-tolerate) — unknown keys, unknown
    entity types, and unknown properties are all **expected** and MUST NOT be
    fatal.
-2. `03-entities.md` for what is guaranteed present.
-3. `06-payload-profile.md` only if you deploy compute; that profile is parseable
+2. [`03-entities.md`](03-entities.md) for what is guaranteed present.
+3. [`06-payload-profile.md`](06-payload-profile.md) only if you deploy compute;
+   that profile is parseable
    but no crate this repo's builder emits will ever carry it.
 4. `generated/examples/` — the <!-- GEN:fixture-input-count -->13 crates
    with `origin: "fixture-input"` in `examples.json` are crates a real producer
@@ -64,7 +67,9 @@ workflow's `input` array; data files are `File` entities referenced from
 
 ## If you only have ten minutes
 
-Read `03-entities.md` §root-dataset and §workflow, plus `04-slots-and-files.md`.
+Read [`03-entities.md` §root-dataset](03-entities.md#root-dataset) and
+[§workflow](03-entities.md#workflow), plus
+[`04-slots-and-files.md`](04-slots-and-files.md).
 That is 90% of implementations.
 
 ## Validating in three commands
@@ -101,9 +106,10 @@ Python library".
 
 It does **not** yet cover "the spec is sufficient to implement from scratch",
 which is a different claim and can only be established by someone implementing it
-without reading `src/`. `07-producer-checklist.md` §dry run records the result of
-that exercise when it has been done; until then, treat a question you cannot
-answer from these pages as evidence of a spec gap and file it.
+without reading `src/`. [`07-producer-checklist.md`](07-producer-checklist.md)
+will grow a **dry run** section recording the result of that exercise; it does not
+exist yet, so until it does, treat a question you cannot answer from these pages
+as evidence of a spec gap and file it.
 
 ## Maintaining
 
@@ -120,4 +126,5 @@ answer from these pages as evidence of a spec gap and file it.
 - Add an example → drop it in `examples/` with a module-level `request`; it
   becomes a golden automatically and the golden-count test notices if it doesn't.
 - The root `README.md` and `AGENTS.md` are known-stale about this library's API.
-  `docs/spec/` and the tests are authoritative; see `CLAUDE.md` §stale docs.
+  `docs/spec/` and the tests are authoritative; see
+  [`CLAUDE.md` §Stale docs — what to trust](../../CLAUDE.md#stale-docs--what-to-trust).

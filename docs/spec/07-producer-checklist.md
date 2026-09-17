@@ -14,21 +14,23 @@ is enforced by `tools/wire_spec_lint.py` unless marked *(not machine-checked)*.
 1. Emit `{"@context": "https://w3id.org/ro/crate/1.1/context", "@graph": [...]}`
    and nothing else at the top level. *(not machine-checked — no rule can express
    "you emitted extra top-level keys", and none is needed: consumers ignore them)*
-   — `02-envelope.md` §top level
+   — [`02-envelope.md` §Top level](02-envelope.md#top-level)
 2. Make `@graph[0]` the root descriptor, `@id` exactly
    `ro-crate-metadata.json`, `@type` `CreativeWork`, with `about → {"@id": "./"}`.
-   — W012, `03-entities.md` §root-descriptor
+   — W012,
+   [`03-entities.md` §root-descriptor](03-entities.md#root-descriptor)
 3. Declare both profiles in `conformsTo`, base first, as an **array of two
    references**: `https://w3id.org/ro/crate/1.1` then
-   `https://w3id.org/eosc-vre/req-packager/1.0`. — W012, `01-conformance.md`
+   `https://w3id.org/eosc-vre/req-packager/1.0`. — W012, [`01-conformance.md` §Version negotiation](01-conformance.md#version-negotiation)
 4. Emit exactly one root dataset with `@id` exactly `./`, carrying `mainEntity`
    and `hasPart`. — W003, W007
 5. Point `mainEntity` at a workflow entity that **exists in `@graph`**, using the
-   `{"@id": ...}` object form. — W004, `02-envelope.md` §reference forms
+   `{"@id": ...}` object form. — W004,
+   [`02-envelope.md` §Reference forms](02-envelope.md#reference-forms)
 6. Emit exactly one `ComputerLanguage` entity and reference it from
    `workflow.programmingLanguage` as an object. Its `identifier` must be
    non-empty and taken verbatim from the vocabulary table. — W005, W006,
-   `05-vre-vocabulary.md`
+   [`05-vre-vocabulary.md`](05-vre-vocabulary.md)
 
 ## Identity
 
@@ -37,40 +39,47 @@ is enforced by `tools/wire_spec_lint.py` unless marked *(not machine-checked)*.
    duplicate — the first match wins and the shadowed entity vanishes. — W002
 9. Never build structure into an `@id` beyond the two reserved patterns
    `#input-<slot.id>` and `<file-url-or-name>`. `#input-Shared With` has a space
-   in it and that is legal. — `02-envelope.md` §`@id` allocation
+   in it and that is legal. —
+   [`02-envelope.md` §`@id` allocation](02-envelope.md#id-allocation)
 10. Treat all URIs as opaque strings **except** `programmingLanguage.identifier`,
     which is the only URI in the format that gets interpreted. —
-    `05-vre-vocabulary.md` §resolution order
+    [`05-vre-vocabulary.md` §Resolution order](05-vre-vocabulary.md#resolution-order)
 
 ## Files
 
 11. List **every** `File`-typed entity in `root.hasPart`, including the workflow
     descriptor. A `File` absent from `hasPart` does not exist to a consumer, even
-    though it validates and parses. — W008, `04-slots-and-files.md` §files
+    though it validates and parses. — W008,
+    [`04-slots-and-files.md` §Files](04-slots-and-files.md#files)
 12. Keep `hasPart` in the order you want files delivered: `VREPayload.files`
-    preserves it and nothing re-sorts. — `02-envelope.md` §order that matters
+    preserves it and nothing re-sorts. —
+    [`02-envelope.md` §Order that matters](02-envelope.md#order-that-matters)
 13. Never let a data file share its `@id` with the workflow entity: consumers
     exclude the descriptor by `@id` match, so the collision silently deletes a
     real input file. — W009
 14. If you emit `sha256`, emit 64 lowercase hex characters. Nothing validates it
     on the way out; it is copied verbatim from the request. — W010
 15. A file with no `url` gets a bare-name `@id` (`notebook.ipynb`). Fine, but
-    then never assume `@id` is a URI. — `04-slots-and-files.md` §files
+    then never assume `@id` is a URI. —
+    [`04-slots-and-files.md` §Files](04-slots-and-files.md#files)
 
 ## Slots
 
 16. One `FormalParameter` per declared slot, `@id` `#input-<id>`, referenced from
     `workflow.input[]`. An unresolvable reference makes the slot silently never
-    exist. — W011, `04-slots-and-files.md` §slots
+    exist. — W011,
+    [`04-slots-and-files.md` §Slots](04-slots-and-files.md#slots)
 17. `name` must be exactly the string the target VRE looks up, spaces included.
     *(not machine-checked — only the target VRE knows its expected names)*
-    — `04-slots-and-files.md` §slots
+    — [`04-slots-and-files.md` §Slots](04-slots-and-files.md#slots)
 18. Write a file-bound slot's `defaultValue` as `{"@id": ...}`, a literal slot's
-    as the scalar itself. — `04-slots-and-files.md` §binding
+    as the scalar itself. —
+    [`04-slots-and-files.md` §Binding](04-slots-and-files.md#binding-file-bound-versus-literal-slots)
 19. Do not put a URL in a literal slot's `defaultValue` if a file with that `@id`
     is also in the crate — the parse path resolves it and the slot becomes a file
     binding regardless of `additionalType`. *(W011 covers a **missing** target, not
-    a colliding one, so nothing catches this)* — `04-slots-and-files.md` §binding
+    a colliding one, so nothing catches this)* —
+    [`04-slots-and-files.md` §Binding](04-slots-and-files.md#binding-file-bound-versus-literal-slots)
 
 ## Shapes that break silently
 
@@ -78,42 +87,48 @@ is enforced by `tools/wire_spec_lint.py` unless marked *(not machine-checked)*.
     element**: `hasPart`, `input`, `output`. Collapsing `input` to a bare object
     parses successfully and returns an **empty slot list** — no exception, and
     the only thing that catches it is rule W014. This is the most common bug from
-    serialisers that drop single-element wrappers. — W014, `02-envelope.md`
-    §list-valued properties
+    serialisers that drop single-element wrappers. — W014,
+    [`02-envelope.md` §List-valued properties](02-envelope.md#list-valued-properties)
 21. Always write references as `{"@id": ...}`. Bare strings happen to work in
     `mainEntity` and `hasPart` and **crash the parser** in `programmingLanguage`.
-    The tolerance is incidental, not a promise. — `02-envelope.md` §reference forms
+    The tolerance is incidental, not a promise. —
+    [`02-envelope.md` §Reference forms](02-envelope.md#reference-forms)
 22. Handle `@type` as string-or-array when reading; the workflow entity is always
-    an array, everything else a string. — `02-envelope.md` §types
+    an array, everything else a string. —
+    [`02-envelope.md` §Types](02-envelope.md#types)
 
 ## Vocabulary and profile
 
 23. `vre_type` never appears in the crate. Route on
     `programmingLanguage.identifier`, exactly, with no URI normalisation — some
-    identifiers have a trailing slash and some do not. — `05-vre-vocabulary.md`
+    identifiers have a trailing slash and some do not. —
+    [`05-vre-vocabulary.md` §`vre_type` never appears](05-vre-vocabulary.md#vre_type-never-appears-in-the-crate)
 24. Do not use `name` or `url` to identify the VRE. Sciencemesh's `name` is
-    "Jupyter Notebook". — `05-vre-vocabulary.md`
+    "Jupyter Notebook". —
+    [`05-vre-vocabulary.md` §`vre_type` never appears](05-vre-vocabulary.md#vre_type-never-appears-in-the-crate)
 25. Emit the core profile (`runtimePlatform` as a URL string) unless you are
     deliberately the infrastructure side. Nothing in this repository can generate
     the infrastructure profile, so there is no worked example to copy — and its
     `RuntimePlatform.input` entries must be **inline entities carrying `@type:
     "File"`**, not references, or they are dropped with a log warning. — W013,
-    `06-payload-profile.md`
+    [`06-payload-profile.md` §W013](06-payload-profile.md#w013--runtimeplatforminput-entries-are-not-references)
 
 ## Timestamps and placeholders
 
 26. `datePublished` (full ISO 8601, on the root) and `dateCreated` (date-only, on
     the workflow) are **parsed and never compared**. Never diff them between
-    crates or derive a cache key from them. — `02-envelope.md` §order that matters
+    crates or derive a cache key from them. —
+    [`02-envelope.md` §Order that matters](02-envelope.md#order-that-matters)
 27. Every generated crate carries three placeholder entities — `#author-dispatcher`,
     `#workflow-hub` ("Example Workflow Hub", `http://example.com/workflows/`),
     and `#license-unspecified`. A crate asserting an unspecified license is
     conformant, so consumers **MUST NOT** treat `license` as trustworthy, and
     producers **SHOULD** replace all three with real entities when they have real
-    values. *(not machine-checked)* — `03-entities.md`
+    values. *(not machine-checked)* —
+    [`03-entities.md` §The three placeholders](03-entities.md#the-three-placeholders)
 28. `raw_definition` round-trips verbatim through the `#tool-metadata` entity.
     Put tool-specific extras there rather than inventing new top-level keys.
-    — `03-entities.md` §tool-metadata
+    — [`03-entities.md` §tool-metadata](03-entities.md#tool-metadata)
 
 ## Before you ship a producer
 
