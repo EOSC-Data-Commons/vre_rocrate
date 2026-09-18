@@ -24,19 +24,19 @@
                 "@id": "#author-dispatcher"
             },
             "mainEntity": {
-                "@id": "https://workflowhub.eu/workflows/1747/git/1/raw/workflow_simple.json"
+                "@id": "https://workflowhub.eu/workflows/2169/git/1/raw/workflow_2D_xmipp.json.template"
             },
             "hasPart": [
                 {
-                    "@id": "https://workflowhub.eu/workflows/1747/git/1/raw/workflow_simple.json"
+                    "@id": "https://workflowhub.eu/workflows/2169/git/1/raw/workflow_2D_xmipp.json.template"
                 },
                 {
-                    "@id": "rsync://ftp.ebi.ac.uk/empiar/world_availability/12944/"
+                    "@id": "rsync://ftp.ebi.ac.uk/empiar/world_availability/10305/"
                 }
             ]
         },
         {
-            "@id": "https://workflowhub.eu/workflows/1747/git/1/raw/workflow_simple.json",
+            "@id": "https://workflowhub.eu/workflows/2169/git/1/raw/workflow_2D_xmipp.json.template",
             "@type": [
                 "File",
                 "SoftwareSourceCode",
@@ -86,7 +86,7 @@
             },
             "name": "empiar_dataset",
             "defaultValue": {
-                "@id": "rsync://ftp.ebi.ac.uk/empiar/world_availability/12944/"
+                "@id": "rsync://ftp.ebi.ac.uk/empiar/world_availability/10305/"
             }
         },
         {
@@ -122,7 +122,7 @@
             "url": "http://scipion.i2pc.es/"
         },
         {
-            "@id": "rsync://ftp.ebi.ac.uk/empiar/world_availability/12944/",
+            "@id": "rsync://ftp.ebi.ac.uk/empiar/world_availability/10305/",
             "@type": "File",
             "name": "empiar_dataset"
         },
