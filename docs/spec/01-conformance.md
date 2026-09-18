@@ -150,6 +150,88 @@ against whole-crate validation, or a `graph`-level rule against individual
 entities, produces a false "the schema is broken" report. The `enforcement` field
 tells you which is which.
 
+### A MUST is not a check
+
+Every property table in [`03-entities.md`](03-entities.md) marks each property
+`MUST`, `MAY`, or conditional. **Most `MUST`s are not enforced by anything that
+ships with this spec, and that is deliberate** — but only knowable if you are
+told, so the measurement is run for you: take
+[`generated/examples/probe_every_optional_input.json`](generated/examples/probe_every_optional_input.json),
+the one crate carrying all <!-- GEN:must-probe-roles -->11 documented roles at
+once, delete one `MUST`-marked property at a time, and re-run all three checkers
+(`ValidationPipeline.validate_basic`, `tools/wire_spec_lint.py`,
+`schema-core.json`). Of <!-- GEN:must-deletion-count -->53 possible deletions,
+<!-- GEN:must-unnoticed-count -->28 go unnoticed by all three.
+
+The counts and the table below are regenerated from the checkers themselves on
+every `tools/gen_wire_spec.py` run and land in
+`generated/must-enforcement.json`; the numbers in this paragraph are inline
+tokens, so they cannot survive their own being wrong. `@type` deletions are
+caught by the schema and by nothing else, which is one reason all three checkers
+have to be run rather than the one you happen to have installed.
+
+Grouped by property, with the role attached because the answer genuinely differs
+by role — `name` is schema-required on a file and invisible on a root dataset:
+
+<!-- BEGIN GENERATED must-enforcement -->
+| property | deleting it is caught, by | deleting it goes unnoticed on |
+|---|---|---|
+| `@type` | `author-placeholder` (schema); `computer-language` (schema); `file` ×2 (schema); `formal-parameter` ×2 (schema); `input-dataset` (schema); `license-placeholder` (schema); `publisher-placeholder` (schema); `root-dataset` (schema); `root-descriptor` (schema); `tool-metadata` (schema); `workflow` (schema, validate_basic) | - nowhere - |
+| `about` | `root-descriptor` (schema) | - nowhere - |
+| `additionalType` | - nothing - | `formal-parameter` ×2 |
+| `conformsTo` | `root-descriptor` (W012, schema) | `workflow` |
+| `creator` | - nothing - | `root-dataset`; `workflow` |
+| `dateCreated` | - nothing - | `workflow` |
+| `datePublished` | `root-dataset` (schema) | - nowhere - |
+| `description` | - nothing - | `input-dataset`; `license-placeholder`; `root-dataset`; `workflow` |
+| `hasPart` | `root-dataset` (W007, schema) | - nowhere - |
+| `identifier` | `computer-language` (W006, schema, validate_basic) | - nowhere - |
+| `license` | - nothing - | `file` ×2; `root-dataset`; `workflow` |
+| `mainEntity` | `root-dataset` (W003, schema, validate_basic) | - nowhere - |
+| `name` | `computer-language` (schema); `file` ×2 (schema); `workflow` (schema) | `author-placeholder`; `formal-parameter` ×2; `input-dataset`; `license-placeholder`; `publisher-placeholder`; `root-dataset` |
+| `programmingLanguage` | `workflow` (W005, validate_basic) | - nowhere - |
+| `rawDefinition` | - nothing - | `tool-metadata` |
+| `required` | - nothing - | `formal-parameter` ×2 |
+| `runtimePlatform` | - nothing - | `workflow` |
+| `sdPublisher` | - nothing - | `workflow` |
+| `url` | `computer-language` (schema) | `publisher-placeholder` |
+| `version` | - nothing - | `workflow` |
+<!-- END GENERATED -->
+
+Read the right-hand column as the actual contract, not as a gap to route around.
+What lands there is the **meaning-bearing** set — `description`, `version`,
+`sdPublisher`, `runtimePlatform`, `dateCreated`, `additionalType`, `required`,
+`rawDefinition` — and it is unenforced for a reason: nothing reads those fields,
+so nothing can distinguish their absence from their being empty. That is why they
+are **for humans and for future consumers**. Emitting them correctly is what the
+tables ask; their absence will not be caught, and will therefore also not be
+*diagnosed* — a downstream component that starts reading `version` will find old
+crates empty and will have no way to tell a lazy producer from a pre-1.0 one.
+That asymmetry is the reason to emit them.
+
+Note `conformsTo` and `url`, which appear on **both** sides. The *descriptor's*
+`conformsTo` is what W012 exists for; the *workflow's* is a BioSchema profile URI
+nothing checks. The language entity's `url` is schema-required; the placeholder's
+is not. A property name is not a policy — which is the general form of the
+[reference-forms](02-envelope.md#reference-forms) rule that the same key means
+different things depending on which entity carries it.
+
+Deleting all three placeholder entities **and** every reference to them is
+invisible to all three checkers — measured, not asserted:
+`generated/must-enforcement.json`'s `provenance_deletion` records the removal of
+3 entities and 0 residual mentions, and the result passing `validate_basic`, the
+linter and the schema. A crate with no provenance at all is byte-clean.
+[`#license-unspecified` is the spec's honest acknowledgement of
+exactly this](03-entities.md#the-three-placeholders), and it is why `license` is
+never trustworthy.
+
+For a consumer: do not build a conformance harness that reports "valid" as
+synonymous with "checked". Report which rules reached a verdict — see the note on
+`undecidable` above, and the [worked slot-rename
+case](04-slots-and-files.md#slots) where `lint_report` returns two empty lists
+for a crate that has silently lost every slot value: two empty lists mean
+*either* nothing was wrong *or* nothing was judged.
+
 ### Proving a validator has teeth
 
 `generated/negatives/` holds exactly one deliberately-broken crate per rule, with

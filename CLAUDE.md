@@ -22,7 +22,7 @@ python3 -m venv .venv && .venv/bin/python -m pip install -e ".[dev]"
 ## Commands
 
 ```console
-.venv/bin/python -m pytest                                    # whole suite (66 tests, green)
+.venv/bin/python -m pytest                                    # whole suite (100 tests, green)
 .venv/bin/python -m pytest -k sciencemesh                     # by keyword
 .venv/bin/python -m pytest tests/test_launch_request_assumptions.py -q          # one file
 .venv/bin/python -m pytest tests/test_building/test_payload.py::TestVREPayloadBuilder        # one class
@@ -41,7 +41,10 @@ still the fastest way to find the exact ID.
 
 Black is configured (`line-length = 88`, `target-version = ["py310"]`) but **not enforced** —
 no CI, no pre-commit, no lint or typecheck config at all. `black --check .` currently wants
-to rewrite **17 of 35 files**, including 13 of the 14 scripts in `examples/`. Running it
+to rewrite **20 of 39 files** — 13 of the 14 scripts in `examples/`, plus both
+spec tools (`tools/gen_wire_spec.py`, `tools/wire_spec_lint.py`), which are
+"unformatted" alongside deliberately hand-styled code, not because anyone added
+noise. Running it
 buries your actual change in hundreds of lines of noise.
 
 **Write new and edited lines in the surrounding hand style and leave the rest alone.** The
@@ -184,10 +187,15 @@ options; `tosca-fixture-generation-support.md` proposes widening `runtime_platfo
   longer exist. Only the "run examples" command and the layer principles are current.
   `pyproject.toml`'s description still says "minimal-VRE request handling" for the same
   reason.
-- `AGENTS.md` is accurate on architecture and invariants, but verified-stale on: test count
-  (says 68/68; it is **66**), `black --check` scope (says 3 files; it is **17**), and
-  `BUILDER_CASES` (says `test_building/test_package.py`; that file is now `test_payload.py`).
-  Its `SlotValue` description is also out of date.
+- `AGENTS.md` is accurate on architecture and invariants. It was verified-stale on the
+  test count and the `black --check` scope; both are **corrected here as of Aug 2026**
+  (now 100 tests, 20 of 39 files). Still stale on one point: `BUILDER_CASES`
+  (says `test_building/test_package.py`; that file is now `test_payload.py`) — left
+  as-is because editing `AGENTS.md` for other agents is out of scope for a code
+  change, so fix it in its own pass. An earlier version of this list also claimed
+  `AGENTS.md`'s `SlotValue` description was out of date; that was wrong — `AGENTS.md`
+  does not mention `SlotValue` at all (verified: zero occurrences). The real
+  `SlotValue` fact is documented above and in the code.
 - `plans/*.md` still use the pre-rename names `RequestPackageBuilder` /
   `building/package.py`.
 - `build/` and `src/*.egg-info/` hold stale flat-layout build artifacts (gitignored);

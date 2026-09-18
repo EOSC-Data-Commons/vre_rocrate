@@ -2667,6 +2667,430 @@ def derive_lint_rules() -> dict[str, Any]:
     }
 
 
+#: The crate `derive_must_enforcement` measures on: the one golden that carries
+#: every documented role at once, built from examples/probe_every_optional_input.py.
+MUST_PROBE_CRATE = "examples/probe_every_optional_input.json"
+
+
+def _schema_if_matches(entity: dict[str, Any], condition: dict[str, Any]) -> bool:
+    """Does an entity satisfy a schema `if` clause that `derive_schemas` emits?
+
+    A deliberately tiny evaluator, not a JSON Schema implementation. It handles
+    exactly the three constructs this generator ever writes into an `if` -
+    `required`, `properties.@type` as produced by `_has_type`, and
+    `properties.@id` as a `const` - and raises on anything else, so a future
+    clause this function cannot judge fails generation instead of quietly
+    reporting a deletion as unnoticed.
+
+    Why not call jsonschema: generation must run on a bare interpreter (see
+    `verify_schemas`), and the schema-under-test is itself a committed artefact,
+    so reading its clauses is reading the shipped spec, not re-deriving it.
+    `verify_must_enforcement` then cross-checks this against the real validator
+    whenever the dev extra is installed - two independent implementations of the
+    same question, which is the same argument for having the linter at all.
+    """
+    for key, spec in condition.items():
+        if key == "required":
+            if any(k not in entity for k in spec):
+                return False
+        elif key == "properties":
+            for prop, sub in spec.items():
+                if "const" in sub:
+                    if entity.get(prop) != sub["const"]:
+                        return False
+                elif "@type" == prop and "anyOf" in sub:
+                    # `_has_type(name)`: {"anyOf": [{"const": n},
+                    #              {"type": "array", "contains": {"const": n}}]}
+                    names = [c["const"] for c in sub["anyOf"] if "const" in c]
+                    if not names:
+                        raise AssertionError(f"unhandled @type clause: {sub}")
+                    want = names[0]
+                    have = entity.get("@type")
+                    have = have if isinstance(have, list) else [have]
+                    if want not in have:
+                        return False
+                else:
+                    raise AssertionError(
+                        f"derive_must_enforcement cannot judge the `if` clause "
+                        f"{key}.{prop}: {sub}. Extend _schema_if_matches or stop "
+                        "using it in a required-key clause.")
+        else:
+            raise AssertionError(
+                f"derive_must_enforcement cannot judge the `if` keyword {key!r}")
+    return True
+
+
+def _schema_rejects_entity(entity: dict[str, Any], item_schema: dict) -> bool:
+    """Would the shipped profile schema call this one entity invalid?
+
+    Only the entity-level clauses are consulted: the graph-level `contains`
+    clauses ask about the whole @graph, and every key they demand
+    (`about`/`conformsTo`/`mainEntity`) is also demanded by the corresponding
+    per-entity clause, so a single-entity deletion is decided here anyway.
+    `verify_must_enforcement` checks the whole-crate verdict against the real
+    validator, which would notice if that reasoning stopped holding.
+    """
+    for clause in item_schema["allOf"]:
+        if "not" in clause:
+            # core's `{"not": has_type("RuntimePlatform")}`.
+            names = [c["const"] for c in clause["not"].get("anyOf", [])
+                     if "const" in c]
+            have = entity.get("@type")
+            have = have if isinstance(have, list) else [have]
+            if names and names[0] in have:
+                return True
+        if "if" not in clause:
+            # item_base: every entity needs a non-empty @id and an @type.
+            if any(k not in entity for k in clause.get("required", [])):
+                return True
+            continue
+        if not _schema_if_matches(entity, clause["if"]):
+            continue
+        then = clause.get("then", {})
+        if any(k not in entity for k in then.get("required", [])):
+            return True
+    return False
+
+
+def derive_must_enforcement(artefacts: dict[str, Any]) -> dict[str, Any]:
+    """For each MUST-marked property, does deleting it trip any shipped checker?
+
+    01-conformance.md tells producers that most `MUST`s are unenforced, and a
+    claim that shapes what people emit has to be a MEASURED number, not a
+    remembered one - the sentence this replaces had drifted to "32 of the 58
+    deletions on a 14-entity crate", a crate size that appears nowhere and a row
+    count 12 higher than the tables contain.
+
+    So: take the probe crate, delete one MUST-marked property at a time, and run
+    the two checkers that ship as code (`validate_basic`, the linter) against the
+    result. A deletion nothing reports is `unnoticed`.
+
+    The profile schema is deliberately NOT evaluated here. `jsonschema` is a dev
+    extra and generation must stay runnable without it, so recording a per-run
+    schema verdict would make the artefact depend on the machine that built it -
+    the exact failure `verify_schemas` exists to avoid. The schema's side of the
+    claim is asserted instead, as a gate, in `verify_must_enforcement`.
+
+    Property names come from `entities.json`, whose `status` is what renders the
+    `MUST`/`MAY` column in 03; a property the probe crate happens not to carry is
+    reported as `unprobed` rather than silently shrinking the denominator.
+    """
+    from vre_rocrate.parsing.validator import ValidationPipeline
+    import copy as _copy
+
+    entities = artefacts["entities.json"]["entities"]
+    must_of = {role: [p for p, m in e["properties"].items()
+                      if m["status"] == "required"]
+               for role, e in entities.items()}
+
+    crate = artefacts[MUST_PROBE_CRATE]
+    graph = crate["@graph"]
+    root = next(e for e in graph if e.get("@id") == "./")
+    main_id = root["mainEntity"]
+    main_id = main_id if isinstance(main_id, str) else main_id["@id"]
+    parts = {p if isinstance(p, str) else p.get("@id")
+             for p in root.get("hasPart", [])}
+    role_of = {idx: _role(e, main_id, parts) for idx, e in enumerate(graph)}
+
+    item_schema = artefacts["schema-core.json"]["properties"]["@graph"]["items"]
+
+    def reported(entity: dict[str, Any],
+                 c: dict[str, Any]) -> tuple[bool, bool, list[str]]:
+        """What each of the three shipped checkers says about a mutation.
+
+        Returns (validate_basic rejected the crate, the schema rejects the edited
+        entity, rule ids the linter now reports). The schema is asked about the
+        ENTITY rather than the crate because that is the level its required-key
+        clauses live at; `verify_must_enforcement` cross-checks the whole-crate
+        verdict against the real validator.
+        """
+        try:
+            ValidationPipeline.validate_basic(c)
+            rejected = False
+        except Exception:
+            rejected = True
+        return rejected, _schema_rejects_entity(entity, item_schema), \
+            sorted(lint_report(c)["violations"])
+
+    base_violations = sorted(lint_report(crate)["violations"])
+    assert not base_violations and not any(
+            _schema_rejects_entity(e, item_schema) for e in graph), (
+        f"{MUST_PROBE_CRATE} is not clean on the linter/schema, so it cannot be "
+        "the baseline for a deletion experiment")
+    try:
+        ValidationPipeline.validate_basic(crate)
+    except Exception as exc:
+        raise AssertionError(
+            f"{MUST_PROBE_CRATE} fails validate_basic ({exc}), so it cannot be "
+            "the baseline for a deletion experiment") from exc
+
+    deletions: list[dict[str, Any]] = []
+    unprobed: list[str] = []
+    for idx, entity in enumerate(graph):
+        role = role_of[idx]
+        for prop in must_of.get(role, ()):
+            if prop not in entity:
+                unprobed.append(f"{role}.{prop}")
+                continue
+            mutated = _copy.deepcopy(crate)
+            del mutated["@graph"][idx][prop]
+            rejected, schema_caught, violations = reported(
+                mutated["@graph"][idx], mutated)
+            caught_by = (["schema"] if schema_caught else [])
+            if rejected:
+                caught_by.append("validate_basic")
+            caught_by += [f"W{v[1:]}" for v in violations]
+            deletions.append({
+                "index": idx,
+                "role": role,
+                "property": prop,
+                "entity": entity.get("@id"),
+                "caught_by": caught_by,
+                "unnoticed": not caught_by,
+            })
+
+    unnoticed = [d for d in deletions if d["unnoticed"]]
+    return {
+        "_note": "Every documented MUST property, deleted once from the probe "
+                 "crate, judged by the two checkers that ship as code. "
+                 "'unnoticed' means validate_basic passed AND the linter "
+                 "reported no violation. The profile schema's agreement is "
+                 "asserted at generation time by verify_must_enforcement, which "
+                 "needs the dev extra; it is not recorded here because a "
+                 "per-run verdict would make this file machine-dependent. "
+                 "Re-runs on every generation, so the counts in "
+                 "01-conformance.md cannot go stale.",
+        "probe_crate": MUST_PROBE_CRATE,
+        "probe_entities": len(graph),
+        "probe_roles": len(set(role_of.values())),
+        "must_rows": sum(len(v) for v in must_of.values()),
+        "deletions": len(deletions),
+        "unnoticed": len(unnoticed),
+        # Property NAMES, deduplicated. Per-deletion counts over-report to a
+        # reader: the probe crate carries two FormalParameters and two Files, so
+        # `license` appears three times. Prose quoting these must say whether it
+        # means rows or distinct properties.
+        "unnoticed_properties": sorted({d["property"] for d in unnoticed}),
+        "caught_properties": sorted({d["property"] for d in deletions
+                                     if not d["unnoticed"]}),
+        # Which checker caught each caught property, so 01's table of "enforced
+        # by ..." is generated rather than asserted.
+        "caught_by_property": {
+            prop: sorted({c for d in deletions if d["property"] == prop
+                          for c in d["caught_by"]})
+            for prop in sorted({d["property"] for d in deletions
+                                if not d["unnoticed"]})},
+        "unprobed_properties": sorted(set(unprobed)),
+        "rows": sorted(deletions, key=lambda d: (d["role"], d["property"])),
+        # Deleting whole entities, not properties. 01 and 03 both tell producers
+        # that a crate with no provenance at all is byte-clean, which is a strong
+        # enough claim that it should not rest on someone having tried it once.
+        # Every reference is scrubbed too, so this measures "no provenance", not
+        # "dangling provenance" (which W004/W011 would rightly catch).
+        "provenance_deletion": _probe_provenance_deletion(crate, item_schema),
+    }
+
+
+#: The three entities `RocrateBuilder` emits unconditionally with fixed values.
+PLACEHOLDER_IDS = frozenset({"#author-dispatcher", "#workflow-hub",
+                             "#license-unspecified"})
+
+
+def strip_provenance(crate: dict[str, Any]) -> dict[str, Any]:
+    """Drop the three placeholder entities AND every reference to them.
+
+    Both halves matter. Removing the entities alone leaves dangling references,
+    which W004/W011 rightly report, and would make "you can ship a crate with no
+    provenance" look false when the real claim is "you can ship one with no
+    provenance and no pointers at the provenance you did not write".
+    """
+    import copy as _copy
+
+    def scrub(value: Any) -> Any:
+        if isinstance(value, dict):
+            if value.get("@id") in PLACEHOLDER_IDS:
+                return None
+            out = {}
+            for key, sub in value.items():
+                if isinstance(sub, dict) and sub.get("@id") in PLACEHOLDER_IDS:
+                    continue
+                if isinstance(sub, list) and any(
+                        isinstance(x, dict) and x.get("@id") in PLACEHOLDER_IDS
+                        for x in sub):
+                    kept = [x for x in (scrub(i) for i in sub)
+                            if x is not None]
+                    if kept:
+                        out[key] = kept
+                    continue
+                scrubbed = scrub(sub)
+                if scrubbed is not None:
+                    out[key] = scrubbed
+            return out
+        if isinstance(value, list):
+            return [v for v in (scrub(i) for i in value) if v is not None]
+        return value
+
+    stripped = scrub(_copy.deepcopy(crate))
+    stripped["@graph"] = [e for e in stripped["@graph"]
+                          if e.get("@id") not in PLACEHOLDER_IDS]
+    return stripped
+
+
+def _probe_provenance_deletion(crate: dict[str, Any],
+                               item_schema: dict) -> dict[str, Any]:
+    """Judge the provenance-stripped crate with the two dependency-free checkers."""
+    from vre_rocrate.parsing.validator import ValidationPipeline
+
+    stripped = strip_provenance(crate)
+    residual = sum(json.dumps(stripped).count(t) for t in
+                   ("author-dispatcher", "workflow-hub", "license-unspecified",
+                    "Dispatcher System", "Example Workflow Hub",
+                    "Unspecified license"))
+    try:
+        ValidationPipeline.validate_basic(stripped)
+        validator_ok = True
+    except Exception:
+        validator_ok = False
+    return {
+        "entities_removed": len(crate["@graph"]) - len(stripped["@graph"]),
+        # Must be 0. A non-zero count means the scrub left a name behind and the
+        # "no provenance at all" sentence would be describing a different crate.
+        "residual_mentions": residual,
+        "validate_basic_passes": validator_ok,
+        "linter_violations": sorted(lint_report(stripped)["violations"]),
+        "schema_rejects_any_entity": any(
+            _schema_rejects_entity(e, item_schema)
+            for e in stripped["@graph"]),
+    }
+
+
+def verify_must_enforcement(must: dict[str, Any],
+                            artefacts: dict[str, Any]) -> list[str]:
+    """Cross-check the dependency-free schema verdict against the real one.
+
+    `derive_must_enforcement` decides the schema half with `_schema_rejects_entity`,
+    a ~40-line reader of the shipped clauses, because generation must run without
+    `jsonschema`. This is where that shortcut pays for itself: for every deletion
+    the two implementations are asked the same question - does the shipped
+    `schema-core.json` reject the mutated crate - and any disagreement fails
+    generation in either direction.
+
+    The comparison is entity-level verdict against whole-crate verdict, so a
+    divergence also means the two levels have come apart: a required key that the
+    per-entity clauses miss but a graph-level `contains` clause happens to catch,
+    which is a fact 01 needs to state differently.
+    """
+    try:
+        from jsonschema import Draft202012Validator
+    except ImportError:
+        return []
+    import copy as _copy
+
+    crate = artefacts[must["probe_crate"]]
+    validator = Draft202012Validator(artefacts["schema-core.json"])
+    bad = []
+    for row in must["rows"]:
+        mutated = _copy.deepcopy(crate)
+        del mutated["@graph"][row["index"]][row["property"]]
+        claimed = "schema" in row["caught_by"]
+        actual = not validator.is_valid(mutated)
+        if claimed == actual:
+            continue
+        bad.append(
+            f"deleting {row['property']} from {row['role']} ({row['entity']}): "
+            f"the shipped clauses {'reject' if claimed else 'accept'} the entity "
+            f"but jsonschema {'rejects' if actual else 'accepts'} the crate - so "
+            f"{'01 overstates' if claimed else '01 understates'} what the schema "
+            "catches")
+
+    # The provenance claim, whole-crate, against the real validator. 01/03 say a
+    # crate with no placeholders and no references to them is byte-clean; that is
+    # the kind of sentence a producer acts on, so it is checked rather than
+    # remembered.
+    # The provenance claim. 01 and 03 both tell producers that a crate with the
+    # placeholders and their references removed is byte-clean, which is the kind
+    # of sentence a producer acts on, so the schema half is verified rather than
+    # remembered. Note this compares an entity-level verdict against a whole-crate
+    # one: agreement means no graph-level `contains` clause is what would have
+    # caught the removal, which is exactly the assumption the census makes.
+    prov = must["provenance_deletion"]
+    claimed = prov["schema_rejects_any_entity"]
+    actual = not Draft202012Validator(
+        artefacts["schema-core.json"]).is_valid(strip_provenance(crate))
+    if claimed != actual:
+        bad.append(
+            "the provenance-stripped probe crate: the shipped per-entity clauses "
+            f"{'reject' if claimed else 'accept'} it but jsonschema "
+            f"{'rejects' if actual else 'accepts'} it, so the whole-crate verdict "
+            "is not decided by the clauses the census reads - check whether a "
+            "graph-level `contains` clause now fires and correct 01")
+    if prov["residual_mentions"]:
+        bad.append(
+            f"the provenance scrub left {prov['residual_mentions']} mention(s) of "
+            "the placeholders behind, so 'a crate with no provenance at all' "
+            "describes a different crate from the one measured")
+    return bad
+
+
+def derive_additional_types(artefacts: dict[str, Any]) -> dict[str, Any]:
+    """Every `additionalType` value that appears on a FormalParameter, and where.
+
+    `FormalParameter.additionalType` is documented as free text carried verbatim
+    from the producer, which means the ONLY way to know what a consumer will
+    actually meet is to count the crates. The hand-written table this feeds had
+    counted 16 and 4 reference values where the goldens hold 8 and 2, and had
+    omitted that the values split cleanly by crate origin - the builder emits a
+    string, real inbound crates emit an EDAM reference, and no producer does both.
+
+    `VREPayload` annotates the parsed field `additional_type: str | None` while
+    the parse path copies the entity value verbatim, so the dict form arrives as a
+    `dict`. That is asserted against the live parser rather than restated, so a
+    future narrowing of the parse path fails here instead of invalidating 03.
+    """
+    counts: dict[str, dict[str, int]] = {}
+    crates: dict[str, set[str]] = {}
+    for slug, meta in artefacts["examples.json"]["entries"].items():
+        crate = artefacts[slug]
+        for entity in crate.get("@graph", []):
+            if "additionalType" not in entity:
+                continue
+            value = entity["additionalType"]
+            shape = "reference" if isinstance(value, dict) else "string"
+            origin = meta["origin"]
+            key = f"{origin}|{shape}"
+            rendered = value if shape == "string" else value.get("@id", value)
+            per_value = counts.setdefault(key, {})
+            per_value[str(rendered)] = per_value.get(str(rendered), 0) + 1
+            crates.setdefault(key, set()).add(slug)
+
+    # The parse path, not the annotation, is the authority on what arrives.
+    from vre_rocrate import VREPayloadBuilder
+
+    shapes_seen = set()
+    for slug, meta in artefacts["examples.json"]["entries"].items():
+        if meta["origin"] != "fixture-input":
+            continue
+        try:
+            payload = VREPayloadBuilder.build(artefacts[slug])
+        except Exception:
+            continue
+        for param in payload.workflow_inputs:
+            if param.additional_type is not None:
+                shapes_seen.add(type(param.additional_type).__name__)
+
+    return {
+        "_note": "Observed FormalParameter.additionalType values across every "
+                 "golden, keyed by `origin|shape`. Free text by contract: nothing "
+                 "validates it and nothing on the parse side reads it. The "
+                 "`python_types_seen` list is measured through VREPayloadBuilder, "
+                 "which is what proves the model's `str | None` annotation is "
+                 "narrower than the data.",
+        "counts": {k: dict(sorted(v.items())) for k, v in sorted(counts.items())},
+        "crates": {k: sorted(v) for k, v in sorted(crates.items())},
+        "python_types_seen": sorted(shapes_seen),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
@@ -2700,6 +3124,28 @@ def build_artefacts() -> dict[str, Any]:
     artefacts.update(derive_schemas())
 
     goldens = derive_goldens()
+    # Counted, never typed: the fixture crates are the ones that predate the
+    # profile URI, so "they all fail only W012" is the sentence a consumer most
+    # needs and the one a typed count would rot into a lie. Measured the same way
+    # the golden-index column measures it, so the note and the table cannot drift.
+    #
+    # `declares_wire_profile` is used as the proxy for "the schema rejects this",
+    # which is sound only because the cross-check in derive_schemas asserts
+    # schema-rejects iff the linter sees an ENCODABLE rule, and W012 is encodable
+    # in BOTH profiles - so a crate that omits the profile URI is rejected by
+    # whichever schema judges it. If W012 ever stops being encodable in a profile,
+    # that equivalence breaks and this note over-reports; assert it here rather
+    # than leaving the reasoning in a comment three hundred lines away.
+    assert "W012" in artefacts["schemas.json"]["encodable"]["core"], (
+        "examples.json's _note treats a missing profile URI as a schema "
+        "rejection, which requires W012 in the core profile")
+    assert "W012" in artefacts["schemas.json"]["encodable"]["infrastructure"], (
+        "examples.json's _note treats a missing profile URI as a schema "
+        "rejection, which requires W012 in the infrastructure profile")
+    fixtures = [m for m in goldens["entries"].values()
+                if m["origin"] == "fixture-input"]
+    w012_only = [m for m in fixtures if not m["violations_pre_profile"]]
+    declares = [m for m in fixtures if m["declares_wire_profile"]]
     artefacts["examples.json"] = {
         "_note": "Real crates for a consumer team to point their parser at. "
                  "'builder-output' is what RocrateBuilder emits (rebuilt from "
@@ -2707,14 +3153,28 @@ def build_artefacts() -> dict[str, Any]:
                  "each example actually prints); 'fixture-input' is a crate some "
                  "producer actually sent. @graph is sorted by @id; emission order "
                  "is normative and lives in entities.json. Timestamps are real "
-                 "ISO 8601 values, not placeholders, so these files validate "
-                 "against the schema.",
+                 "ISO 8601 values, not placeholders. Every 'builder-output' file "
+                 f"validates against the schema for its profile; "
+                 f"{len(fixtures) - len(declares)} of the {len(fixtures)} "
+                 f"'fixture-input' files do not, and {len(w012_only)} of those fail "
+                 "W012 and nothing else - they predate the profile URI, which W012 "
+                 "and the schemas both require. So `profile` on a 'fixture-input' "
+                 "row classifies its SHAPE (which schema describes it) and is not a "
+                 "conformance verdict; read the index's violates column, which "
+                 "withholds W012, for what a fixture does besides predating it.",
         "timestamp_keys": TIMESTAMP_KEYS,
         "emittable_types": goldens["emittable_types"],
         "entries": goldens["entries"],
     }
     for slug, crate in goldens["crates"].items():
         artefacts[f"examples/{slug}"] = crate
+
+    # Built last because it reads two other artefacts: the MUST set from
+    # entities.json and the probe crate from the goldens. It is the only
+    # artefact that measures the CHECKERS rather than the builder.
+    must = derive_must_enforcement(artefacts)
+    artefacts["must-enforcement.json"] = must
+    artefacts["additional-types.json"] = derive_additional_types(artefacts)
 
     # The schema cross-check is a GATE on generation, never content of the
     # artefacts. Writing its result into schemas.json made that file depend on
@@ -2735,6 +3195,16 @@ def build_artefacts() -> dict[str, Any]:
         print(f"NOTE: schemas cross-checked against {verification['checked_against']} "
               f"crates with jsonschema {verification['jsonschema_version']}; "
               "0 mismatches", file=sys.stderr)
+
+    # Same gate relationship for the MUST census: the artefact records only what
+    # the two dependency-free checkers saw, and this asserts the third agrees.
+    # Without it, "unnoticed by all three" would be an assertion about a checker
+    # nothing consulted.
+    must_gaps = verify_must_enforcement(must, artefacts)
+    if must_gaps:
+        raise AssertionError(
+            "the MUST enforcement census disagrees with schema-core.json:\n  "
+            + "\n  ".join(must_gaps))
     return artefacts
 
 
@@ -2831,6 +3301,26 @@ EXCERPTS: dict[str, tuple[str, str, int]] = {
     "probe-tool-metadata": ("examples/probe_every_optional_input.json",
                             "tool-metadata", 0),
     "probe-file": ("examples/probe_every_optional_input.json", "file", 0),
+    # The three placeholders are documented as "emitted with fixed values", and
+    # for a producer that is the only fact that matters - but 03 described the
+    # requirement without ever stating the values, and nothing else in the
+    # sandbox-readable tree did either. A producer therefore had to copy them out
+    # of a crate to emit them correctly, which is exactly the kind of implicit
+    # knowledge a spec is supposed to make explicit. Excerpted, so the values in
+    # the prose cannot drift from the values the builder writes.
+    "author-placeholder": ("examples/galaxy.json", "author-placeholder", 0),
+    "publisher-placeholder": ("examples/galaxy.json", "publisher-placeholder", 0),
+    "license-placeholder": ("examples/galaxy.json", "license-placeholder", 0),
+    # additionalType as a reference object, not a string: the one shape a
+    # core-profile producer emits and no builder can. Cited from a fixture so the
+    # claim "real inbound crates do this" is checkable in place.
+    "edam-parameter": ("examples/galaxy_and_onedata__ro-crate-metadata.json",
+                       "formal-parameter", 0),
+    # The prose claims a file can carry a full-URL @id AND no `url` property, and
+    # cited excerpt-sciencemesh-file as the proof - but that entity DOES have a
+    # `url`, so the example refuted the sentence attached to it. This is a real
+    # inbound crate's file that actually has the claimed shape.
+    "url-file-without-url": ("examples/vip__ro-crate-metadata.json", "file", 0),
 }
 
 
@@ -2878,12 +3368,20 @@ def _trimmed(entity: dict, limit: int = 72) -> tuple[dict, bool]:
     fixture got a silently wrong `@id` - the precise class of bug this whole
     document is trying to prevent. `name`/`description` carry no such risk, so
     they are what gets shortened.
+
+    `url` is an address too and is exempt for the same reason, with a second
+    argument on top: on a File the builder writes `url` as exactly the value it
+    writes into `@id` (`_file_id`), so eliding one and not the other made
+    `excerpt-sciencemesh-file` print the address whole and then truncated, which
+    reads as "these are different values" and is the opposite of what the prose
+    around it claims. A dry-run producer copied that excerpt and could not tell
+    which of the two it was meant to emit.
     """
     changed = False
 
     def shorten(value: Any, key: str | None) -> Any:
         nonlocal changed
-        identifier = key is not None and key.startswith("@")
+        identifier = key is not None and (key.startswith("@") or key == "url")
         if (isinstance(value, str) and not identifier
                 and len(value) > limit):
             changed = True
@@ -3026,7 +3524,7 @@ def _fmt_counts(value: Any) -> str:
 
 
 def inline_tokens(artefacts: dict[str, Any]) -> dict[str, str]:
-    """Scalar values prose cites mid-sentence, as `{{token}}` substitutions.
+    """Scalar values prose cites mid-sentence, as `<!-- GEN:name -->` markers.
 
     Each of these was previously a typed digit in a paragraph, and the rule
     counts had all drifted to 13 when W014 made the set 14.
@@ -3062,6 +3560,11 @@ def inline_tokens(artefacts: dict[str, Any]) -> dict[str, str]:
         f"{set(union) | set(unencodable) ^ set(rules)} are neither schema-"
         "encodable nor declared unencodable, so 'N of M rules' cannot be "
         "computed without lying about one of them")
+    # The MUST-deletion census. 01-conformance.md's "a MUST is not a check"
+    # section quotes these mid-sentence, and the sentence it replaced had drifted
+    # to a crate size and a row count that matched nothing. They are counts of
+    # THIS artefact's own measurement, so there is one place that knows them.
+    must = artefacts["must-enforcement.json"]
     out = {
         "rule-count": str(len(rules)),
         "schema-encodable-count": str(len(union)),
@@ -3070,6 +3573,15 @@ def inline_tokens(artefacts: dict[str, Any]) -> dict[str, str]:
         "fixture-input-count": str(len(fixture_input)),
         "builder-output-count": str(len(examples) - len(fixture_input)),
         "golden-count": str(len(examples)),
+        # The dry-run record asserts "every negative is rejected"; a typed count
+        # there would rot the moment a rule gained or lost a negative, and the
+        # sentence would stay looking confident while lying about the gate.
+        "negative-count": str(len(artefacts["negatives.json"]["entries"])),
+        "must-probe-entities": str(must["probe_entities"]),
+        "must-probe-roles": str(must["probe_roles"]),
+        "must-deletion-count": str(must["deletions"]),
+        "must-unnoticed-count": str(must["unnoticed"]),
+        "must-unnoticed-prop-count": str(len(must["unnoticed_properties"])),
     }
     # A value carrying whitespace or sentence punctuation cannot round-trip
     # through INLINE_RE (see its comment), so reject it here instead of shipping
@@ -3322,7 +3834,8 @@ def prose_regions(artefacts: dict[str, Any]) -> dict[str, str]:
 
     goldens = artefacts["examples.json"]["entries"]
     regions["golden-index"] = _md_table(
-        ["file", "source", "profile", "emitted by the builder?", "violates (pre-profile)"],
+        ["file", "source", "profile", "builder can emit all its types?",
+         "violates, W012 withheld"],
         # BOTH path columns are repo-root-relative, so a reader resolves either
         # the same way and the spec's path-citation test can check the golden's
         # own location too. Keys are relative to generated/, which read fine until
@@ -3342,10 +3855,70 @@ def prose_regions(artefacts: dict[str, Any]) -> dict[str, str]:
         f"{', '.join(schemas['not_encodable_in_any_profile'])} - each needs a lookup "
         "across `@graph`, which JSON Schema `contains` cannot express",
     ])
+    # FormalParameter.additionalType, counted rather than recalled. The prose
+    # around this table explains WHY the two shapes never overlap; the counts and
+    # the value lists come from the crates so they cannot drift from them.
+    at = artefacts["additional-types.json"]
+    def _shape_rows(shape: str, who: str) -> list[list[str]]:
+        key = next((k for k in at["counts"] if k.endswith("|" + shape)), None)
+        if key is None:
+            return []
+        values = at["counts"][key]
+        listed = ", ".join(
+            f"`{v}` ×{n}" if shape == "string"
+            else '`{"@id": "' + v + '"}` ×' + str(n)
+            for v, n in sorted(values.items(), key=lambda kv: -kv[1]))
+        return [[shape, listed, who, str(len(at["crates"][key]))]]
+
+    regions["additional-type-census"] = _md_table(
+        ["shape", "observed values (count)", "who writes it", "crates"],
+        [r for r in [
+            *_shape_rows("string", "RocrateBuilder, verbatim from "
+                                  "`SlotDefinition.slot_type`"),
+            *_shape_rows("reference", "a producer outside this repo "
+                                      "(`fixture-input` crates)"),
+        ] if r])
     regions["negative-index"] = _md_table(
         ["file", "what it does wrong", "linter must report"],
         [[f'`{e["file"]}`', e["label"], ", ".join(e["expected_violations"])]
          for _, e in sorted(artefacts["negatives.json"]["entries"].items())])
+
+    # Which checker notices the deletion of each MUST-marked property. Grouped by
+    # property with the ROLE carried, because the answer is per (role, property)
+    # and a property-level list would lie: `name` is schema-required on file,
+    # workflow and computer-language and unnoticed on root-dataset,
+    # input-dataset, FormalParameter and the three placeholders. The hand-written
+    # table this replaced claimed `name` on "file/workflow/root", which is the
+    # one role where deleting it is invisible.
+    # One cell per (property, role): the probe crate carries two Files and two
+    # FormalParameters, so a per-deletion list would repeat `license` three times
+    # and read as three different findings. The count is shown where a role has
+    # more than one such entity, because that is the case a reader would
+    # otherwise miscount.
+    rows = artefacts["must-enforcement.json"]["rows"]
+    cells: dict[tuple[str, str], list[str]] = {}
+    for row in rows:
+        cells.setdefault((row["property"], row["role"]), []).append(row)
+    by_prop: dict[str, dict[str, list[str]]] = {}
+    for (prop, role), group in cells.items():
+        bucket = by_prop.setdefault(prop, {"hit": [], "miss": []})
+        n = len(group)
+        label = f"`{role}`" + (f" ×{n}" if n > 1 else "")
+        caught = sorted({c for r in group for c in r["caught_by"]})
+        if all(r["unnoticed"] for r in group):
+            bucket["miss"].append(label)
+        elif not any(r["unnoticed"] for r in group):
+            bucket["hit"].append(f"{label} ({', '.join(caught)})")
+        else:
+            # Same property, same role, different verdicts - only possible if the
+            # entities differ, which is worth surfacing rather than averaging.
+            bucket["hit"].append(f"{label} (PARTIAL: {', '.join(caught)})")
+    regions["must-enforcement"] = _md_table(
+        ["property", "deleting it is caught, by", "deleting it goes unnoticed on"],
+        [[f"`{prop}`",
+          "; ".join(sorted(v["hit"])) or "- nothing -",
+          "; ".join(sorted(v["miss"])) or "- nowhere -"]
+         for prop, v in sorted(by_prop.items())])
     return regions
 
 

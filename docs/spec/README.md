@@ -108,7 +108,7 @@ W012. Test your parser against the second group and your emitter against the
 first.
 
 <!-- BEGIN GENERATED golden-index -->
-| file | source | profile | emitted by the builder? | violates (pre-profile) |
+| file | source | profile | builder can emit all its types? | violates, W012 withheld |
 |---|---|---|---|---|
 | `docs/spec/generated/examples/alphafind-notebook__ro-crate-metadata.json` | `tests/fixtures/alphafind-notebook/ro-crate-metadata.json` | core | yes | - |
 | `docs/spec/generated/examples/alphafind_notebook.json` | `examples/alphafind_notebook.py` | core | yes | - |

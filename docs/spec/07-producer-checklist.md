@@ -121,10 +121,18 @@ is enforced by `tools/wire_spec_lint.py` unless marked *(not machine-checked)*.
     [`02-envelope.md` §Order that matters](02-envelope.md#order-that-matters)
 27. Every generated crate carries three placeholder entities — `#author-dispatcher`,
     `#workflow-hub` ("Example Workflow Hub", `http://example.com/workflows/`),
-    and `#license-unspecified`. A crate asserting an unspecified license is
-    conformant, so consumers **MUST NOT** treat `license` as trustworthy, and
-    producers **SHOULD** replace all three with real entities when they have real
-    values. *(not machine-checked)* —
+    and `#license-unspecified` — plus the `creator`/`sdPublisher`/`license`
+    references that resolve to them. Emit all six on every crate: **replace** a
+    placeholder with a real entity once you have one, but never **omit** it. The
+    trio is what makes "this crate has no known author" a stated fact rather than a
+    dropped field, and nothing will tell you the difference — deleting all three
+    *and* their references is measured as clean by `validate_basic`, the linter and
+    the schema, and projects field-for-field identically
+    (`generated/must-enforcement.json`, `provenance_deletion`). Copy the literals
+    from the section below rather than writing them from memory — they are excerpted
+    verbatim there, and an invented value is never reported as wrong.
+    Consumers **MUST NOT** treat `license` as
+    trustworthy either way. *(not machine-checked)* —
     [`03-entities.md` §The three placeholders](03-entities.md#the-three-placeholders)
 28. `raw_definition` round-trips verbatim through the `#tool-metadata` entity.
     Put tool-specific extras there rather than inventing new top-level keys.
@@ -167,3 +175,130 @@ negatives is measuring nothing.
 | `negatives/W013.json` | a RuntimePlatform whose input lists "{"@id": "#file"}" instead of the file's properties inline; the parser reads @type off the entry, finds none, and skips it | W013 |
 | `negatives/W014.json` | workflow.input collapses from a one-element array to the bare object; the parser iterates the object's members, finds no @id, and returns no input slots at all | W014 |
 <!-- END GENERATED -->
+
+## Dry run: what implementing this from spec alone found
+
+The claim this file rests on is *"this file plus `generated/` is enough to
+start"*. That is a different claim from "the spec matches the Python library",
+and only one kind of test can establish it. So: an implementer with no access to
+`src/`, `tests/` or `examples/` was given `docs/spec/` and
+`tools/wire_spec_lint.py` and asked to emit a ScienceMesh crate from the pages
+alone, in a language other than Python, then lint and schema-validate its own
+output. It passed both gates. **That is the finding, not the success** — every
+guess below was made in the dark and then blessed by a green build.
+
+Recorded because a gap nobody wrote down gets silently re-invented by the next
+producer. Fixed ones say so; open ones are open on purpose.
+
+### Caught by nothing, guessed anyway
+
+Ordered roughly hardest-to-guess-first, though nothing measures that; all of them
+produce a crate that lints clean, validates, and parses, which is the part that is
+measured.
+
+| the guess | where the answer actually was | status |
+|---|---|---|
+| Whether a `File`'s `url` property is emitted at all, or whether `@id` alone is the address | `building/rocrate.py` writes **both** keys from `FileInput.url`, and `03`'s own prose says so — but the excerpt printed directly under that sentence showed `url` elided, so the page contradicted itself and the reader had to guess which half to copy | **fixed at the generator**, not with a sentence: `_trimmed` exempts `url` from shortening for the same reason it exempts `@id`. Both shapes are now shown verbatim and both are real — `url` present on a builder file, absent on a hand-authored one, and `url` **never** on the builder's own workflow entity |
+| The `runtimePlatform` URL for a VRE with none supplied | only the last column of [`05-vre-vocabulary.md`](05-vre-vocabulary.md)'s identity table — `03` marks the field `MUST` and never says where the value comes from | **fixed** — `03` now cites `05` and states that omitting it passes all three checkers |
+| Which URL suffix counts as a file extension (`a.final.ipynb`, `FILE.IPYNB`, `x.ipynb?v=2`) | `PurePosixPath(uri).suffix.lower()`, in code only. Getting it wrong drops `File` from the workflow's `@type` and the workflow out of `VREPayload.files`, silently | **fixed** — stated in prose under [`03-entities.md` §workflow](03-entities.md#workflow), with the miss cases named |
+| Whether `dateCreated` may be a full datetime | **nowhere**. `format: full-date` looks like a check and is not one — `full-date`/`date-time` are not registered format checkers even with `FormatChecker()` on, so `"not-a-date"` is valid | **documented** in [`02-envelope.md` §Order that matters](02-envelope.md#order-that-matters); deliberately not tightened in the schema, which would reject real inbound crates to catch a shape nothing reads |
+| Whether `conformsTo`'s two entries may be swapped | nowhere — **open**. [`08` §`conformsTo` order is meaningful](08-migration-notes.md#conformsto-order-is-meaningful) calls it load-bearing ("consumers keying on the second entry depend on that order") and [`01` §Version negotiation](01-conformance.md#version-negotiation) repeats the rationale; neither, and no checker, acts on it. Re-running the swap here: linter CLEAN, `validate_basic` passes, `schema-core.json` accepts — verified on a probe differing from the baseline in that one array and nothing else. Draft 2020-12 *can* express it (`prefixItems`), so leaving it unenforced is a choice, not a limitation |
+| Whether to emit the placeholder trio and every `license` reference at all | [`03` §The three placeholders](03-entities.md#the-three-placeholders) says emit them; nothing checks it, and deleting all three plus their references is measured as byte-clean | **fixed** as far as prose can fix it — the literal objects are now excerpted so they can be copied rather than invented; enforcement is still nothing |
+| What `#tool-metadata` should contain when no `raw_definition` was supplied, and where `ToolMeta.id` goes | nowhere in `03`. `ToolMeta.id` is never serialized — one of exactly **two** input fields that alter no byte of the crate, the other being `FileInput.path` — while item 28 above points tool-specific data *at* an entity that most crates omit entirely | **fixed** — [`03` §tool-metadata](03-entities.md#tool-metadata) now says the id legitimately appears nowhere and names `raw_definition` as the only home for extras; the per-field verdicts were already measured, two pages away, in [the field-visibility table under `08` §Prohibitions](08-migration-notes.md#prohibitions) — which is why this row is a wording gap and not a missing measurement |
+
+### Where the spec was wrong, not merely silent
+
+A gap loses you an afternoon; a wrong statement costs you the correctness of a
+crate you believe you verified.
+
+- **`additionalType` was documented with counts that did not exist**, and its
+  reference form was described as rarer than it is: the builder emits a string,
+  the real inbound crates emit `{"@id": "http://edamontology.org/…"}`, and the two
+  never co-occur. `VREPayload.additional_type` is annotated `str | None` and hands
+  back a `dict` for those crates. The counts now live in
+  [`generated/additional-types.json`](generated/additional-types.json) and in the
+  generated census table in `03`, which is why none are repeated here: a number
+  typed into this section would be the third stale count about the same field.
+  `python_types_seen` is measured **through `VREPayloadBuilder`**, so it is
+  evidence about the annotation, not an opinion about it.
+- **Two prose counts described artefacts that did not exist.** One claimed a
+  "14-entity crate / 58 deletions" measurement; the probe crate has 13 entities,
+  46 `MUST` rows and 53 deletions. That whole claim is now
+  [`generated/must-enforcement.json`](generated/must-enforcement.json), measured
+  against the three checkers on every build, and `01` quotes it through inline
+  tokens so the sentence cannot outlive its number. The other claimed `03`'s
+  `file` table listed "eleven separate `unless` clauses"; it has **9** property
+  rows, **6** of them conditional, so the count was simply wrong. That one is
+  **deleted rather than corrected to 6** — deliberately, and worth stating
+  because the reflex is to fix the digit: a number that has been wrong once in a
+  hand-typed place will be wrong again next time the table gains a row, and this
+  sentence gains nothing by being exact. If you are tempted to re-type it, note
+  that it is the same mistake this section is about.
+- **`05` told a producer to check "all four" tables and then listed six names**,
+  one of which (`URI_FALLBACK_PATTERNS`) is not a symbol in `constants.py` — the
+  URI fallback is an inline list inside `resolve_vre_type`. Corrected to five
+  plus the inline list, with the real location.
+
+### What this says about the two gates
+
+Both gates were re-run here before anything above was believed: all
+<!-- GEN:negative-count -->14
+negatives exit non-zero, all <!-- GEN:builder-output-count -->15
+`builder-output` goldens lint CLEAN and pass the
+schema for their profile, and the dry-run crate itself passes the linter,
+`validate_basic` and `schema-core.json`. (Run the linter across
+`generated/examples/` and you will see
+<!-- GEN:fixture-input-count -->13 `VIOLATES W012` lines — those are the
+fixture-inputs, and that is the expected verdict, not a broken checkout; see
+[Not spec defects](#not-spec-defects).) Against those working gates, a
+first-attempt crate from a reader with no source access passing immediately
+measures **the breadth of the unenforced surface**, which
+[`01-conformance.md` §A MUST is not a
+check](01-conformance.md#a-must-is-not-a-check) now counts:
+<!-- GEN:must-unnoticed-count -->28 of <!-- GEN:must-deletion-count -->53 `MUST`
+deletions invisible — plus the two shapes above that are not `MUST` deletions at
+all, timestamp format and `conformsTo` order. A producer's green build is close to
+a statement about the checker, not the crate.
+
+So the checklist lines above marked *(not machine-checked)* are not caveats
+beside the enforced ones — they are the part where your own diligence is the only
+mechanism, and they are exactly the ones a fresh implementer skips because the
+tool said CLEAN. If you take one thing from this section: **run all three
+checkers, then go back through the `MUST` rows in `03` by hand**, because the
+table in `01` tells you which ones nothing will tell you about.
+
+### Not spec defects
+
+Recorded so they are not "fixed" into something false.
+
+- **`profile: core` on a `fixture-input` row does not mean it validates.**
+  Measured here rather than assumed: all 15 `builder-output` crates pass the
+  schema for their labelled profile; **all 13** `fixture-input` crates are
+  rejected by it, 9 of them labelled `core`, and the four labelled
+  `infrastructure` fail `schema-core.json` too. Nothing is wrong — every one
+  predates the profile URI, W012 is encoded in both schemas, and
+  `verify_schemas` asserts linter and schema agree on each crate as shipped. The
+  defect was that the artefact *invited* the misreading: `profile` reads as a
+  verdict and the index's `violates` column is computed with W012 deliberately
+  withheld, so a fixture's only real violation rendered as `-`. Both are fixed in
+  the artefact — the column now says `violates, W012 withheld`, the
+  emitted-types column says what it means, and `examples.json`'s `_note` carries
+  the counts, computed. What the four `infrastructure` fixtures additionally fail
+  is a `RuntimePlatform` **entity** where the core schema demands a url string —
+  [what such an entity carries](06-payload-profile.md#what-a-runtimeplatform-entity-carries),
+  and the `plans/` item that would let the builder emit one. Not a bug in either
+  schema.
+  Consumer framing stays in
+  [`HANDOFF.md` §Give to a consumer](HANDOFF.md#give-to-a-consumer).
+- A `## W013 — RuntimePlatform.input entries…` heading resolves to a **double**
+  hyphen: under GitHub's slugger the em dash is dropped and both surrounding
+  spaces become hyphens, so
+  `#w013--runtimeplatforminput-entries-are-not-references` is correct even though
+  it looks mistyped. A naive link checker reports it broken. It is linked that way
+  from here and from `08-migration-notes.md`, and
+  `tests/test_spec/test_wire_spec.py::test_spec_cross_references_resolve_as_links`
+  implements GitHub's rule, so a passing suite agrees with GitHub and not with the
+  checker. Do not "fix" the double hyphen.
+- Rule tables list W014 before W013, in the order `LINT_RULES` declares them.
+  Harmless while nothing says "the thirteenth rule", and renumbering would churn
+  every negative filename for no correctness gain.

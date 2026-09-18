@@ -619,3 +619,66 @@ def test_spec_mentions_no_stale_test_counts_or_paths():
                 assert num <= n, (
                     f"{doc.name}:{lineno} cites {m.group(1)}:{num}, past its "
                     f"{n} lines - the citation was not re-checked")
+
+
+def test_the_documented_gaps_are_still_gaps(jsonschema):
+    """02, 07 and 08 all promise that some shapes are stated and NOT enforced:
+    `conformsTo` order, and the two timestamp formats (whose `format:` keywords
+    are annotation-only and unregistered even under FormatChecker).
+
+    Those sentences are the spec being honest, and they are only true for as long
+    as nothing checks. A test that asserts the ABSENCE of enforcement looks
+    backwards, but it is the only mechanism that keeps them honest: add a
+    `prefixItems` or a `pattern` later and this fails, which is the moment the
+    prose must be rewritten. Silence here is a claim, so it gets a gate like
+    every other claim.
+    """
+    from vre_rocrate.parsing.validator import ValidationPipeline
+
+    base = _artefact("examples/sciencemesh.json")
+    schemas = {p: jsonschema.Draft202012Validator(_artefact(f"schema-{p}.json"))
+               for p in ("core", "infrastructure")}
+
+    def accepted(crate):
+        lint_report(crate)["violations"]  # must not raise
+        ValidationPipeline.validate_basic(json.loads(json.dumps(crate)))
+        return (not lint(crate)) and schemas["core"].is_valid(crate)
+
+    assert accepted(json.loads(json.dumps(base))), \
+        "the baseline golden is not accepted, so the probes below prove nothing"
+
+    # 1. conformsTo swapped. 08 calls base-first load-bearing; nothing enforces it.
+    swapped = json.loads(json.dumps(base))
+    desc = next(e for e in swapped["@graph"] if e.get("@id") == "ro-crate-metadata.json")
+    before = [c["@id"] for c in desc["conformsTo"]]
+    assert len(before) == 2 and before[0] != before[1], \
+        f"probe is vacuous: conformsTo reads {before}"
+    desc["conformsTo"] = list(reversed(desc["conformsTo"]))
+    assert accepted(swapped), (
+        f"swapping conformsTo is now CAUGHT, but 08 §conformsTo order is "
+        f"meaningful and 07's dry-run record both state it is enforced by "
+        f"nothing - fix the prose in the same commit that adds the check")
+
+    # 2. Timestamps: format keywords are annotations, not assertions.
+    bogus = json.loads(json.dumps(base))
+    root = next(e for e in bogus["@graph"] if e.get("@id") == "./")
+    workflow = next(e for e in bogus["@graph"]
+                    if "ComputationalWorkflow" in str(e.get("@type")))
+    root["datePublished"] = "not-a-date"
+    workflow["dateCreated"] = "2026-01-01T00:00:00Z"
+    assert accepted(bogus), (
+        "a malformed datePublished / non date-only dateCreated is now REJECTED, "
+        "contradicting 02-envelope.md §Order that matters, which says the shape "
+        "is guaranteed by prose alone and that 'not-a-date' is valid")
+
+    # And the corollary the prose leans on: even FormatChecker does not help,
+    # because those format names are not registered. If jsonschema ever registers
+    # them, 02's paragraph becomes false and this is where it surfaces.
+    try:
+        checker = jsonschema.FormatChecker()
+    except Exception:
+        checker = None
+    if checker is not None:
+        assert "full-date" not in checker.checkers and "date-time" not in checker.checkers, (
+            "FormatChecker now registers date-time/full-date, so 02-envelope.md's "
+            "claim that the timestamp shapes are unchecked needs re-reading")

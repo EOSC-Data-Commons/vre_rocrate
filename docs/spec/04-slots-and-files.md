@@ -89,8 +89,6 @@ it parses, and no consumer ever sees it. Rule W008; real producer data does this
 This is sciencemesh's data file, and the root that enumerates it:
 
 <!-- BEGIN GENERATED excerpt-sciencemesh-file -->
-*Long free-text values shortened for readability; every `@id`, type and structure is verbatim.*
-
 ```json
 {
   "@id": "https://raw.githubusercontent.com/dpiparo/swanExamples/master/notebooks/MuRun2010B.csv",
@@ -100,7 +98,7 @@ This is sciencemesh's data file, and the root that enumerates it:
     "@id": "#license-unspecified"
   },
   "encodingFormat": "text/csv",
-  "url": "https://raw.githubusercontent.com/dpiparo/swanExamples/master/notebooks/\u2026"
+  "url": "https://raw.githubusercontent.com/dpiparo/swanExamples/master/notebooks/MuRun2010B.csv"
 }
 ```
 <!-- END GENERATED -->

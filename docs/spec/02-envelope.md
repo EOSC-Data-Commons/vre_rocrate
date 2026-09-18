@@ -230,6 +230,27 @@ separate calls — an unfrozen build at 23:59:59.999Z can legitimately produce
 generated under a frozen clock (`2000-01-01T00:00:00+00:00`) rather than scrubbed,
 so they remain valid crates you can feed to a parser.
 
+**The two shapes are conventions, and the `format` keywords in the schema do not
+enforce them.** `schema-*.json` declares `datePublished` as `format: date-time`
+and `dateCreated` as `format: full-date`, and it is natural to read that as a
+check. It is not one, in the default configuration *and* with format checking
+turned on: Draft 2020-12 leaves `format` annotation-only, and `full-date` /
+`date-time` are not among the checkers `jsonschema.FormatChecker` registers (it
+has `date` and `time`, which are different names). Measured — writing
+`"dateCreated": "not-a-date"`, or a full datetime where a date belongs, leaves the
+crate valid under the linter, `validate_basic` and the profile schema alike.
+
+So the shapes are guaranteed by nothing but this paragraph. A producer **MUST**
+emit `datePublished` as a full ISO 8601 date-time and `dateCreated` as a date
+only, because *consumers* parse them; getting it wrong will not be reported to you
+at build time, only discovered by whichever consumer tries to parse the value.
+A consumer **MUST** therefore tolerate either shape on either key rather than
+assume the declared format held — and note that a JS producer's
+`toISOString()` yields `…T16:49:00.539Z` (fractional seconds, `Z`) where this
+library emits `…T00:00:00+00:00` (no fraction, numeric offset). Both are legal ISO
+8601 and both are conformant; nothing here normalises between them, so parse with
+a real date parser and never compare the strings.
+
 ## Unread keys, and keys that can never arrive
 
 Some keys the parser reads cannot be produced by any request this library

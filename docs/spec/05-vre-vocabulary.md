@@ -152,15 +152,21 @@ the vocabulary, not a mechanical fix; until it is made, treat `rrp` as a valid
 
 ## Consequences for each side
 
-**A producer** adding a VRE type edits the tables in `constants.py` — there is no
-registry, no subclass, no plugin point. Check **all four** tables plus, if the
-type is reachable by URI, the fallback list: `VRE_TYPE_TO_PROGRAMMING_LANGUAGE`,
-`VRE_TYPE_TO_DISPLAY_NAME`, `VRE_TYPE_TO_LANGUAGE_URL`,
-`VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM`, `TOOL_TYPE_TO_VRE_TYPE`,
-`URI_FALLBACK_PATTERNS`. Adding to one and not the others is precisely how
-[§Gaps](#gaps) acquired its entry. `tests/test_spec/test_wire_spec.py` cross-checks the tables
-against each other, and this document re-generates from them, so a new VRE type
-should show up here without anyone editing prose.
+**A producer** adding a VRE type edits `constants.py` — there is no registry, no
+subclass, no plugin point. **All five** dictionaries take an entry:
+`VRE_TYPE_TO_PROGRAMMING_LANGUAGE`, `VRE_TYPE_TO_DISPLAY_NAME`,
+`VRE_TYPE_TO_LANGUAGE_URL`, `VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM`,
+`TOOL_TYPE_TO_VRE_TYPE` — and if the type is reachable by URI substring rather
+than by `tool.types`, so does the URI list. That list is **not** a named constant:
+it is written inline inside `resolve_vre_type` (the `for pattern, vtype in [...]`
+at the end of `constants.py`), which is why `generated/vocabulary.json` calls it
+`uri_fallback_patterns` and why searching `constants.py` for a symbol behind it
+finds nothing. Adding to some tables and not
+the others is precisely how [§Gaps](#gaps) acquired its entry.
+`tests/test_spec/test_wire_spec.py` cross-checks the tables against each other, and
+this document re-generates from them, so a new VRE type should show up here without
+anyone editing prose — which is the only reason `rrp`'s missing entry is visible at
+all rather than merely true.
 
 **A consumer** should treat the identifier table as the list of supported VREs,
 match it exactly, and have an explicit policy for `"unknown"` — reject it loudly.

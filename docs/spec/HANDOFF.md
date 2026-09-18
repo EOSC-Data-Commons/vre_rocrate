@@ -104,12 +104,20 @@ cross-checked by `tests/test_spec/`, and each of the
 fixture that is re-run on the committed bytes. That covers "the spec matches the
 Python library".
 
-It does **not** yet cover "the spec is sufficient to implement from scratch",
-which is a different claim and can only be established by someone implementing it
-without reading `src/`. [`07-producer-checklist.md`](07-producer-checklist.md)
-will grow a **dry run** section recording the result of that exercise; it does not
-exist yet, so until it does, treat a question you cannot answer from these pages
-as evidence of a spec gap and file it.
+"The spec is sufficient to implement from scratch" is a different claim, and it
+has now been tested once: [[`07-producer-checklist.md` §Dry run](07-producer-checklist.md#dry-run-what-implementing-this-from-spec-alone-found)
+records an implementer who was given `docs/spec/` and the linter, no
+access to `src/`, `tests/` or `examples/`, and emitted a ScienceMesh crate in
+TypeScript. It passed all three checkers first try, which is a measurement of the
+unenforced surface rather than a compliment — the section lists what they had to
+guess with no way to check, places the prose was actively wrong, and what became of
+each.
+
+Read that section before trusting a green build of your own. Keep the instinct
+anyway: **a question you cannot answer from these pages is still evidence of a
+spec gap, and one dry run is n=1.** The exercise covered one crate shape, one
+language, and neither profile's infrastructure side — a second opinion from
+someone attempting a `RuntimePlatform` crate would test ground this one did not.
 
 ## Maintaining
 

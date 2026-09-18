@@ -295,6 +295,17 @@ type simply has no `encodingFormat`. (`generated/mime-extensions.json` carries t
 proof, which was written after an earlier draft of this document claimed the
 opposite.)
 
+The table is keyed on a **path suffix**, and knowing which suffix decides whether a
+uri hits it at all. The reference implementation takes the last `.`-separated
+suffix of the whole uri, lower-cased, and matches it against the table literally —
+so `…/a.final.ipynb` matches (`.ipynb`, the *last* dot) and `…/FILE.IPYNB` matches
+(case-folded), while `…/a.ipynb?v=2`, `…/a.ipynb#frag` and `…/dir.name/file` all
+miss, because a query, a fragment or a dot in a *directory* segment changes what
+the trailing suffix is. Nothing strips a query string first. A producer that
+normalises differently will silently emit no `encodingFormat`, which — per the
+table above — also drops `File` from the workflow's `@type` and the workflow out of
+`VREPayload.files`, with no rule firing.
+
 Other properties:
 
 - `programmingLanguage` — a **reference object**, never a bare string or an
@@ -303,7 +314,17 @@ Other properties:
 - `runtimePlatform` — a plain URL string in the core profile. It *may* also be a
   reference to a `RuntimePlatform` entity, which is the infrastructure profile;
   both are read, and that is the entire difference between the two schemas
-  ([`06-payload-profile.md`](06-payload-profile.md)).
+  ([`06-payload-profile.md`](06-payload-profile.md)). **Where the value comes
+  from:** the request's own runtime platform if it names one, otherwise the
+  per-`vre_type` default in
+  [`05-vre-vocabulary.md`'s identity table](05-vre-vocabulary.md#vre_type-never-appears-in-the-crate)
+  — that column is the only place those URLs are written down, and this table marks the
+  field `MUST` without restating them. Note the asymmetry this creates: the field
+  is `MUST` in prose but **not** in `schema-core.json`'s `required` for a
+  workflow, which asks only for `name` and `programmingLanguage`. Omitting it
+  passes all three checkers (measured — see
+  [`01-conformance.md` §A MUST is not a check](01-conformance.md#a-must-is-not-a-check)).
+  Emit it: a consumer that has to guess a deployment target will guess wrong.
 - `conformsTo` — the **BioSchema ComputationalWorkflow 0.5-DRAFT** profile URI.
   This is a *per-entity* `conformsTo` and is unrelated to the wire-format profile
   on the descriptor. Do not confuse the two; only the descriptor's is
@@ -435,13 +456,11 @@ A file with no `url` is keyed by its bare name, so a local file's `@id` is
 ```
 <!-- END GENERATED -->
 
-Do not read that as "no `url` property". The `@id` is what falls back to the name;
-`url` is a separate optional property, and a file can have a full-URL `@id` and no
-`url` property at the same time — as this real fixture's file does:
+Do not read that as "`url` is derived from `@id`", or as "`@id` is derived from
+`url`". `@id` falls back to the *name* when there is no url; `url` is an
+independent optional property. Here is a builder-emitted file whose `@id` is a URL:
 
 <!-- BEGIN GENERATED excerpt-sciencemesh-file -->
-*Long free-text values shortened for readability; every `@id`, type and structure is verbatim.*
-
 ```json
 {
   "@id": "https://raw.githubusercontent.com/dpiparo/swanExamples/master/notebooks/MuRun2010B.csv",
@@ -451,19 +470,40 @@ Do not read that as "no `url` property". The `@id` is what falls back to the nam
     "@id": "#license-unspecified"
   },
   "encodingFormat": "text/csv",
-  "url": "https://raw.githubusercontent.com/dpiparo/swanExamples/master/notebooks/\u2026"
+  "url": "https://raw.githubusercontent.com/dpiparo/swanExamples/master/notebooks/MuRun2010B.csv"
 }
 ```
 <!-- END GENERATED -->
 
-Consumers therefore **MUST** take the address from `@id` and treat `url` as an
-extra. This library's parser does: `FileReference.url` is
-`entity["url"] or entity["@id"]`.
+For a **data file** the builder writes both keys from the same `FileInput.url`, so
+`url` always duplicates `@id` — which is why this library's parser takes the
+address from `@id` and treats `url` as an extra (`FileReference.url` is
+`entity["url"] or entity["@id"]`). The builder's **workflow** entity is the
+counter-example it produces itself: typed `File` whenever the uri hits the
+extension table above, and carrying no `url` at all.
+
+The same shape turns up on data files in hand-authored crates, where a producer
+has written the address into `@id` and left `url` out entirely:
+
+<!-- BEGIN GENERATED excerpt-url-file-without-url -->
+```json
+{
+  "@id": "https://www.creatis.insa-lyon.fr/~abonnet/Rec003_Vox1.mrui",
+  "@type": "File",
+  "name": "data_file",
+  "encodingFormat": "application/octet-stream"
+}
+```
+<!-- END GENERATED -->
+
+Both shapes are conformant and nothing distinguishes them at a distance, so a
+consumer **MUST** resolve the address as "`url` if present, otherwise `@id`" and
+**MUST NOT** require `url`.
 
 The table above is a list of conditionals, which is hard to read as a shape. This
 is one file entity with every optional property populated at once, so the
-presence of each row above can be checked against a single object rather than
-against eleven separate "unless" clauses:
+presence of each row above can be checked against a single object rather than by
+re-deriving every "present unless" clause in turn:
 
 <!-- BEGIN GENERATED excerpt-probe-file -->
 ```json
@@ -566,9 +606,62 @@ text, and this is a crate a real producer sent.
 <!-- END GENERATED -->
 
 The second is a literal string in a slot named `Shared With`, which is also how a
-space gets into an `@id`. `additionalType` carries the producer's slot type
-verbatim (`"string"`, `"data_file"`, `"data_input"`, `"data_collection"`) with no
-validation and no enumeration — a consumer **MUST** treat it as free text.
+space gets into an `@id`. `additionalType` carries whatever the producer called
+the slot's type, written verbatim with no validation and no enumeration. It is
+**not** constrained to a string, and the values a consumer will meet are not the
+values this library's own model declares. Counted across every golden in
+`generated/examples.json` (see `generated/additional-types.json`, which also
+names the crates behind each count):
+
+<!-- BEGIN GENERATED additional-type-census -->
+| shape | observed values (count) | who writes it | crates |
+|---|---|---|---|
+| string | `file` ×6, `string` ×4, `data_file` ×1 | RocrateBuilder, verbatim from `SlotDefinition.slot_type` | 7 |
+| reference | `{"@id": "http://edamontology.org/data_3671"}` ×8, `{"@id": "http://edamontology.org/data_2968"}` ×2 | a producer outside this repo (`fixture-input` crates) | 5 |
+<!-- END GENERATED -->
+
+The two shapes **do not overlap**: every builder-output crate uses strings, every
+reference is in a `fixture-input` crate, and no crate mixes them. So the reference
+form is what real inbound traffic actually carries, the builder cannot emit it,
+and it is exactly the kind of thing a producer-only reading of this document
+misses. Here is one verbatim rather than described:
+
+<!-- BEGIN GENERATED excerpt-edam-parameter -->
+```json
+{
+  "@id": "#input-image",
+  "@type": "FormalParameter",
+  "conformsTo": {
+    "@id": "https://bioschemas.org/profiles/FormalParameter/0.1-DRAFT-2020_07_21/"
+  },
+  "name": "Input Image",
+  "additionalType": {
+    "@id": "http://edamontology.org/data_2968"
+  },
+  "encodingFormat": {
+    "@id": "http://edamontology.org/format_3591"
+  }
+}
+```
+<!-- END GENERATED -->
+
+Two consequences:
+
+- A consumer **MUST** treat `additionalType` as free text **and** as possibly a
+  reference, resolving it through [`02-envelope.md` §Reference forms](02-envelope.md#reference-forms)
+  before comparing it to anything. Never `==` it against a string literal.
+- `VREPayload` types the parsed field `additional_type: str | None`, but the
+  parse path copies the entity verbatim, so for the crates above it hands back a
+  **`dict`**. The annotation is wrong; the data is not filtered. Do not write
+  `if isinstance(payload.additional_type, str)` as an assertion that it *must*
+  be — treat non-string as the expected other case.
+
+`SlotDefinition.slot_type`'s own docstring claims the vocabulary is
+`"string" | "file" | "data_input" | "data_collection"`. Real crates also carry
+`data_file`, and carry neither `data_input` nor `data_collection` at all. That
+docstring is an aspiration about one producer, not the wire contract; the table
+above is what has actually been observed, and both shapes are emitted by
+`generated/examples/` you can check against.
 
 `required` is the inversion of `SlotDefinition.is_optional` and is **never read
 by anything on the parse side** in this repo. Emit it correctly; do not depend on
@@ -649,19 +742,34 @@ the library builds **no** `#receiver` entity and carries **no** OCM data — nam
 domain conventions live on the consumer side.
 
 It is emitted **only when `raw_definition` is non-empty**, so most real crates
-have no `#tool-metadata` entity at all — including all 14 examples. A consumer
-**MUST** tolerate its complete absence, and **MUST NOT** assume any particular key
-exists inside `rawDefinition`.
+have no `#tool-metadata` entity at all: 14 of the
+<!-- GEN:builder-output-count -->15 generated example crates omit it, the
+exception being
+[`generated/examples/probe_every_optional_input.json`](generated/examples/probe_every_optional_input.json),
+which exists precisely to carry every optional input. A consumer **MUST**
+tolerate its complete absence, and **MUST NOT** assume any particular key exists
+inside `rawDefinition`.
+
+A producer holding a tool identifier and finding no field for it should read that
+absence as intended: [`ToolMeta.id` is never
+serialized](08-migration-notes.md#prohibitions), so the id legitimately appears
+nowhere in the emitted crate. Put tool-specific extras in `raw_definition`,
+which is what that entity exists to carry.
 
 ---
 
 ## The three placeholders
 
-Emitted into every crate, unconditionally, with fixed values. They exist because
-a generator cannot invent provenance on a producer's behalf, and they are the
-reason a hand-written crate needs them: `root.creator`, `workflow.creator`,
+Emitted into every crate, unconditionally, with **fixed values**. They exist
+because a generator cannot invent provenance on a producer's behalf, and they are
+the reason a hand-written crate needs them: `root.creator`, `workflow.creator`,
 `workflow.sdPublisher`, and every `license` reference resolves to one of these
 three.
+
+Copy the three objects below verbatim. They are generated from a real emitted
+crate, so they are the values, not a description of the values — which matters,
+because nothing else in this directory states them and nothing on the parse side
+reads them, so an invented value is never reported as wrong.
 
 <!-- BEGIN GENERATED entity-author-placeholder -->
 **`@id` pattern**: `#author-dispatcher`  
@@ -674,6 +782,16 @@ Placeholder Person credited as root creator.
 |---|---|---|---|
 | `@type` | `string` | MUST | - |
 | `name` | `string` | MUST | - |
+<!-- END GENERATED -->
+
+<!-- BEGIN GENERATED excerpt-author-placeholder -->
+```json
+{
+  "@id": "#author-dispatcher",
+  "@type": "Person",
+  "name": "Dispatcher System"
+}
+```
 <!-- END GENERATED -->
 
 <!-- BEGIN GENERATED entity-publisher-placeholder -->
@@ -690,6 +808,17 @@ Placeholder Organization carried as sdPublisher.
 | `url` | `string` | MUST | - |
 <!-- END GENERATED -->
 
+<!-- BEGIN GENERATED excerpt-publisher-placeholder -->
+```json
+{
+  "@id": "#workflow-hub",
+  "@type": "Organization",
+  "name": "Example Workflow Hub",
+  "url": "http://example.com/workflows/"
+}
+```
+<!-- END GENERATED -->
+
 <!-- BEGIN GENERATED entity-license-placeholder -->
 **`@id` pattern**: `#license-unspecified`  
 **`@type`**: `CreativeWork`  
@@ -704,14 +833,33 @@ Placeholder CreativeWork, emitted because a builder cannot assert a license on t
 | `name` | `string` | MUST | - |
 <!-- END GENERATED -->
 
+<!-- BEGIN GENERATED excerpt-license-placeholder -->
+```json
+{
+  "@id": "#license-unspecified",
+  "@type": "CreativeWork",
+  "name": "Unspecified license",
+  "description": "License not specified by the crate producer"
+}
+```
+<!-- END GENERATED -->
+
+`#workflow-hub`'s URL is `http://example.com/workflows/` — an example domain. Do
+not fetch it, do not index it, do not report it as a publisher in a UI.
+
 **Every crate this library emits asserts an unspecified license.** That is a
 statement about the wire format, not about the workflows. A producer that knows
 the real license **MAY** replace the `license` reference with a real `CreativeWork`
 or a license URI; a consumer **MUST** be able to see `#license-unspecified` and
 **MUST NOT** treat its presence as an error.
 
-`#workflow-hub`'s URL is `http://example.com/workflows/` — an example domain. Do
-not fetch it, do not index it, do not report it as a publisher in a UI.
+Nothing on the parse side reads any of the three. Deleting all three *and* every
+reference to them yields a crate that passes `validate_basic`, the linter and the
+profile schema — measured, in
+[`01-conformance.md` §A MUST is not a check](01-conformance.md#a-must-is-not-a-check).
+Emit them anyway: they are the only provenance a human tracing a crate back to
+its origin can read, and a consumer that later starts trusting `sdPublisher` will
+find existing crates populated rather than empty.
 
 ---
 
