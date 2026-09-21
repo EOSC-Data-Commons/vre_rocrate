@@ -77,7 +77,7 @@ VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM: dict[str, str] = {
     "oscar": "https://oscar.vre.eosc-data-commons.eu/",
     "vip": "https://vip.creatis.insa-lyon.fr/",
     "scipion": "http://scipion.i2pc.es/",
-    "mddash": "https://mddash.cerit-sc.cz/",
+    "mddash": "https://mddash-edc-dev.dyn.cloud.e-infra.cz/",
     "sciencemesh": "https://eosc.cernbox.cern.ch",
     "rrp": "https://rrp-eosc.ethz.ch/",
 }

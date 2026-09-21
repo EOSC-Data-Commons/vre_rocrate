@@ -130,8 +130,8 @@
   {
     "id": "mddash-cerit-sc",
     "type": "mddash",
-    "name": "MDDash",
-    "url": "https://mddash.cerit-sc.cz/",
+    "name": "MDDash (dev instance)",
+    "url": "https://mddash-edc-dev.dyn.cloud.e-infra.cz/",
     "accepts": [
       "notebook-repository"
     ],
