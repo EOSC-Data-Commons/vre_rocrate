@@ -1,0 +1,35 @@
+{
+  "_note": "Observed FormalParameter.additionalType values across every golden, keyed by `origin|shape`. Free text by contract: nothing validates it and nothing on the parse side reads it. The `python_types_seen` list is measured through VREPayloadBuilder, which is what proves the model's `str | None` annotation is narrower than the data.",
+  "counts": {
+    "builder-output|string": {
+      "data_file": 1,
+      "file": 6,
+      "string": 4
+    },
+    "fixture-input|reference": {
+      "http://edamontology.org/data_2968": 2,
+      "http://edamontology.org/data_3671": 8
+    }
+  },
+  "crates": {
+    "builder-output|string": [
+      "examples/galaxy.json",
+      "examples/galaxy_and_onedata.json",
+      "examples/mddash.json",
+      "examples/probe_every_optional_input.json",
+      "examples/sciencemesh.json",
+      "examples/sciencemesh_minimal.json",
+      "examples/vip.json"
+    ],
+    "fixture-input|reference": [
+      "examples/galaxy__ro-crate-metadata.json",
+      "examples/galaxy_and_onedata__ro-crate-metadata.json",
+      "examples/galaxy_tosca__ro-crate-metadata.json",
+      "examples/galaxy_tosca_stage__ro-crate-metadata.json",
+      "examples/scipion_tosca__ro-crate-metadata.json"
+    ]
+  },
+  "python_types_seen": [
+    "dict"
+  ]
+}

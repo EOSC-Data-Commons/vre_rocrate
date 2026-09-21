@@ -1,0 +1,122 @@
+{
+  "@context": "https://w3id.org/ro/crate/1.1/context",
+  "@graph": [
+    {
+      "@id": "#author-dispatcher",
+      "@type": "Person",
+      "name": "Dispatcher System"
+    },
+    {
+      "@id": "#galaxy-lang",
+      "@type": "ComputerLanguage",
+      "identifier": "https://galaxyproject.org/",
+      "name": "Galaxy",
+      "url": "https://galaxyproject.org/"
+    },
+    {
+      "@id": "#input-simpletext_input",
+      "@type": "FormalParameter",
+      "additionalType": "file",
+      "defaultValue": {
+        "@id": "https://example-files.online-convert.com/document/txt/example.txt"
+      },
+      "name": "simpletext_input",
+      "required": true
+    },
+    {
+      "@id": "#license-unspecified",
+      "@type": "CreativeWork",
+      "description": "License not specified by the crate producer",
+      "name": "Unspecified license"
+    },
+    {
+      "@id": "#workflow-hub",
+      "@type": "Organization",
+      "name": "Example Workflow Hub",
+      "url": "http://example.com/workflows/"
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "datePublished": "2000-01-01T00:00:00+00:00",
+      "description": "N/A",
+      "hasPart": [
+        {
+          "@id": "https://dockstore.org/api/ga4gh/trs/v2/tools/%23workflow%2Fgithub.com%2Flaitanawe%2Fismb2024%2Fgalaxy_example/versions/main/PLAIN_GALAXY/descriptor/Galaxy-Workflow-reverse_file_galaxy_workflow.ga"
+        },
+        {
+          "@id": "https://example-files.online-convert.com/document/txt/example.txt"
+        }
+      ],
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "mainEntity": {
+        "@id": "https://dockstore.org/api/ga4gh/trs/v2/tools/%23workflow%2Fgithub.com%2Flaitanawe%2Fismb2024%2Fgalaxy_example/versions/main/PLAIN_GALAXY/descriptor/Galaxy-Workflow-reverse_file_galaxy_workflow.ga"
+      },
+      "name": "Root dataset for tool: Galaxy reverse file workflow"
+    },
+    {
+      "@id": "https://dockstore.org/api/ga4gh/trs/v2/tools/%23workflow%2Fgithub.com%2Flaitanawe%2Fismb2024%2Fgalaxy_example/versions/main/PLAIN_GALAXY/descriptor/Galaxy-Workflow-reverse_file_galaxy_workflow.ga",
+      "@type": [
+        "File",
+        "SoftwareSourceCode",
+        "ComputationalWorkflow"
+      ],
+      "conformsTo": {
+        "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
+      },
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "dateCreated": "2000-01-01",
+      "description": "A simple Galaxy workflow for demonstration purposes.",
+      "encodingFormat": "application/galaxy",
+      "input": [
+        {
+          "@id": "#input-simpletext_input"
+        }
+      ],
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "Galaxy reverse file workflow",
+      "programmingLanguage": {
+        "@id": "#galaxy-lang"
+      },
+      "runtimePlatform": "https://usegalaxy.eu/",
+      "sdPublisher": {
+        "@id": "#workflow-hub"
+      },
+      "version": "main"
+    },
+    {
+      "@id": "https://example-files.online-convert.com/document/txt/example.txt",
+      "@type": "File",
+      "encodingFormat": "text/plain",
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "simpletext_input",
+      "url": "https://example-files.online-convert.com/document/txt/example.txt"
+    },
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      },
+      "conformsTo": [
+        {
+          "@id": "https://w3id.org/ro/crate/1.1"
+        },
+        {
+          "@id": "https://w3id.org/eosc-vre/req-packager/1.0"
+        }
+      ]
+    }
+  ]
+}

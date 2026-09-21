@@ -1,0 +1,106 @@
+{
+  "@context": "https://w3id.org/ro/crate/1.1/context",
+  "@graph": [
+    {
+      "@id": "#author-dispatcher",
+      "@type": "Person",
+      "name": "Dispatcher System"
+    },
+    {
+      "@id": "#binder-lang",
+      "@type": "ComputerLanguage",
+      "identifier": "https://jupyter.org/binder/",
+      "name": "Binder",
+      "url": "https://jupyter.org/binder/"
+    },
+    {
+      "@id": "#license-unspecified",
+      "@type": "CreativeWork",
+      "description": "License not specified by the crate producer",
+      "name": "Unspecified license"
+    },
+    {
+      "@id": "#workflow-hub",
+      "@type": "Organization",
+      "name": "Example Workflow Hub",
+      "url": "http://example.com/workflows/"
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "datePublished": "2000-01-01T00:00:00+00:00",
+      "description": "N/A",
+      "hasPart": [
+        {
+          "@id": "multi-domain-search.ipynb"
+        },
+        {
+          "@id": "requirements.txt"
+        }
+      ],
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "mainEntity": {
+        "@id": "multi-domain-search.ipynb"
+      },
+      "name": "Root dataset for tool: AlphaFind multi-domain search notebook"
+    },
+    {
+      "@id": "multi-domain-search.ipynb",
+      "@type": [
+        "File",
+        "SoftwareSourceCode",
+        "ComputationalWorkflow"
+      ],
+      "conformsTo": {
+        "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
+      },
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "dateCreated": "2000-01-01",
+      "description": "A Jupyter notebook for AlphaFind multi-domain protein structure search.",
+      "encodingFormat": "application/x-ipynb+json",
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "AlphaFind multi-domain search notebook",
+      "programmingLanguage": {
+        "@id": "#binder-lang"
+      },
+      "runtimePlatform": "https://replay.notebooks.egi.eu/v2",
+      "sdPublisher": {
+        "@id": "#workflow-hub"
+      },
+      "version": "1.0.0"
+    },
+    {
+      "@id": "requirements.txt",
+      "@type": "File",
+      "encodingFormat": "text/plain",
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "requirements.txt"
+    },
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      },
+      "conformsTo": [
+        {
+          "@id": "https://w3id.org/ro/crate/1.1"
+        },
+        {
+          "@id": "https://w3id.org/eosc-vre/req-packager/1.0"
+        }
+      ]
+    }
+  ]
+}

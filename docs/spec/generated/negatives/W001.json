@@ -1,0 +1,170 @@
+{
+  "@context": "https://w3id.org/ro/crate/1.1/context",
+  "@graph": [
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      },
+      "conformsTo": [
+        {
+          "@id": "https://w3id.org/ro/crate/1.1"
+        },
+        {
+          "@id": "https://w3id.org/eosc-vre/req-packager/1.0"
+        }
+      ]
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "datePublished": "2000-01-01T00:00:00+00:00",
+      "description": "N/A",
+      "hasPart": [
+        {
+          "@id": "https://example.org/workflow.ga"
+        },
+        {
+          "@id": "https://example.org/data/input.fastq"
+        },
+        {
+          "@id": "https://example.org/data/attachment.csv"
+        },
+        {
+          "@id": "https://example.org/dataset/doi/10.5072/test"
+        }
+      ],
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "mainEntity": {
+        "@id": "https://example.org/workflow.ga"
+      },
+      "name": "Root dataset for tool: Probe Tool"
+    },
+    {
+      "@id": "https://example.org/workflow.ga",
+      "@type": [
+        "File",
+        "SoftwareSourceCode",
+        "ComputationalWorkflow"
+      ],
+      "conformsTo": {
+        "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
+      },
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "dateCreated": "2000-01-01",
+      "description": "A workflow.",
+      "encodingFormat": "application/galaxy",
+      "input": [
+        {
+          "@id": "#input-in1"
+        },
+        {
+          "@id": "#input-lit"
+        }
+      ],
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "Probe Tool",
+      "programmingLanguage": {
+        "@id": "#galaxy-lang"
+      },
+      "runtimePlatform": "https://galaxy.example.org/",
+      "sdPublisher": {
+        "@id": "#workflow-hub"
+      },
+      "version": "1.2.3"
+    },
+    {
+      "@id": "#galaxy-lang",
+      "@type": "ComputerLanguage",
+      "identifier": "https://galaxyproject.org/",
+      "name": "Galaxy",
+      "url": "https://galaxyproject.org/"
+    },
+    {
+      "@id": "https://example.org/data/input.fastq",
+      "@type": "File",
+      "contentSize": 1024,
+      "encodingFormat": "application/fastq",
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "input.fastq",
+      "onedata:fileId": "F1234",
+      "onedata:onezoneDomain": "one.example.org",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "url": "https://example.org/data/input.fastq"
+    },
+    {
+      "@id": "https://example.org/data/attachment.csv",
+      "@type": "File",
+      "contentSize": 1024,
+      "encodingFormat": "text/csv",
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "attachment.csv",
+      "onedata:fileId": "F1234",
+      "onedata:onezoneDomain": "one.example.org",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "url": "https://example.org/data/attachment.csv"
+    },
+    {
+      "@id": "#input-in1",
+      "@type": "FormalParameter",
+      "additionalType": "data_file",
+      "defaultValue": {
+        "@id": "https://example.org/data/input.fastq"
+      },
+      "name": "Input 1",
+      "required": true
+    },
+    {
+      "@id": "#input-lit",
+      "@type": "FormalParameter",
+      "additionalType": "string",
+      "defaultValue": "1UBQ",
+      "name": "pdb_id",
+      "required": true
+    },
+    {
+      "@id": "https://example.org/dataset/doi/10.5072/test",
+      "@type": "Dataset",
+      "description": "Dataset description",
+      "name": "A dataset"
+    },
+    {
+      "@id": "#tool-metadata",
+      "@type": "Thing",
+      "rawDefinition": {
+        "vre_type": "galaxy"
+      }
+    },
+    {
+      "@id": "#author-dispatcher",
+      "@type": "Person",
+      "name": "Dispatcher System"
+    },
+    {
+      "@id": "#workflow-hub",
+      "@type": "Organization",
+      "name": "Example Workflow Hub",
+      "url": "http://example.com/workflows/"
+    },
+    {
+      "@id": "",
+      "@type": "CreativeWork",
+      "description": "License not specified by the crate producer",
+      "name": "Unspecified license"
+    }
+  ]
+}
