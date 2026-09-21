@@ -1,4 +1,7 @@
-"""Constants for VRE types and programming language mappings."""
+"""Constant data for VRE types: programming-language mappings plus the
+offline fallback maps used by the registry-based resolution in
+``registry.py`` when no registry entry/wins apply. No logic lives here.
+"""
 
 GALAXY_PROGRAMMING_LANGUAGE = "https://galaxyproject.org/"
 BINDER_PROGRAMMING_LANGUAGE = "https://jupyter.org/binder/"
@@ -70,35 +73,11 @@ TOOL_TYPE_TO_VRE_TYPE: dict[str, str] = {
 VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM: dict[str, str] = {
     "galaxy": "https://usegalaxy.eu/",
     "binder": "https://mybinder.org/",
-    "jupyter": "https://jupyterhub.egi.eu/",
-    "oscar": "https://oscar.grycap.net/",
+    "jupyter": "https://notebooks.egi.eu/",
+    "oscar": "https://oscar.vre.eosc-data-commons.eu/",
     "vip": "https://vip.creatis.insa-lyon.fr/",
     "scipion": "http://scipion.i2pc.es/",
     "mddash": "https://mddash.cerit-sc.cz/",
     "sciencemesh": "https://eosc.cernbox.cern.ch",
     "rrp": "https://rrp-eosc.ethz.ch/",
 }
-
-
-def resolve_vre_type(tool) -> str:
-    """Resolve a vre_type from a ToolMeta via three-layer fallback."""
-    if "vre_type" in tool.raw_definition:
-        v = tool.raw_definition["vre_type"]
-        if v in VRE_TYPES:
-            return v
-    for t in tool.types:
-        if t in TOOL_TYPE_TO_VRE_TYPE:
-            return TOOL_TYPE_TO_VRE_TYPE[t]
-    for pattern, vtype in [
-        ("galaxyproject.org", "galaxy"),
-        ("usegalaxy.eu", "galaxy"),
-        ("usegalaxy.org", "galaxy"),
-        ("jupyter.org", "jupyter"),
-        ("oscar.grycap", "oscar"),
-        ("vip.creatis", "vip"),
-        ("cernbox.cern.ch", "sciencemesh"),
-        ("rrp-eosc", "rrp"),
-    ]:
-        if pattern in tool.uri:
-            return vtype
-    raise ValueError(f"Cannot resolve vre_type from tool: {tool.id}")

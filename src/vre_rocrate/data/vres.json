@@ -1,0 +1,170 @@
+[
+  {
+    "id": "usegalaxy-eu",
+    "type": "galaxy",
+    "name": "Galaxy Europe",
+    "url": "https://usegalaxy.eu",
+    "apiUrl": "https://usegalaxy.eu/api",
+    "accepts": [
+      "galaxy-workflow"
+    ],
+    "authentication": [
+      "anonymous",
+      "account",
+      "api-key"
+    ],
+    "operator": "Galaxy Europe",
+    "status": "active"
+  },
+  {
+    "id": "usegalaxy-org",
+    "type": "galaxy",
+    "name": "Galaxy Main",
+    "url": "https://usegalaxy.org",
+    "apiUrl": "https://usegalaxy.org/api",
+    "accepts": [
+      "galaxy-workflow"
+    ],
+    "authentication": [
+      "anonymous",
+      "account",
+      "api-key"
+    ],
+    "operator": "Galaxy Project",
+    "status": "active"
+  },
+  {
+    "id": "mybinder-org",
+    "type": "binder",
+    "name": "mybinder.org",
+    "url": "https://mybinder.org",
+    "buildUrlTemplate": "https://mybinder.org/v2/{provider}/{repository}/{ref}",
+    "accepts": [
+      "notebook-repository"
+    ],
+    "repositoryProviders": [
+      "github",
+      "gitlab",
+      "git"
+    ],
+    "authentication": [
+      "anonymous"
+    ],
+    "operator": "Binder Project",
+    "status": "active"
+  },
+  {
+    "id": "egi-replay",
+    "type": "binder",
+    "name": "EGI Replay",
+    "url": "https://replay.notebooks.egi.eu/",
+    "accepts": [
+      "notebook-repository"
+    ],
+    "authentication": [
+      "egi-check-in"
+    ],
+    "operator": "CESNET",
+    "provider": "EGI",
+    "status": "active"
+  },
+  {
+    "id": "egi-notebooks",
+    "type": "jupyter",
+    "name": "EGI Notebooks",
+    "url": "https://notebooks.egi.eu/",
+    "accepts": [
+      "notebook-file", "api-key"
+    ],
+    "authentication": [
+      "egi-check-in"
+    ],
+    "operator": "EGI Foundation",
+    "provider": "EGI",
+    "status": "active"
+  },
+  {
+    "id": "oscar-data-commons",
+    "type": "oscar",
+    "name": "OSCAR (EOSC Data Commons)",
+    "url": "https://oscar.vre.eosc-data-commons.eu/",
+    "accepts": [
+      "oscar-service"
+    ],
+    "authentication": [
+      "egi-check-in"
+    ],
+    "operator": "GryCAP (UPV)",
+    "status": "active"
+  },
+  {
+    "id": "vip-creatis",
+    "type": "vip",
+    "name": "Virtual Imaging Platform",
+    "url": "https://vip.creatis.insa-lyon.fr/",
+    "accepts": [
+      "vip-workflow"
+    ],
+    "authentication": [
+      "api-key",
+      "account",
+      "egi-check-in"
+    ],
+    "operator": "Creatis (INSA Lyon)",
+    "status": "active"
+  },
+  {
+    "id": "scipion-i2pc",
+    "type": "scipion",
+    "name": "Scipion",
+    "url": "http://scipion.i2pc.es/",
+    "accepts": [
+      "scipion-workflow"
+    ],
+    "authentication": [
+      "account"
+    ],
+    "operator": "I2PC (CNB-CSIC)",
+    "status": "active"
+  },
+  {
+    "id": "mddash-cerit-sc",
+    "type": "mddash",
+    "name": "MDDash",
+    "url": "https://mddash.cerit-sc.cz/",
+    "accepts": [
+      "notebook-repository"
+    ],
+    "authentication": [
+      "egi-check-in"
+    ],
+    "operator": "CERIT-SC (Masaryk University)",
+    "status": "active"
+  },
+  {
+    "id": "eosc-cernbox",
+    "type": "sciencemesh",
+    "name": "ScienceMesh (EOSC CERNBox node)",
+    "url": "https://eosc.cernbox.cern.ch",
+    "accepts": [
+      "ocm-share"
+    ],
+    "authentication": [
+      "account", "egi-check-in"
+    ],
+    "operator": "CERN",
+    "status": "active"
+  },
+  {
+    "id": "rrp-ethz",
+    "type": "rrp",
+    "name": "RRP",
+    "url": "https://rrp-eosc.ethz.ch/",
+    "accepts": [],
+    "authentication": [
+      "account"
+    ],
+    "operator": "ETH Zürich",
+    "status": "inactive"
+  }
+]

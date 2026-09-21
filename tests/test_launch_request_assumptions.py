@@ -23,9 +23,9 @@ from vre_rocrate import (
     ValidationPipeline,
 )
 from vre_rocrate.constants import (
-    resolve_vre_type,
     VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM,
 )
+from vre_rocrate.registry import resolve_vre_type
 
 
 # ---------------------------------------------------------------------------
