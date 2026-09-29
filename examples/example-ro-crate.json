@@ -1,0 +1,203 @@
+{
+  "@context": "https://w3id.org/ro/crate/1.2/context",
+  "@graph": [
+
+    // ROOT
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "name": "Dispatcher Launch Context - Complex",
+      "hasPart": [
+        { "@id": "#tool" },
+        { "@id": "#input" },
+        { "@id": "#dataset-main" },
+        { "@id": "#dataset-ref" }
+      ]
+    },
+
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": { "@id": "./" }
+    },
+
+    // USER (UserInfo)
+    {
+      "@id": "#user",
+      "@type": "Person",
+      // name might be the prefered_name but cannot gurrantee to provide, if not
+      // fallback to parse from email as the name. (abe.nth@ex.ch -> abe_nth)
+      "name": "Jane Doe",
+      "identifier": "user-123",
+
+      "email": "jane.doe@example.org",
+
+      // optional fields depending on your struct
+      // NOTE: (jyu) this I may not able to provide from upstream
+      "role": "researcher",
+      "accountName": "jdoe"
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Example University"
+      },
+
+    },
+
+    // TOOL (ToolMeta)
+    {
+      "@id": "#tool",
+      "@type": "SoftwareApplication",
+      "name": "Hybrid Scientific Tool",
+      "identifier": "tool-meta-advanced",
+
+      // NOTE: (jyu) types is the only src of truth on which VRE should dispatch to. 
+      "types": [
+        "vip",
+        "mybinder",
+        "workflowhub"
+      ],
+
+      "url": "https://example.org/tools/hybrid",
+      "version": "2.3.1",
+
+      // NOTE: (jyu) it is a generic dict type, because there is flexible to provide any of layout from tool.
+      "rawDefinition": {
+        "image": "ghcr.io/org/tool:latest",
+        "entrypoint": "run.sh",
+        "urlpath": "notebooks/analysis.ipynb"
+      },
+
+      "slots": [
+        { "@id": "#slot-a", "name": "primary_input", "id": "in_1" },
+        { "@id": "#slot-b", "name": "secondary_inputs", "id": "in_2" },
+        { "@id": "#slot-c", "name": "threshold", "id": "param_1" },
+        { "@id": "#slot-d", "name": "iterations", "id": "param_2" },
+        { "@id": "#slot-e", "name": "config", "id": "param_3" }
+      ]
+    },
+
+    // INPUT (LaunchInput)
+    {
+      "@id": "#input",
+      "@type": "Dataset",
+      "name": "Launch Input - Complex",
+
+      "slots": [
+
+        // Single file
+        {
+          "name": "primary_input",
+          "value": {
+            "class": "File",
+            "location": "https://data.example.org/main.csv"
+          }
+        },
+
+        // Multiple files (list case)
+        {
+          "name": "secondary_inputs",
+          "value": [
+            {
+              "class": "File",
+              "location": "https://data.example.org/aux1.csv"
+            },
+            {
+              "class": "File",
+              "location": "https://data.example.org/aux2.csv"
+            }
+          ]
+        },
+
+        // Numeric parameter
+        // NOTE: (jyu) JSON does not distiguish float and int, but I'd prefer the type
+        // types can be: f32, f64, uint8, uint32, uint64, bool. 
+        // -> (@ac, please make sure the types are parsed strictly.)
+        {
+          "name": "threshold",
+          "value_type": "f32",
+          "value": 0.85
+        },
+
+        // Integer parameter
+        {
+          "name": "iterations",
+          "value_type": "uint8",
+          "value": 1000
+        },
+
+        // Structured parameter (nested object)
+        {
+          "name": "config",
+          "value": {
+            "method": "fft",
+            "normalize": true,
+            "window": {
+              "type": "hann",
+              "size": 256
+            }
+          }
+        }
+      ],
+
+      "dataset": { "@id": "#dataset-main" },
+
+      // NOTE: (jyu) this is different from slot file, this is passed as an array of files.
+      "files": [
+        { "@id": "#file-0" },
+        { "@id": "#file-1" },
+        { "@id": "#file-2" },
+        { "@id": "#file-3" }
+      ]
+    },
+
+    // DATASETS
+    {
+      "@id": "#dataset-main",
+      "@type": "Dataset",
+      "name": "Primary Dataset",
+      "url": "https://zenodo.org/records/999999",
+      "description": "Main dataset used for analysis"
+    },
+
+    // NOTE: (jyu) only dataset-main is used at the moment, this is used as placeholder.
+    // because we have "additional groups" in the UI to support this.
+    {
+      "@id": "#dataset-ref",
+      "@type": "Dataset",
+      "name": "Reference Dataset",
+      "url": "https://zenodo.org/records/888888",
+      "description": "Auxiliary dataset for calibration"
+    },
+
+    // FILES (input.files)
+    {
+      "@id": "#file-0",
+      "@type": "File",
+      "name": "main.csv",
+      "encodingFormat": "text/csv",
+      "contentUrl": "https://data.example.org/main.csv"
+    },
+    {
+      "@id": "#file-1",
+      "@type": "File",
+      "name": "aux1.csv",
+      "encodingFormat": "text/csv",
+      "contentUrl": "https://data.example.org/aux1.csv"
+    },
+    {
+      "@id": "#file-2",
+      "@type": "File",
+      "name": "aux2.csv",
+      "encodingFormat": "text/csv",
+      "contentUrl": "https://data.example.org/aux2.csv"
+    },
+    {
+      "@id": "#file-3",
+      "@type": "File",
+      "name": "config.json",
+      "encodingFormat": "application/json",
+      "contentUrl": "https://data.example.org/config.json"
+    }
+
+  ]
+}
