@@ -1,7 +1,15 @@
 import json
+import os
 from pathlib import Path
 
 import pytest
+
+# The test suite must never hit the network: resolve the default VRE
+# registry source to the snapshot vendored in the package.
+os.environ.setdefault(
+    "VRE_REGISTRY_URL",
+    str(Path(__file__).parent.parent / "src" / "vre_rocrate" / "data" / "vres.json"),
+)
 
 
 @pytest.fixture

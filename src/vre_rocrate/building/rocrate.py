@@ -8,9 +8,8 @@ from ..constants import (
     VRE_TYPE_TO_PROGRAMMING_LANGUAGE,
     VRE_TYPE_TO_DISPLAY_NAME,
     VRE_TYPE_TO_LANGUAGE_URL,
-    resolve_vre_type,
-    VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM,
 )
+from ..registry import resolve_vre_type, default_runtime_platform
 from ..models.launch import (
     VRELaunchRequest,
     ToolMeta,
@@ -83,7 +82,7 @@ class RocrateBuilder:
     def _runtime_platform(self) -> str:
         if self.request.runtime_platform:
             return self.request.runtime_platform
-        return VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM.get(self.vre_type, "")
+        return default_runtime_platform(self.vre_type)
 
     def _add_metadata_descriptor(self) -> None:
         self.graph.append(
