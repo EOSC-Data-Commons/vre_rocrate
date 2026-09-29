@@ -1,0 +1,118 @@
+{
+  "@context": "https://w3id.org/ro/crate/1.1/context",
+  "@graph": [
+    {
+      "@id": "#author-dispatcher",
+      "@type": "Person",
+      "name": "Dispatcher System"
+    },
+    {
+      "@id": "#input-Shared With",
+      "@type": "FormalParameter",
+      "additionalType": "string",
+      "defaultValue": "rwelande@eosc.cernbox.cern.ch",
+      "name": "Shared With",
+      "required": true
+    },
+    {
+      "@id": "#license-unspecified",
+      "@type": "CreativeWork",
+      "description": "License not specified by the crate producer",
+      "name": "Unspecified license"
+    },
+    {
+      "@id": "#sciencemesh-lang",
+      "@type": "ComputerLanguage",
+      "identifier": "https://eosc.cernbox.cern.ch",
+      "name": "Jupyter Notebook",
+      "url": "https://jupyter.org/"
+    },
+    {
+      "@id": "#workflow-hub",
+      "@type": "Organization",
+      "name": "Example Workflow Hub",
+      "url": "http://example.com/workflows/"
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "datePublished": "2000-01-01T00:00:00+00:00",
+      "description": "N/A",
+      "hasPart": [
+        {
+          "@id": "dummy-tool"
+        },
+        {
+          "@id": "https://raw.githubusercontent.com/dpiparo/swanExamples/master/notebooks/MuRun2010B.csv"
+        }
+      ],
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "mainEntity": {
+        "@id": "dummy-tool"
+      },
+      "name": "Root dataset for tool: ScienceMesh data share"
+    },
+    {
+      "@id": "dummy-tool",
+      "@type": [
+        "SoftwareSourceCode",
+        "ComputationalWorkflow"
+      ],
+      "conformsTo": {
+        "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
+      },
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "dateCreated": "2000-01-01",
+      "description": "Shared research data for ScienceMesh federation.",
+      "input": [
+        {
+          "@id": "#input-Shared With"
+        }
+      ],
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "ScienceMesh data share",
+      "programmingLanguage": {
+        "@id": "#sciencemesh-lang"
+      },
+      "runtimePlatform": "https://eosc.cernbox.cern.ch",
+      "sdPublisher": {
+        "@id": "#workflow-hub"
+      },
+      "version": "1.0.0"
+    },
+    {
+      "@id": "https://raw.githubusercontent.com/dpiparo/swanExamples/master/notebooks/MuRun2010B.csv",
+      "@type": "File",
+      "encodingFormat": "text/csv",
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "MuRun2010B.csv",
+      "url": "https://raw.githubusercontent.com/dpiparo/swanExamples/master/notebooks/MuRun2010B.csv"
+    },
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      },
+      "conformsTo": [
+        {
+          "@id": "https://w3id.org/ro/crate/1.1"
+        },
+        {
+          "@id": "https://w3id.org/eosc-vre/req-packager/1.0"
+        }
+      ]
+    }
+  ]
+}

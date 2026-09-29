@@ -1,0 +1,109 @@
+{
+  "@context": "https://w3id.org/ro/crate/1.1/context",
+  "@graph": [
+    {
+      "@id": "#author-dispatcher",
+      "@type": "Person",
+      "name": "Dispatcher System"
+    },
+    {
+      "@id": "#destination",
+      "@type": "RuntimePlatform",
+      "installUrl": "https://raw.githubusercontent.com/grycap/tosca/refs/heads/eosc_dc/templates/oscar.yaml",
+      "memoryRequirements": "4 GiB",
+      "name": "Infrastructure Manager",
+      "processorRequirements": [
+        "2 vCPU"
+      ]
+    },
+    {
+      "@id": "#oscar-lang",
+      "@type": "ComputerLanguage",
+      "identifier": "https://oscar.grycap.net/",
+      "name": "OSCAR",
+      "url": "https://oscar.grycap.net/"
+    },
+    {
+      "@id": "#workflow-hub",
+      "@type": "Organization",
+      "name": "Example Workflow Hub",
+      "url": "http://example.com/workflows/"
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "datePublished": "2025-05-06T14:35:47+00:00",
+      "description": "This is an example of a workflow using the OSCAR framework with TOSCA.",
+      "hasPart": [
+        {
+          "@id": "https://raw.githubusercontent.com/micafer/Dispatcher/refs/heads/oscar-vre/test/oscar/cowsay.json"
+        },
+        {
+          "@id": "https://example-files.online-convert.com/document/txt/example.txt"
+        }
+      ],
+      "license": {
+        "@id": "https://spdx.org/licenses/GPL-3.0"
+      },
+      "mainEntity": {
+        "@id": "https://raw.githubusercontent.com/micafer/Dispatcher/refs/heads/oscar-vre/test/oscar/cowsay.json"
+      },
+      "name": "OSCAR Example Workflow"
+    },
+    {
+      "@id": "https://example-files.online-convert.com/document/txt/example.txt",
+      "@type": "File",
+      "encodingFormat": "text/txt",
+      "name": "simpletext_input"
+    },
+    {
+      "@id": "https://raw.githubusercontent.com/micafer/Dispatcher/refs/heads/oscar-vre/test/oscar/cowsay.json",
+      "@type": [
+        "File",
+        "SoftwareSourceCode",
+        "ComputationalWorkflow"
+      ],
+      "conformsTo": {
+        "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
+      },
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "dateCreated": "2025-05-06",
+      "description": "A simple OSCAR service using the cowsay example.",
+      "license": {
+        "@id": "https://spdx.org/licenses/GPL-3.0"
+      },
+      "name": "Cowsay OSCAR FDL",
+      "programmingLanguage": {
+        "@id": "#oscar-lang"
+      },
+      "runtimePlatform": {
+        "@id": "#destination"
+      },
+      "sdPublisher": {
+        "@id": "#workflow-hub"
+      },
+      "version": "1.0.0"
+    },
+    {
+      "@id": "https://spdx.org/licenses/GPL-3.0",
+      "@type": "CreativeWork",
+      "alternateName": "GPL-3.0",
+      "name": "GNU General Public License v3.0"
+    },
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      },
+      "conformsTo": {
+        "@id": "https://w3id.org/ro/crate/1.1"
+      }
+    }
+  ]
+}

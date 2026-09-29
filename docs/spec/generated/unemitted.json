@@ -1,0 +1,29 @@
+{
+  "_note": "Keys this library READS from a crate that RocrateBuilder never writes, computed by diffing the parse path's `.get(...)` calls against every key emitted anywhere in the probe matrix. A consumer may implement against these and a producer may still never send them, so both sides must treat them as optional. They are also how the infrastructure profile stays reachable from a crate this builder cannot emit.",
+  "read_but_never_emitted": [
+    {
+      "key": "contentLocation",
+      "read_at": "src/vre_rocrate/parsing/infrastructure.py:48"
+    },
+    {
+      "key": "installUrl",
+      "read_at": "src/vre_rocrate/parsing/infrastructure.py:86"
+    },
+    {
+      "key": "memoryRequirements",
+      "read_at": "src/vre_rocrate/parsing/infrastructure.py:87"
+    },
+    {
+      "key": "output",
+      "read_at": "src/vre_rocrate/building/payload.py:61"
+    },
+    {
+      "key": "processorRequirements",
+      "read_at": "src/vre_rocrate/parsing/infrastructure.py:80"
+    },
+    {
+      "key": "storageRequirements",
+      "read_at": "src/vre_rocrate/parsing/infrastructure.py:90"
+    }
+  ]
+}

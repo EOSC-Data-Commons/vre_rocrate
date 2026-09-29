@@ -1,0 +1,201 @@
+{
+  "_note": "Machine-readable form of the producer conformance rules. Enforced by tools/wire_spec_lint.py, which is dependency-free and meant to be copied by consumers; this generator only resolves the 'decided_at' provenance below. Each rule is exercised by negatives/<rule>.json, and generation fails if a linter predicate stops firing on its negative or if a cited symbol disappears. 'needs' lists the rules this one cannot be judged without; a rule that needs another is reported in 'undecidable', never silently passed.",
+  "rules": [
+    {
+      "consequence": "ValidationPipeline rejects the crate",
+      "decided_at": {
+        "declared_through_line": 70,
+        "file": "src/vre_rocrate/parsing/validator.py",
+        "line": 54,
+        "symbol": "_validate_entity_ids"
+      },
+      "enforced_by": "entity",
+      "id": "W001",
+      "needs": [],
+      "rule": "every @graph entity declares a non-empty string @id"
+    },
+    {
+      "consequence": "validation does NOT catch this: dereferencing returns the first match and the shadowed entity is silently lost",
+      "decided_at": {
+        "declared_through_line": 13,
+        "file": "src/vre_rocrate/parsing/validator.py",
+        "line": 8,
+        "symbol": "_find_entity"
+      },
+      "enforced_by": "none",
+      "id": "W002",
+      "needs": [],
+      "rule": "@id values are unique across @graph"
+    },
+    {
+      "consequence": "ValidationPipeline rejects the crate",
+      "decided_at": {
+        "declared_through_line": 85,
+        "file": "src/vre_rocrate/parsing/validator.py",
+        "line": 73,
+        "symbol": "_validate_main_entity"
+      },
+      "enforced_by": "graph",
+      "id": "W003",
+      "needs": [],
+      "rule": "a root dataset with @id './' exists and declares mainEntity"
+    },
+    {
+      "consequence": "ValidationPipeline rejects the crate",
+      "decided_at": {
+        "declared_through_line": 205,
+        "file": "src/vre_rocrate/building/payload.py",
+        "line": 192,
+        "symbol": "_get_main_entity"
+      },
+      "enforced_by": "none",
+      "id": "W004",
+      "needs": [
+        "W003"
+      ],
+      "rule": "mainEntity resolves to an entity that exists in @graph"
+    },
+    {
+      "consequence": "a bare string passes validation but crashes the parser; an array crashes both",
+      "decided_at": {
+        "declared_through_line": 108,
+        "file": "src/vre_rocrate/parsing/validator.py",
+        "line": 88,
+        "symbol": "_validate_programming_language"
+      },
+      "enforced_by": "entity",
+      "id": "W005",
+      "needs": [
+        "W004"
+      ],
+      "rule": "the workflow declares programmingLanguage as an object with @id"
+    },
+    {
+      "consequence": "validation requires the key but not that it be non-empty; an empty value yields vre_type 'unknown' downstream",
+      "decided_at": {
+        "declared_through_line": 84,
+        "file": "src/vre_rocrate/building/payload.py",
+        "line": 79,
+        "symbol": "_resolve_language_id"
+      },
+      "enforced_by": "none",
+      "id": "W006",
+      "needs": [
+        "W005"
+      ],
+      "rule": "programmingLanguage resolves to an entity with a non-empty identifier"
+    },
+    {
+      "consequence": "a missing hasPart raises TypeError deep in the parser, with no useful message",
+      "decided_at": {
+        "declared_through_line": 143,
+        "file": "src/vre_rocrate/building/payload.py",
+        "line": 119,
+        "symbol": "_extract_files"
+      },
+      "enforced_by": "entity",
+      "id": "W007",
+      "needs": [
+        "W003"
+      ],
+      "rule": "root dataset declares hasPart (an empty list is legal)"
+    },
+    {
+      "consequence": "hasPart is the ONLY enumeration source for files; a File entity absent from it is invisible to consumers. RocrateBuilder never emits this shape, but the TOSCA-authored galaxy_tosca_stage fixture does, so the rule is about hand-authored producers",
+      "decided_at": {
+        "declared_through_line": 143,
+        "file": "src/vre_rocrate/building/payload.py",
+        "line": 119,
+        "symbol": "_extract_files"
+      },
+      "enforced_by": "none",
+      "id": "W008",
+      "needs": [
+        "W007"
+      ],
+      "rule": "every File entity appears in root hasPart"
+    },
+    {
+      "consequence": "VREPayload.input_files excludes the descriptor by @id, so a colliding file is dropped from the data files. A crate cannot make this mistake without ALSO duplicating an @id, so W002 always fires alongside it",
+      "decided_at": {
+        "declared_through_line": 123,
+        "file": "src/vre_rocrate/models/payload.py",
+        "line": 106,
+        "symbol": "input_files"
+      },
+      "enforced_by": "none",
+      "id": "W009",
+      "needs": [
+        "W004"
+      ],
+      "rule": "no File entity shares its @id with the workflow"
+    },
+    {
+      "consequence": "this library copies FileInput.checksum verbatim and does not check its shape, so a truncated or non-hex digest is published as-is and only fails a consumer that verifies it",
+      "decided_at": {
+        "declared_through_line": 208,
+        "file": "src/vre_rocrate/building/rocrate.py",
+        "line": 189,
+        "symbol": "_build_file_entity"
+      },
+      "enforced_by": "entity",
+      "id": "W010",
+      "needs": [],
+      "rule": "a sha256 property, when present, is a 64-character lowercase hex digest"
+    },
+    {
+      "consequence": "unresolvable references are skipped, so the slot silently never exists for the consumer. Note that an inline FormalParameter object is NOT a substitute for a graph entity: only its @id is read, and the entity with that @id supplies every property, so inline properties are ignored",
+      "decided_at": {
+        "declared_through_line": 164,
+        "file": "src/vre_rocrate/building/payload.py",
+        "line": 145,
+        "symbol": "_extract_parameters"
+      },
+      "enforced_by": "none",
+      "id": "W011",
+      "needs": [
+        "W004"
+      ],
+      "rule": "every reference in workflow.input and workflow.output resolves to an entity in @graph"
+    },
+    {
+      "consequence": "consumers cannot detect a payload shape change",
+      "decided_at": {
+        "declared_through_line": 105,
+        "file": "src/vre_rocrate/building/rocrate.py",
+        "line": 90,
+        "symbol": "_add_metadata_descriptor"
+      },
+      "enforced_by": "entity",
+      "id": "W012",
+      "needs": [],
+      "rule": "the root descriptor declares the wire format profile"
+    },
+    {
+      "consequence": "the parse path iterates these values directly, so a single object instead of a one-element array iterates its members and yields nothing: the slot list or file list comes back EMPTY with no exception and no other rule firing. Serialisers that omit the wrapper for a lone element are common, which makes this the cheapest way to lose a whole payload section in a non-Python producer",
+      "decided_at": {
+        "declared_through_line": 164,
+        "file": "src/vre_rocrate/building/payload.py",
+        "line": 145,
+        "symbol": "_extract_parameters"
+      },
+      "enforced_by": "entity",
+      "id": "W014",
+      "needs": [],
+      "rule": "every hasPart, input and output value is a list, even with exactly one element"
+    },
+    {
+      "consequence": "parsing/infrastructure.py reads @type off the entry itself and never dereferences a reference, so a reference logs \"Input is not of type File, skipping.\" and the input file silently does not exist in RuntimePlatform.input_files",
+      "decided_at": {
+        "declared_through_line": 61,
+        "file": "src/vre_rocrate/parsing/infrastructure.py",
+        "line": 33,
+        "symbol": "parse_input_file"
+      },
+      "enforced_by": "entity",
+      "id": "W013",
+      "needs": [],
+      "rule": "INFRASTRUCTURE PROFILE ONLY: each entry in a RuntimePlatform's input array is a full inline entity carrying @type \"File\", not a \"{\"@id\": \"...\"}\" reference to one"
+    }
+  ]
+}

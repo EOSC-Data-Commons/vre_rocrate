@@ -1,0 +1,282 @@
+{
+  "_note": "Measured, not asserted. Each row writes one reference form into a built crate and runs the real VREPayloadBuilder over it, then does the same for the object form of the identical value ('control_counts'); 'lost' is the difference. Bare-string references are tolerated in 4 position(s) and fatal in 1, which is why a producer MUST use the object form everywhere: the acceptance is incidental, not a promise, and JSON-LD itself does not distinguish them.",
+  "baseline_counts": {
+    "files": 3,
+    "input_files": 2,
+    "workflow_inputs": 2,
+    "workflow_outputs": 0
+  },
+  "baseline_main_entity": "https://example.org/workflow.ga",
+  "conclusion": {
+    "data_loss_reported": [
+      "input on https://example.org/workflow.ga (bare string inside the array) -> workflow_inputs 1->0 [W014]",
+      "input on https://example.org/workflow.ga (reference to a @id that is not in @graph) -> workflow_inputs 1->0 [W011]",
+      "output on https://example.org/workflow.ga (reference to a @id that is not in @graph) -> workflow_outputs 2->0 [W011]"
+    ],
+    "data_loss_unreported": [],
+    "fatal": [
+      "programmingLanguage on https://example.org/workflow.ga (bare string)"
+    ],
+    "tolerated": [
+      "mainEntity on ./ (bare string)",
+      "hasPart on ./ (bare strings)",
+      "input on https://example.org/workflow.ga (bare strings)",
+      "input on https://example.org/workflow.ga (inline object carrying the properties itself)"
+    ],
+    "values_altered": []
+  },
+  "forms": [
+    {
+      "control_counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "control_form": "object with @id",
+      "counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "entity": "./",
+      "form": "bare string",
+      "lost": {},
+      "note": "root mainEntity",
+      "outcome": "parsed",
+      "property": "mainEntity",
+      "violations": []
+    },
+    {
+      "control_counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "control_form": "list of 4 object with @id",
+      "counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "entity": "./",
+      "form": "bare strings",
+      "lost": {},
+      "note": "root hasPart, all four entries as bare ids",
+      "outcome": "parsed",
+      "property": "hasPart",
+      "violations": []
+    },
+    {
+      "control_counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "control_form": "object with @id",
+      "detail": "'str' object has no attribute 'get'",
+      "entity": "https://example.org/workflow.ga",
+      "form": "bare string",
+      "note": "workflow programmingLanguage",
+      "outcome": "AttributeError",
+      "property": "programmingLanguage",
+      "violations": [
+        "W005"
+      ]
+    },
+    {
+      "changed": {
+        "alternative": [],
+        "control": [
+          [
+            "Input 1",
+            "{'@id': 'https://example.org/data/input.fastq'}"
+          ]
+        ]
+      },
+      "control_counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 1,
+        "workflow_outputs": 0
+      },
+      "control_form": "list of 1 object with @id",
+      "counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 0,
+        "workflow_outputs": 0
+      },
+      "entity": "https://example.org/workflow.ga",
+      "form": "bare string inside the array",
+      "lost": {
+        "workflow_inputs": [
+          1,
+          0
+        ]
+      },
+      "note": "workflow input, one slot, as a bare id instead of an object",
+      "outcome": "parsed",
+      "property": "input",
+      "violations": [
+        "W014"
+      ]
+    },
+    {
+      "control_counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "control_form": "list of 2 object with @id",
+      "counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "entity": "https://example.org/workflow.ga",
+      "form": "bare strings",
+      "lost": {},
+      "note": "workflow input, both slots, as bare ids",
+      "outcome": "parsed",
+      "property": "input",
+      "violations": []
+    },
+    {
+      "changed": {
+        "alternative": [],
+        "control": [
+          [
+            "Input 1",
+            "{'@id': 'https://example.org/data/input.fastq'}"
+          ]
+        ]
+      },
+      "control_counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 1,
+        "workflow_outputs": 0
+      },
+      "control_form": "list of 1 object with @id",
+      "counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 0,
+        "workflow_outputs": 0
+      },
+      "entity": "https://example.org/workflow.ga",
+      "form": "reference to a @id that is not in @graph",
+      "lost": {
+        "workflow_inputs": [
+          1,
+          0
+        ]
+      },
+      "note": "workflow input pointing at a missing FormalParameter",
+      "outcome": "parsed",
+      "property": "input",
+      "violations": [
+        "W011"
+      ]
+    },
+    {
+      "changed": {
+        "alternative": [
+          [
+            "Input 1",
+            "{'@id': 'https://example.org/data/input.fastq'}"
+          ],
+          [
+            "pdb_id",
+            "'1UBQ'"
+          ]
+        ],
+        "control": [
+          [
+            "Input 1",
+            "{'@id': 'https://example.org/data/input.fastq'}"
+          ],
+          [
+            "Input 1",
+            "{'@id': 'https://example.org/data/input.fastq'}"
+          ],
+          [
+            "pdb_id",
+            "'1UBQ'"
+          ],
+          [
+            "pdb_id",
+            "'1UBQ'"
+          ]
+        ]
+      },
+      "control_counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 2
+      },
+      "control_form": "list of 2 object with @id",
+      "counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 2,
+        "workflow_outputs": 0
+      },
+      "entity": "https://example.org/workflow.ga",
+      "form": "reference to a @id that is not in @graph",
+      "lost": {
+        "workflow_outputs": [
+          2,
+          0
+        ]
+      },
+      "note": "workflow output pointing at a missing FormalParameter",
+      "outcome": "parsed",
+      "property": "output",
+      "violations": [
+        "W011"
+      ]
+    },
+    {
+      "claim": "inline properties ignored",
+      "claim_verified": true,
+      "control_counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 1,
+        "workflow_outputs": 0
+      },
+      "control_form": "list of 1 object with @id",
+      "counts": {
+        "files": 3,
+        "input_files": 2,
+        "workflow_inputs": 1,
+        "workflow_outputs": 0
+      },
+      "entity": "https://example.org/workflow.ga",
+      "form": "inline object carrying the properties itself",
+      "lost": {},
+      "measured": "identical to control",
+      "note": "input reference that also carries name/defaultValue",
+      "outcome": "parsed",
+      "property": "input",
+      "violations": []
+    }
+  ],
+  "non_vacuity": {
+    "data_loss": 3,
+    "fatal": 1,
+    "rows": 8,
+    "tolerated": 4,
+    "unreported_loss": 0,
+    "values_altered": 0
+  }
+}

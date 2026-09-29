@@ -1,0 +1,781 @@
+{
+  "_note": "Each row changes exactly one field of the baseline request and diffs the crate that comes out, so 'never_serialized' means 'changed no byte', not 'nobody looked for it'. Reach is then measured by searching the PARSED payload for the value, which is a different question from whether a dataclass documents it: the parser copies every entity wholesale into a `properties` dict, so an undocumented value is usually still readable, and 'not a named field' must not be reported as 'lost'. That conflation is what a hand-typed version of this table got wrong. Read `transitions` per row - a tier is a summary of the diff, and only the diff shows whether a value was renamed, inverted or dropped.",
+  "consumed_not_readable": [
+    "FileInput.checksum_type"
+  ],
+  "drops_data": [
+    "FileInput.checksum_type",
+    "ToolMeta.uri",
+    "SlotDefinition.name"
+  ],
+  "fields": [
+    {
+      "changed_path_count": 2,
+      "crate_keys": [
+        "name"
+      ],
+      "field": "name",
+      "model": "FileInput",
+      "probe_value": "\"renamed-by-probe.fastq\"",
+      "promoted_count": 2,
+      "promoted_to": [
+        "/files[1]/name",
+        "/files[2]/name"
+      ],
+      "reachable_via": [
+        "named field",
+        "properties",
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "promoted",
+      "transitions": [
+        {
+          "from": "input.fastq",
+          "path": "/@graph[4]/name",
+          "to": "renamed-by-probe.fastq"
+        },
+        {
+          "from": "attachment.csv",
+          "path": "/@graph[5]/name",
+          "to": "renamed-by-probe.fastq"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 7,
+      "crate_keys": [
+        "@id",
+        "url"
+      ],
+      "field": "url",
+      "model": "FileInput",
+      "probe_value": "\"https://example.org/probe/renamed.fastq",
+      "promoted_count": 7,
+      "promoted_to": [
+        "/files[1]/id",
+        "/files[1]/url",
+        "/files[2]/encoding_format",
+        "/files[2]/id",
+        "/files[2]/name",
+        "/files[2]/url"
+      ],
+      "reachable_via": [
+        "named field",
+        "properties",
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "promoted",
+      "transitions": [
+        {
+          "from": "https://example.org/data/input.fastq",
+          "path": "/@graph[1]/hasPart[1]/@id",
+          "to": "https://example.org/probe/renamed.fastq"
+        },
+        {
+          "from": "https://example.org/data/attachment.csv",
+          "path": "/@graph[1]/hasPart[2]/@id",
+          "to": "https://example.org/probe/renamed.fastq"
+        },
+        {
+          "from": "https://example.org/data/input.fastq",
+          "path": "/@graph[4]/@id",
+          "to": "https://example.org/probe/renamed.fastq"
+        },
+        {
+          "from": "https://example.org/data/input.fastq",
+          "path": "/@graph[4]/url",
+          "to": "https://example.org/probe/renamed.fastq"
+        },
+        {
+          "from": "https://example.org/data/attachment.csv",
+          "path": "/@graph[5]/@id",
+          "to": "https://example.org/probe/renamed.fastq"
+        },
+        {
+          "from": "https://example.org/data/attachment.csv",
+          "path": "/@graph[5]/url",
+          "to": "https://example.org/probe/renamed.fastq"
+        },
+        {
+          "from": "https://example.org/data/input.fastq",
+          "path": "/@graph[6]/defaultValue/@id",
+          "to": "https://example.org/probe/renamed.fastq"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 0,
+      "crate_keys": [],
+      "field": "path",
+      "model": "FileInput",
+      "probe_value": "\"/changed/by/probe\"",
+      "promoted_count": 0,
+      "promoted_to": [],
+      "reachable_via": [],
+      "removed_paths": [],
+      "serialized": false,
+      "tier": "never_serialized",
+      "transitions": [],
+      "value_readable_back": false
+    },
+    {
+      "changed_path_count": 2,
+      "crate_keys": [
+        "contentSize"
+      ],
+      "field": "size_bytes",
+      "model": "FileInput",
+      "probe_value": "999999",
+      "promoted_count": 0,
+      "promoted_to": [],
+      "reachable_via": [
+        "properties",
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "properties_only",
+      "transitions": [
+        {
+          "from": 1024,
+          "path": "/@graph[4]/contentSize",
+          "to": 999999
+        },
+        {
+          "from": 1024,
+          "path": "/@graph[5]/contentSize",
+          "to": 999999
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 2,
+      "crate_keys": [
+        "encodingFormat"
+      ],
+      "field": "mime_type",
+      "model": "FileInput",
+      "probe_value": "\"application/x-probe\"",
+      "promoted_count": 2,
+      "promoted_to": [
+        "/files[1]/encoding_format",
+        "/files[2]/encoding_format"
+      ],
+      "reachable_via": [
+        "named field",
+        "properties",
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "promoted",
+      "transitions": [
+        {
+          "from": "application/fastq",
+          "path": "/@graph[4]/encodingFormat",
+          "to": "application/x-probe"
+        },
+        {
+          "from": "text/csv",
+          "path": "/@graph[5]/encodingFormat",
+          "to": "application/x-probe"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 2,
+      "crate_keys": [
+        "sha256"
+      ],
+      "field": "checksum",
+      "model": "FileInput",
+      "probe_value": "\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "promoted_count": 0,
+      "promoted_to": [],
+      "reachable_via": [
+        "properties",
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "properties_only",
+      "transitions": [
+        {
+          "from": "0000000000000000000000000000000000000000000000000000000000000000",
+          "path": "/@graph[4]/sha256",
+          "to": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        {
+          "from": "0000000000000000000000000000000000000000000000000000000000000000",
+          "path": "/@graph[5]/sha256",
+          "to": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 2,
+      "crate_keys": [
+        "sha256"
+      ],
+      "field": "checksum_type",
+      "model": "FileInput",
+      "probe_value": "\"md5\"",
+      "promoted_count": 0,
+      "promoted_to": [],
+      "reachable_via": [],
+      "removed_paths": [
+        "/@graph[4]/sha256",
+        "/@graph[5]/sha256"
+      ],
+      "serialized": true,
+      "tier": "consumed_not_readable",
+      "transitions": [
+        {
+          "from": "0000000000000000000000000000000000000000000000000000000000000000",
+          "path": "/@graph[4]/sha256",
+          "removed": true,
+          "to": "?"
+        },
+        {
+          "from": "0000000000000000000000000000000000000000000000000000000000000000",
+          "path": "/@graph[5]/sha256",
+          "removed": true,
+          "to": "?"
+        }
+      ],
+      "value_readable_back": false
+    },
+    {
+      "changed_path_count": 2,
+      "crate_keys": [
+        "onedata:onezoneDomain"
+      ],
+      "field": "onedata_domain",
+      "model": "FileInput",
+      "probe_value": "\"probe.onedata.org\"",
+      "promoted_count": 2,
+      "promoted_to": [
+        "/files[1]/onedata_domain",
+        "/files[2]/onedata_domain"
+      ],
+      "reachable_via": [
+        "named field",
+        "properties",
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "promoted",
+      "transitions": [
+        {
+          "from": "one.example.org",
+          "path": "/@graph[4]/onedata:onezoneDomain",
+          "to": "probe.onedata.org"
+        },
+        {
+          "from": "one.example.org",
+          "path": "/@graph[5]/onedata:onezoneDomain",
+          "to": "probe.onedata.org"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 2,
+      "crate_keys": [
+        "onedata:fileId"
+      ],
+      "field": "onedata_file_id",
+      "model": "FileInput",
+      "probe_value": "\"PROBEFILEID\"",
+      "promoted_count": 2,
+      "promoted_to": [
+        "/files[1]/onedata_file_id",
+        "/files[2]/onedata_file_id"
+      ],
+      "reachable_via": [
+        "named field",
+        "properties",
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "promoted",
+      "transitions": [
+        {
+          "from": "F1234",
+          "path": "/@graph[4]/onedata:fileId",
+          "to": "PROBEFILEID"
+        },
+        {
+          "from": "F1234",
+          "path": "/@graph[5]/onedata:fileId",
+          "to": "PROBEFILEID"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 0,
+      "crate_keys": [],
+      "field": "id",
+      "model": "ToolMeta",
+      "probe_value": "\"tool-renamed-by-probe\"",
+      "promoted_count": 0,
+      "promoted_to": [],
+      "reachable_via": [],
+      "removed_paths": [],
+      "serialized": false,
+      "tier": "never_serialized",
+      "transitions": [],
+      "value_readable_back": false
+    },
+    {
+      "changed_path_count": 2,
+      "crate_keys": [
+        "name"
+      ],
+      "field": "name",
+      "model": "ToolMeta",
+      "probe_value": "\"Probed Tool Name\"",
+      "promoted_count": 1,
+      "promoted_to": [
+        "/files[0]/name"
+      ],
+      "reachable_via": [
+        "named field",
+        "properties",
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "promoted",
+      "transitions": [
+        {
+          "from": "Root dataset for tool: Probe Tool",
+          "path": "/@graph[1]/name",
+          "to": "Root dataset for tool: Probed Tool Name"
+        },
+        {
+          "from": "Probe Tool",
+          "path": "/@graph[2]/name",
+          "to": "Probed Tool Name"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 1,
+      "crate_keys": [
+        "version"
+      ],
+      "field": "version",
+      "model": "ToolMeta",
+      "probe_value": "\"9.9.9-probe\"",
+      "promoted_count": 1,
+      "promoted_to": [
+        "/workflow/tool_version"
+      ],
+      "reachable_via": [
+        "named field",
+        "properties",
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "promoted",
+      "transitions": [
+        {
+          "from": "1.2.3",
+          "path": "/@graph[2]/version",
+          "to": "9.9.9-probe"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 7,
+      "crate_keys": [
+        "@id",
+        "@type",
+        "encodingFormat"
+      ],
+      "field": "uri",
+      "model": "ToolMeta",
+      "probe_value": "\"https://example.org/probed-workflow\"",
+      "promoted_count": 19,
+      "promoted_to": [
+        "/files[0]/encoding_format",
+        "/files[0]/id",
+        "/files[0]/name",
+        "/files[0]/onedata_domain",
+        "/files[0]/onedata_file_id",
+        "/files[0]/url"
+      ],
+      "reachable_via": [
+        "named field",
+        "properties",
+        "raw_crate"
+      ],
+      "removed_paths": [
+        "/@graph[2]/@type[2]",
+        "/@graph[2]/encodingFormat"
+      ],
+      "serialized": true,
+      "tier": "promoted",
+      "transitions": [
+        {
+          "from": "https://example.org/workflow.ga",
+          "path": "/@graph[1]/hasPart[0]/@id",
+          "to": "https://example.org/probed-workflow"
+        },
+        {
+          "from": "https://example.org/workflow.ga",
+          "path": "/@graph[1]/mainEntity/@id",
+          "to": "https://example.org/probed-workflow"
+        },
+        {
+          "from": "https://example.org/workflow.ga",
+          "path": "/@graph[2]/@id",
+          "to": "https://example.org/probed-workflow"
+        },
+        {
+          "from": "File",
+          "path": "/@graph[2]/@type[0]",
+          "to": "SoftwareSourceCode"
+        },
+        {
+          "from": "SoftwareSourceCode",
+          "path": "/@graph[2]/@type[1]",
+          "to": "ComputationalWorkflow"
+        },
+        {
+          "from": "ComputationalWorkflow",
+          "path": "/@graph[2]/@type[2]",
+          "removed": true,
+          "to": "?"
+        },
+        {
+          "from": "application/galaxy",
+          "path": "/@graph[2]/encodingFormat",
+          "removed": true,
+          "to": "?"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 1,
+      "crate_keys": [
+        "description"
+      ],
+      "field": "description",
+      "model": "ToolMeta",
+      "probe_value": "\"Changed by probe.\"",
+      "promoted_count": 0,
+      "promoted_to": [],
+      "reachable_via": [
+        "properties",
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "properties_only",
+      "transitions": [
+        {
+          "from": "A workflow.",
+          "path": "/@graph[2]/description",
+          "to": "Changed by probe."
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 4,
+      "crate_keys": [
+        "@id"
+      ],
+      "field": "id",
+      "model": "SlotDefinition",
+      "probe_value": "\"probed-slot-id\"",
+      "promoted_count": 6,
+      "promoted_to": [
+        "/workflow_inputs[0]/id",
+        "/workflow_inputs[1]/additional_type",
+        "/workflow_inputs[1]/default_value",
+        "/workflow_inputs[1]/default_value/@id",
+        "/workflow_inputs[1]/id",
+        "/workflow_inputs[1]/name"
+      ],
+      "reachable_via": [
+        "named field",
+        "properties (within a longer value)",
+        "raw_crate (within a longer value)"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "promoted",
+      "transitions": [
+        {
+          "from": "#input-in1",
+          "path": "/@graph[2]/input[0]/@id",
+          "to": "#input-probed-slot-id"
+        },
+        {
+          "from": "#input-lit",
+          "path": "/@graph[2]/input[1]/@id",
+          "to": "#input-probed-slot-id"
+        },
+        {
+          "from": "#input-in1",
+          "path": "/@graph[6]/@id",
+          "to": "#input-probed-slot-id"
+        },
+        {
+          "from": "#input-lit",
+          "path": "/@graph[7]/@id",
+          "to": "#input-probed-slot-id"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 4,
+      "crate_keys": [
+        "@id",
+        "defaultValue",
+        "name"
+      ],
+      "field": "name",
+      "model": "SlotDefinition",
+      "probe_value": "\"Probed Slot Name\"",
+      "promoted_count": 5,
+      "promoted_to": [
+        "/workflow_inputs[0]/default_value",
+        "/workflow_inputs[0]/default_value/@id",
+        "/workflow_inputs[0]/name",
+        "/workflow_inputs[1]/default_value",
+        "/workflow_inputs[1]/name"
+      ],
+      "reachable_via": [
+        "named field",
+        "properties",
+        "raw_crate"
+      ],
+      "removed_paths": [
+        "/@graph[6]/defaultValue/@id",
+        "/@graph[7]/defaultValue"
+      ],
+      "serialized": true,
+      "tier": "promoted",
+      "transitions": [
+        {
+          "from": "https://example.org/data/input.fastq",
+          "path": "/@graph[6]/defaultValue/@id",
+          "removed": true,
+          "to": "?"
+        },
+        {
+          "from": "Input 1",
+          "path": "/@graph[6]/name",
+          "to": "Probed Slot Name"
+        },
+        {
+          "from": "1UBQ",
+          "path": "/@graph[7]/defaultValue",
+          "removed": true,
+          "to": "?"
+        },
+        {
+          "from": "pdb_id",
+          "path": "/@graph[7]/name",
+          "to": "Probed Slot Name"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 2,
+      "crate_keys": [
+        "additionalType"
+      ],
+      "field": "slot_type",
+      "model": "SlotDefinition",
+      "probe_value": "\"probed_type\"",
+      "promoted_count": 2,
+      "promoted_to": [
+        "/workflow_inputs[0]/additional_type",
+        "/workflow_inputs[1]/additional_type"
+      ],
+      "reachable_via": [
+        "named field",
+        "properties",
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "promoted",
+      "transitions": [
+        {
+          "from": "data_file",
+          "path": "/@graph[6]/additionalType",
+          "to": "probed_type"
+        },
+        {
+          "from": "string",
+          "path": "/@graph[7]/additionalType",
+          "to": "probed_type"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 2,
+      "crate_keys": [
+        "required"
+      ],
+      "field": "is_optional",
+      "model": "SlotDefinition",
+      "probe_value": "true",
+      "promoted_count": 0,
+      "promoted_to": [],
+      "reachable_via": [
+        "properties (inverted)",
+        "raw_crate (inverted)"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "properties_only",
+      "transitions": [
+        {
+          "from": true,
+          "path": "/@graph[6]/required",
+          "to": false
+        },
+        {
+          "from": true,
+          "path": "/@graph[7]/required",
+          "to": false
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 2,
+      "crate_keys": [
+        "@id"
+      ],
+      "field": "url",
+      "model": "DatasetHandle",
+      "probe_value": "\"https://example.org/probe/dataset\"",
+      "promoted_count": 0,
+      "promoted_to": [],
+      "reachable_via": [
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "raw_crate_only",
+      "transitions": [
+        {
+          "from": "https://example.org/dataset/doi/10.5072/test",
+          "path": "/@graph[1]/hasPart[3]/@id",
+          "to": "https://example.org/probe/dataset"
+        },
+        {
+          "from": "https://example.org/dataset/doi/10.5072/test",
+          "path": "/@graph[8]/@id",
+          "to": "https://example.org/probe/dataset"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 1,
+      "crate_keys": [
+        "name"
+      ],
+      "field": "title",
+      "model": "DatasetHandle",
+      "probe_value": "\"Probe dataset title\"",
+      "promoted_count": 0,
+      "promoted_to": [],
+      "reachable_via": [
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "raw_crate_only",
+      "transitions": [
+        {
+          "from": "A dataset",
+          "path": "/@graph[8]/name",
+          "to": "Probe dataset title"
+        }
+      ],
+      "value_readable_back": true
+    },
+    {
+      "changed_path_count": 1,
+      "crate_keys": [
+        "description"
+      ],
+      "field": "description",
+      "model": "DatasetHandle",
+      "probe_value": "\"Probe dataset description\"",
+      "promoted_count": 0,
+      "promoted_to": [],
+      "reachable_via": [
+        "raw_crate"
+      ],
+      "removed_paths": [],
+      "serialized": true,
+      "tier": "raw_crate_only",
+      "transitions": [
+        {
+          "from": "Dataset description",
+          "path": "/@graph[8]/description",
+          "to": "Probe dataset description"
+        }
+      ],
+      "value_readable_back": true
+    }
+  ],
+  "never_serialized": [
+    "FileInput.path",
+    "ToolMeta.id"
+  ],
+  "promoted": [
+    "FileInput.name",
+    "FileInput.url",
+    "FileInput.mime_type",
+    "FileInput.onedata_domain",
+    "FileInput.onedata_file_id",
+    "ToolMeta.name",
+    "ToolMeta.version",
+    "ToolMeta.uri",
+    "SlotDefinition.id",
+    "SlotDefinition.name",
+    "SlotDefinition.slot_type"
+  ],
+  "properties_only": [
+    "FileInput.size_bytes",
+    "FileInput.checksum",
+    "ToolMeta.description",
+    "SlotDefinition.is_optional"
+  ],
+  "raw_crate_only": [
+    "DatasetHandle.url",
+    "DatasetHandle.title",
+    "DatasetHandle.description"
+  ]
+}

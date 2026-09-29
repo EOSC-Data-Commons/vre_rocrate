@@ -1,0 +1,568 @@
+{
+  "_note": "Every documented MUST property, deleted once from the probe crate, judged by the two checkers that ship as code. 'unnoticed' means validate_basic passed AND the linter reported no violation. The profile schema's agreement is asserted at generation time by verify_must_enforcement, which needs the dev extra; it is not recorded here because a per-run verdict would make this file machine-dependent. Re-runs on every generation, so the counts in 01-conformance.md cannot go stale.",
+  "caught_by_property": {
+    "@type": [
+      "schema",
+      "validate_basic"
+    ],
+    "about": [
+      "schema"
+    ],
+    "conformsTo": [
+      "W012",
+      "schema"
+    ],
+    "datePublished": [
+      "schema"
+    ],
+    "hasPart": [
+      "W007",
+      "schema"
+    ],
+    "identifier": [
+      "W006",
+      "schema",
+      "validate_basic"
+    ],
+    "mainEntity": [
+      "W003",
+      "schema",
+      "validate_basic"
+    ],
+    "name": [
+      "schema"
+    ],
+    "programmingLanguage": [
+      "W005",
+      "validate_basic"
+    ],
+    "url": [
+      "schema"
+    ]
+  },
+  "caught_properties": [
+    "@type",
+    "about",
+    "conformsTo",
+    "datePublished",
+    "hasPart",
+    "identifier",
+    "mainEntity",
+    "name",
+    "programmingLanguage",
+    "url"
+  ],
+  "deletions": 53,
+  "must_rows": 46,
+  "probe_crate": "examples/probe_every_optional_input.json",
+  "probe_entities": 13,
+  "probe_roles": 11,
+  "provenance_deletion": {
+    "entities_removed": 3,
+    "linter_violations": [],
+    "residual_mentions": 0,
+    "schema_rejects_any_entity": false,
+    "validate_basic_passes": true
+  },
+  "rows": [
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "#author-dispatcher",
+      "index": 0,
+      "property": "@type",
+      "role": "author-placeholder",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [],
+      "entity": "#author-dispatcher",
+      "index": 0,
+      "property": "name",
+      "role": "author-placeholder",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "#galaxy-lang",
+      "index": 1,
+      "property": "@type",
+      "role": "computer-language",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [
+        "schema",
+        "validate_basic",
+        "W006"
+      ],
+      "entity": "#galaxy-lang",
+      "index": 1,
+      "property": "identifier",
+      "role": "computer-language",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "#galaxy-lang",
+      "index": 1,
+      "property": "name",
+      "role": "computer-language",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "#galaxy-lang",
+      "index": 1,
+      "property": "url",
+      "role": "computer-language",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "https://example.org/data/attachment.csv",
+      "index": 8,
+      "property": "@type",
+      "role": "file",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "https://example.org/data/input.fastq",
+      "index": 9,
+      "property": "@type",
+      "role": "file",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [],
+      "entity": "https://example.org/data/attachment.csv",
+      "index": 8,
+      "property": "license",
+      "role": "file",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "https://example.org/data/input.fastq",
+      "index": 9,
+      "property": "license",
+      "role": "file",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "https://example.org/data/attachment.csv",
+      "index": 8,
+      "property": "name",
+      "role": "file",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "https://example.org/data/input.fastq",
+      "index": 9,
+      "property": "name",
+      "role": "file",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "#input-in1",
+      "index": 2,
+      "property": "@type",
+      "role": "formal-parameter",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "#input-lit",
+      "index": 3,
+      "property": "@type",
+      "role": "formal-parameter",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [],
+      "entity": "#input-in1",
+      "index": 2,
+      "property": "additionalType",
+      "role": "formal-parameter",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "#input-lit",
+      "index": 3,
+      "property": "additionalType",
+      "role": "formal-parameter",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "#input-in1",
+      "index": 2,
+      "property": "name",
+      "role": "formal-parameter",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "#input-lit",
+      "index": 3,
+      "property": "name",
+      "role": "formal-parameter",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "#input-in1",
+      "index": 2,
+      "property": "required",
+      "role": "formal-parameter",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "#input-lit",
+      "index": 3,
+      "property": "required",
+      "role": "formal-parameter",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "https://example.org/dataset/doi/10.5072/test",
+      "index": 10,
+      "property": "@type",
+      "role": "input-dataset",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [],
+      "entity": "https://example.org/dataset/doi/10.5072/test",
+      "index": 10,
+      "property": "description",
+      "role": "input-dataset",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "https://example.org/dataset/doi/10.5072/test",
+      "index": 10,
+      "property": "name",
+      "role": "input-dataset",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "#license-unspecified",
+      "index": 4,
+      "property": "@type",
+      "role": "license-placeholder",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [],
+      "entity": "#license-unspecified",
+      "index": 4,
+      "property": "description",
+      "role": "license-placeholder",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "#license-unspecified",
+      "index": 4,
+      "property": "name",
+      "role": "license-placeholder",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "#workflow-hub",
+      "index": 6,
+      "property": "@type",
+      "role": "publisher-placeholder",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [],
+      "entity": "#workflow-hub",
+      "index": 6,
+      "property": "name",
+      "role": "publisher-placeholder",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "#workflow-hub",
+      "index": 6,
+      "property": "url",
+      "role": "publisher-placeholder",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "./",
+      "index": 7,
+      "property": "@type",
+      "role": "root-dataset",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [],
+      "entity": "./",
+      "index": 7,
+      "property": "creator",
+      "role": "root-dataset",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "./",
+      "index": 7,
+      "property": "datePublished",
+      "role": "root-dataset",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [],
+      "entity": "./",
+      "index": 7,
+      "property": "description",
+      "role": "root-dataset",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [
+        "schema",
+        "W007"
+      ],
+      "entity": "./",
+      "index": 7,
+      "property": "hasPart",
+      "role": "root-dataset",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [],
+      "entity": "./",
+      "index": 7,
+      "property": "license",
+      "role": "root-dataset",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [
+        "schema",
+        "validate_basic",
+        "W003"
+      ],
+      "entity": "./",
+      "index": 7,
+      "property": "mainEntity",
+      "role": "root-dataset",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [],
+      "entity": "./",
+      "index": 7,
+      "property": "name",
+      "role": "root-dataset",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "ro-crate-metadata.json",
+      "index": 12,
+      "property": "@type",
+      "role": "root-descriptor",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "ro-crate-metadata.json",
+      "index": 12,
+      "property": "about",
+      "role": "root-descriptor",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [
+        "schema",
+        "W012"
+      ],
+      "entity": "ro-crate-metadata.json",
+      "index": 12,
+      "property": "conformsTo",
+      "role": "root-descriptor",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "#tool-metadata",
+      "index": 5,
+      "property": "@type",
+      "role": "tool-metadata",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [],
+      "entity": "#tool-metadata",
+      "index": 5,
+      "property": "rawDefinition",
+      "role": "tool-metadata",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [
+        "schema",
+        "validate_basic"
+      ],
+      "entity": "https://example.org/workflow.ga",
+      "index": 11,
+      "property": "@type",
+      "role": "workflow",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [],
+      "entity": "https://example.org/workflow.ga",
+      "index": 11,
+      "property": "conformsTo",
+      "role": "workflow",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "https://example.org/workflow.ga",
+      "index": 11,
+      "property": "creator",
+      "role": "workflow",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "https://example.org/workflow.ga",
+      "index": 11,
+      "property": "dateCreated",
+      "role": "workflow",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "https://example.org/workflow.ga",
+      "index": 11,
+      "property": "description",
+      "role": "workflow",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "https://example.org/workflow.ga",
+      "index": 11,
+      "property": "license",
+      "role": "workflow",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [
+        "schema"
+      ],
+      "entity": "https://example.org/workflow.ga",
+      "index": 11,
+      "property": "name",
+      "role": "workflow",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [
+        "validate_basic",
+        "W005"
+      ],
+      "entity": "https://example.org/workflow.ga",
+      "index": 11,
+      "property": "programmingLanguage",
+      "role": "workflow",
+      "unnoticed": false
+    },
+    {
+      "caught_by": [],
+      "entity": "https://example.org/workflow.ga",
+      "index": 11,
+      "property": "runtimePlatform",
+      "role": "workflow",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "https://example.org/workflow.ga",
+      "index": 11,
+      "property": "sdPublisher",
+      "role": "workflow",
+      "unnoticed": true
+    },
+    {
+      "caught_by": [],
+      "entity": "https://example.org/workflow.ga",
+      "index": 11,
+      "property": "version",
+      "role": "workflow",
+      "unnoticed": true
+    }
+  ],
+  "unnoticed": 28,
+  "unnoticed_properties": [
+    "additionalType",
+    "conformsTo",
+    "creator",
+    "dateCreated",
+    "description",
+    "license",
+    "name",
+    "rawDefinition",
+    "required",
+    "runtimePlatform",
+    "sdPublisher",
+    "url",
+    "version"
+  ],
+  "unprobed_properties": []
+}

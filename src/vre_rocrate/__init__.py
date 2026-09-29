@@ -20,6 +20,8 @@ from .parsing import (
 )
 from .building import VREPayloadBuilder, RocrateBuilder
 from .constants import (
+    ROCRATE_BASE_PROFILE,
+    WIRE_FORMAT_PROFILE,
     VRE_TYPES,
     VRE_TYPE_TO_PROGRAMMING_LANGUAGE,
     GALAXY_PROGRAMMING_LANGUAGE,
@@ -50,6 +52,8 @@ __all__ = [
     "ValidationPipeline",
     "VREPayloadBuilder",
     "RocrateBuilder",
+    "ROCRATE_BASE_PROFILE",
+    "WIRE_FORMAT_PROFILE",
     "VRE_TYPES",
     "VRE_TYPE_TO_PROGRAMMING_LANGUAGE",
     "GALAXY_PROGRAMMING_LANGUAGE",

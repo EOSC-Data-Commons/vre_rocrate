@@ -1,0 +1,141 @@
+{
+  "_note": "Which rules JSON Schema can encode, per profile, and which it structurally cannot. Schema-valid does NOT mean conformant: run the linter as well. 'encodable' and 'enforcement' are derived from the linter's own rule table, and generation refuses to write these schemas unless each rule actually behaves the way 'enforcement' says at the level it claims, tested against every shipped golden and negative. The check needs `jsonschema` and is re-derived independently by tests/test_spec.",
+  "encodable": {
+    "core": [
+      "W001",
+      "W003",
+      "W005",
+      "W007",
+      "W010",
+      "W012",
+      "W014"
+    ],
+    "infrastructure": [
+      "W001",
+      "W003",
+      "W005",
+      "W007",
+      "W010",
+      "W012",
+      "W013",
+      "W014"
+    ]
+  },
+  "enforcement": {
+    "W001": {
+      "level": "entity",
+      "profiles": [
+        "core",
+        "infrastructure"
+      ]
+    },
+    "W002": {
+      "level": "none",
+      "profiles": []
+    },
+    "W003": {
+      "level": "graph",
+      "profiles": [
+        "core",
+        "infrastructure"
+      ]
+    },
+    "W004": {
+      "level": "none",
+      "profiles": []
+    },
+    "W005": {
+      "level": "entity",
+      "profiles": [
+        "core",
+        "infrastructure"
+      ]
+    },
+    "W006": {
+      "level": "none",
+      "profiles": []
+    },
+    "W007": {
+      "level": "entity",
+      "profiles": [
+        "core",
+        "infrastructure"
+      ]
+    },
+    "W008": {
+      "level": "none",
+      "profiles": []
+    },
+    "W009": {
+      "level": "none",
+      "profiles": []
+    },
+    "W010": {
+      "level": "entity",
+      "profiles": [
+        "core",
+        "infrastructure"
+      ]
+    },
+    "W011": {
+      "level": "none",
+      "profiles": []
+    },
+    "W012": {
+      "level": "entity",
+      "profiles": [
+        "core",
+        "infrastructure"
+      ]
+    },
+    "W013": {
+      "level": "entity",
+      "profiles": [
+        "infrastructure"
+      ]
+    },
+    "W014": {
+      "level": "entity",
+      "profiles": [
+        "core",
+        "infrastructure"
+      ]
+    }
+  },
+  "not_encodable_in_any_profile": [
+    "W002",
+    "W004",
+    "W006",
+    "W008",
+    "W009",
+    "W011"
+  ],
+  "profiles": {
+    "core": "schema-core.json - what RocrateBuilder emits",
+    "infrastructure": "schema-infrastructure.json - parseable, not emittable"
+  },
+  "requires_graph_resolution": [
+    "W002",
+    "W004",
+    "W006",
+    "W008",
+    "W009",
+    "W011"
+  ],
+  "rules": [
+    "W001",
+    "W002",
+    "W003",
+    "W004",
+    "W005",
+    "W006",
+    "W007",
+    "W008",
+    "W009",
+    "W010",
+    "W011",
+    "W012",
+    "W014",
+    "W013"
+  ]
+}

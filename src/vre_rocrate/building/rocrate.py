@@ -5,6 +5,8 @@ from pathlib import PurePosixPath
 from typing import Any
 
 from ..constants import (
+    ROCRATE_BASE_PROFILE,
+    WIRE_FORMAT_PROFILE,
     VRE_TYPE_TO_PROGRAMMING_LANGUAGE,
     VRE_TYPE_TO_DISPLAY_NAME,
     VRE_TYPE_TO_LANGUAGE_URL,
@@ -86,12 +88,19 @@ class RocrateBuilder:
         return VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM.get(self.vre_type, "")
 
     def _add_metadata_descriptor(self) -> None:
+        # conformsTo is a list: the base RO-Crate profile first (so consumers
+        # that only understand RO-Crate 1.1 keep working), then this dialect's
+        # profile URI, which is what lets an independent component detect that
+        # the payload shape changed underneath it.
         self.graph.append(
             {
                 "@id": "ro-crate-metadata.json",
                 "@type": "CreativeWork",
                 "about": {"@id": "./"},
-                "conformsTo": {"@id": "https://w3id.org/ro/crate/1.1"},
+                "conformsTo": [
+                    {"@id": ROCRATE_BASE_PROFILE},
+                    {"@id": WIRE_FORMAT_PROFILE},
+                ],
             }
         )
 

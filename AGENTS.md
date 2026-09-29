@@ -13,7 +13,7 @@ RO-Crate parsing/building library for EOSC VRE dispatch. Python 3.10+, src layou
 .venv/bin/python examples/galaxy.py | jq .     # print a generated crate (one example per VRE type)
 ```
 
-Black (line-length 88) is configured in `pyproject.toml` but **not enforced** — no CI, no pre-commit, no lint/typecheck config. `black --check` currently fails on 3 files; reformatting everything creates diff noise. **Do not run black (or any formatter) on files you edit** — diffs must contain only the intended change; write new/edited lines in the surrounding hand style (see `examples/sciencemesh.py` for the import-block convention). Only ever run black when formatting is the explicit task.
+Black (line-length 88) is configured in `pyproject.toml` but **not enforced** — no CI, no pre-commit, no lint/typecheck config. `black --check` currently fails on 20 of 39 files (13 of the 14 `examples/` scripts, both `tools/` spec scripts, and several `src/`/`tests/` files), and the count moves with the corpus rather than being worth tracking; reformatting everything creates diff noise. **Do not run black (or any formatter) on files you edit** — diffs must contain only the intended change; write new/edited lines in the surrounding hand style (see `examples/sciencemesh.py` for the import-block convention). Only ever run black when formatting is the explicit task.
 
 ## Architecture (three layers, per README)
 
@@ -38,7 +38,7 @@ Note: models use stdlib dataclasses even though `pyproject.toml` declares `pydan
 ## Repo state gotchas
 
 - **README usage snippets are stale** — they use the removed `MinimalVRERequest`/`build_from_minimal` API (tests assert its removal). Trust code + tests over README examples.
-- **Test suite is green** (68/68 as of Aug 5 2026): input-files semantics implemented (slot-bound ∪ free-form, descriptor excluded); the sciencemesh `qa.cernbox→eosc.cernbox` test expectation was fixed in the same pass.
+- **Test suite is green** (100 tests as of Aug 2026; the `68/68` recorded here was stale — `tests/test_spec/` accounts for most of the growth): input-files semantics implemented (slot-bound ∪ free-form, descriptor excluded); the sciencemesh `qa.cernbox→eosc.cernbox` test expectation was fixed in the same pass.
 - `tests/fixtures/*/simple_example.json` files are legacy (old minimal-request format), unreferenced by current tests — not API examples.
 - `build/` and `*.egg-info/` contain stale artifacts from an old flat-layout build; ignore them (gitignored).
 - `plans/` holds *pending* design docs; once a plan lands, it moves to `docs/design/` as a design note. New tests sometimes encode a design doc as executable assumptions — check the referenced file.

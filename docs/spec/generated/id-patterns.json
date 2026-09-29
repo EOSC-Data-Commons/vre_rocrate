@@ -1,0 +1,75 @@
+{
+  "allocation_rules": [
+    "a File's @id is its url, falling back to its bare name when it has no url - so two nameless-url files sharing a name collide",
+    "a File's @id MUST differ from the workflow @id, otherwise the file disappears from VREPayload.input_files",
+    "@id MUST be unique across the whole @graph; duplicates are NOT rejected by validation"
+  ],
+  "reserved": [
+    {
+      "meaning": "Crate root descriptor. MUST be the first @graph entity. Declares the base RO-Crate profile and the wire format profile in conformsTo.",
+      "pattern": "ro-crate-metadata.json",
+      "role": "root-descriptor",
+      "verified_in_builder": true
+    },
+    {
+      "meaning": "Root dataset. The anchor for the whole payload: mainEntity and hasPart are read from here and nowhere else.",
+      "pattern": "./",
+      "role": "root-dataset",
+      "verified_in_builder": true
+    },
+    {
+      "meaning": "The workflow / mainEntity. Its @id IS the workflow uri - there is no separate identifier - and it is also a root hasPart member.",
+      "pattern": "<tool.uri>",
+      "role": "workflow",
+      "verified_in_builder": true
+    },
+    {
+      "meaning": "ComputerLanguage carrying the VRE identity token in `identifier`. This is the ONLY place the target VRE is declared.",
+      "pattern": "#<vre_type>-lang",
+      "role": "computer-language",
+      "verified_in_builder": true
+    },
+    {
+      "meaning": "A tool-declared input slot. @id derives from slot.id but values are looked up by slot.name, so id and name are different keys.",
+      "pattern": "#input-<slot.id>",
+      "role": "formal-parameter",
+      "verified_in_builder": true
+    },
+    {
+      "meaning": "A data file, reachable ONLY through root hasPart. Slot-bound and free-form files are structurally identical here and differ only in whether a FormalParameter's defaultValue points at them.",
+      "pattern": "<file.url, or the bare name when there is no url>",
+      "role": "file",
+      "verified_in_builder": true
+    },
+    {
+      "meaning": "Optional Dataset for a browsed dataset. @id IS the dataset url.",
+      "pattern": "<dataset.url>",
+      "role": "input-dataset",
+      "verified_in_builder": true
+    },
+    {
+      "meaning": "Opaque Thing carrying rawDefinition - the producer's own tool definition, round-tripped untouched.",
+      "pattern": "#tool-metadata",
+      "role": "tool-metadata",
+      "verified_in_builder": true
+    },
+    {
+      "meaning": "Placeholder Person credited as root creator.",
+      "pattern": "#author-dispatcher",
+      "role": "author-placeholder",
+      "verified_in_builder": true
+    },
+    {
+      "meaning": "Placeholder Organization carried as sdPublisher.",
+      "pattern": "#workflow-hub",
+      "role": "publisher-placeholder",
+      "verified_in_builder": true
+    },
+    {
+      "meaning": "Placeholder CreativeWork, emitted because a builder cannot assert a license on the producer's behalf. Never read by the parser and absent from every crate not built by this library - an emitter convention, not a protocol feature.",
+      "pattern": "#license-unspecified",
+      "role": "license-placeholder",
+      "verified_in_builder": true
+    }
+  ]
+}
