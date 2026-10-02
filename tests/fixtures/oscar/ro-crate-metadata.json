@@ -24,11 +24,11 @@
                 "@id": "#author-dispatcher"
             },
             "mainEntity": {
-                "@id": "https://raw.githubusercontent.com/micafer/Dispatcher/refs/heads/oscar-vre/test/oscar/cowsay.json"
+                "@id": "https://raw.githubusercontent.com/EOSC-Data-Commons/Dispatcher/refs/heads/master/test/fixtures/cowsay.json"
             },
             "hasPart": [
                 {
-                    "@id": "https://raw.githubusercontent.com/micafer/Dispatcher/refs/heads/oscar-vre/test/oscar/cowsay.json"
+                    "@id": "https://raw.githubusercontent.com/EOSC-Data-Commons/Dispatcher/refs/heads/master/test/fixtures/cowsay.json"
                 },
                 {
                     "@id": "https://example-files.online-convert.com/document/txt/example.txt"
@@ -36,7 +36,7 @@
             ]
         },
         {
-            "@id": "https://raw.githubusercontent.com/micafer/Dispatcher/refs/heads/oscar-vre/test/oscar/cowsay.json",
+            "@id": "https://raw.githubusercontent.com/EOSC-Data-Commons/Dispatcher/refs/heads/master/test/fixtures/cowsay.json",
             "@type": [
                 "File",
                 "SoftwareSourceCode",

@@ -11,8 +11,7 @@ from vre_rocrate import (
 )
 
 WORKFLOW_URL = (
-    "https://raw.githubusercontent.com/micafer/Dispatcher/refs/heads/"
-    "oscar-vre/test/oscar/cowsay.json"
+    "https://raw.githubusercontent.com/EOSC-Data-Commons/Dispatcher/refs/heads/master/test/fixtures/cowsay.json"
 )
 
 request = VRELaunchRequest(
