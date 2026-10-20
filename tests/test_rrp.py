@@ -22,7 +22,10 @@ from vre_rocrate import (
 )
 from vre_rocrate.constants import VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM
 
-RRP_URI = "https://rrp-eosc.ethz.ch/"
+RRP_URI = (
+    "https://gitlab.ethz.ch/Reproducible-Research-Platform/tools/Cell-Doubling-Time"
+)
+RRP_DOCKER_IMAGE = "reproducibleresearchplatform/rrp-eosc:cell-doubling-time_1.0.1"
 DATASET_URL = "https://doi.org/10.5281/zenodo.20507550"
 IMAGE_0_URL = "https://zenodo.org/records/20507550/files/image_0.tif"
 IMAGE_1_URL = "https://zenodo.org/records/20507550/files/image_1.tif"
@@ -37,6 +40,7 @@ def _rrp_request(with_dataset=True):
             uri=RRP_URI,
             types=["general", "rrp"],
             description="RRP as general tool",
+            docker_image=RRP_DOCKER_IMAGE,
             slots=[
                 SlotDefinition(
                     id="image_0.tif", name="Image 0 (TIF)", slot_type="file"
@@ -45,10 +49,6 @@ def _rrp_request(with_dataset=True):
                     id="image_1.tif", name="Image 1 (TIF)", slot_type="file"
                 ),
             ],
-            raw_definition={
-                "repositoryUrl": "https://gitlab.ethz.ch/Reproducible-Research-Platform/tools/Cell-Doubling-Time",
-                "docker_image": "reproducibleresearchplatform/rrp-eosc:cell-doubling-time_1.0.1",
-            },
         ),
         input=LaunchInput(
             dataset=(
@@ -108,6 +108,13 @@ def test_builder_resolves_rrp_type_and_runtime_platform():
     assert wf["runtimePlatform"] == VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM["rrp"]
 
 
+def test_built_crate_workflow_carries_docker_image():
+    graph = RocrateBuilder.build_from_launch_request(_rrp_request())["@graph"]
+    wf = _entity(graph, RRP_URI)
+    assert wf["dockerImage"] == RRP_DOCKER_IMAGE
+    assert all(e["@id"] != "#tool-metadata" for e in graph)
+
+
 # ---------------------------------------------------------------------------
 # Payload — input_dataset accessor
 # ---------------------------------------------------------------------------
@@ -123,6 +130,13 @@ def test_payload_input_dataset_extracted():
         "Microscopy images for cell doubling time analysis"
     )
     assert payload.programming_language == RRP_PROGRAMMING_LANGUAGE
+
+
+def test_payload_workflow_docker_image_and_url():
+    crate = RocrateBuilder.build_from_launch_request(_rrp_request())
+    payload = VREPayloadBuilder.build(crate)
+    assert payload.workflow.url == RRP_URI
+    assert payload.workflow.docker_image == RRP_DOCKER_IMAGE
 
 
 def test_payload_input_dataset_none_without_dataset_entity():

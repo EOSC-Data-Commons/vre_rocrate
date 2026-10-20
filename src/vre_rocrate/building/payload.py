@@ -113,6 +113,7 @@ class VREPayloadBuilder:
             runtime_platform=runtime_platform,
             properties=dict(self.main),
             tool_version=self.main.get("version"),
+            docker_image=self.main.get("dockerImage"),
         )
 
     # ------------------------------------------------------------------

@@ -55,6 +55,7 @@ class ToolMeta:
     uri: str  # → workflow.@id / mainEntity; workflow_id / pipeline / notebooks-repo
     types: list[str]  # only used to resolve vre_type → programmingLanguage.identifier
     description: str = ""  # → workflow.description ("placeholder" fallback)
+    docker_image: str | None = None  # → workflow.dockerImage; RRP project image
     slots: list[SlotDefinition] = field(default_factory=list)  # → FormalParameters
     raw_definition: dict[str, Any] = field(
         default_factory=dict

@@ -15,17 +15,14 @@ request = VRELaunchRequest(
         id="::st:002",
         version="v0",
         name="Reproducible Research Platform (RRP)",
-        uri="https://rrp-eosc.ethz.ch/",
+        uri="https://gitlab.ethz.ch/Reproducible-Research-Platform/tools/Cell-Doubling-Time",
         types=["general", "rrp"],
         description="RRP as general tool",
+        docker_image="reproducibleresearchplatform/rrp-eosc:cell-doubling-time_1.0.1",
         slots=[
             SlotDefinition(id="image_0.tif", name="Image 0 (TIF)", slot_type="file"),
             SlotDefinition(id="image_1.tif", name="Image 1 (TIF)", slot_type="file"),
         ],
-        raw_definition={
-            "repositoryUrl": "https://gitlab.ethz.ch/Reproducible-Research-Platform/tools/Cell-Doubling-Time",
-            "docker_image": "reproducibleresearchplatform/rrp-eosc:cell-doubling-time_1.0.1",
-        },
     ),
     input=LaunchInput(
         dataset=DatasetHandle(

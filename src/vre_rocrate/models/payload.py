@@ -43,6 +43,7 @@ class WorkflowDescriptor:
     runtime_platform: str | RuntimePlatform | None = None
     properties: dict[str, Any] = field(default_factory=dict, repr=False)
     tool_version: str | None = None
+    docker_image: str | None = None
 
 
 @dataclass

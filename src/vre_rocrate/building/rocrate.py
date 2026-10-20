@@ -96,8 +96,9 @@ class RocrateBuilder:
         )
 
     def _slot_files(self) -> list[FileInput]:
-        return [sv for sv in self.request.input.slots.values()
-                if isinstance(sv, FileInput)]
+        return [
+            sv for sv in self.request.input.slots.values() if isinstance(sv, FileInput)
+        ]
 
     def _input_files(self) -> list[FileInput]:
         return list(self.request.input.files.values())
@@ -157,6 +158,8 @@ class RocrateBuilder:
         }
         if encoding_format:
             workflow_entity["encodingFormat"] = encoding_format
+        if self.tool.docker_image:
+            workflow_entity["dockerImage"] = self.tool.docker_image
 
         input_refs: list[dict[str, str]] = []
         for slot in self.tool.slots:
