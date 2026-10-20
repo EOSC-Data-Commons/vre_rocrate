@@ -5,6 +5,7 @@ from .models import (
     WorkflowDescriptor,
     FileReference,
     FormalParameter,
+    DatasetReference,
     RuntimePlatform,
     IMInputFile,
     VRELaunchRequest,
@@ -30,6 +31,7 @@ from .constants import (
     JUPYTER_PROGRAMMING_LANGUAGE,
     VIP_PROGRAMMING_LANGUAGE,
     MDDASH_PROGRAMMING_LANGUAGE,
+    RRP_PROGRAMMING_LANGUAGE,
 )
 from .exceptions import VreRocrateError, CrateValidationError
 
@@ -38,6 +40,7 @@ __all__ = [
     "WorkflowDescriptor",
     "FileReference",
     "FormalParameter",
+    "DatasetReference",
     "RuntimePlatform",
     "IMInputFile",
     "VRELaunchRequest",
@@ -60,6 +63,7 @@ __all__ = [
     "JUPYTER_PROGRAMMING_LANGUAGE",
     "VIP_PROGRAMMING_LANGUAGE",
     "MDDASH_PROGRAMMING_LANGUAGE",
+    "RRP_PROGRAMMING_LANGUAGE",
     "VreRocrateError",
     "CrateValidationError",
 ]
