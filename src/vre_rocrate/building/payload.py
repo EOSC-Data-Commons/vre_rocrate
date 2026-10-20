@@ -7,6 +7,7 @@ from ..models.payload import (
     WorkflowDescriptor,
     FileReference,
     FormalParameter,
+    DatasetReference,
 )
 from ..models.infrastructure import RuntimePlatform
 from ..parsing.infrastructure import runtime_platform_from_dict
@@ -60,6 +61,7 @@ class VREPayloadBuilder:
         workflow_inputs = self._extract_parameters(self.main.get("input", []))
         workflow_outputs = self._extract_parameters(self.main.get("output", []))
         raw_definition = self._extract_raw_definition()
+        input_dataset = self._extract_input_dataset()
 
         return VREPayload(
             vre_type=lang_id or "unknown",
@@ -70,6 +72,7 @@ class VREPayloadBuilder:
             workflow_outputs=workflow_outputs,
             raw_crate=self.crate,
             raw_definition=raw_definition,
+            input_dataset=input_dataset,
         )
 
     # ------------------------------------------------------------------
@@ -110,6 +113,7 @@ class VREPayloadBuilder:
             runtime_platform=runtime_platform,
             properties=dict(self.main),
             tool_version=self.main.get("version"),
+            docker_image=self.main.get("dockerImage"),
         )
 
     # ------------------------------------------------------------------
@@ -141,6 +145,25 @@ class VREPayloadBuilder:
                 )
             )
         return files
+
+    def _extract_input_dataset(self) -> DatasetReference | None:
+        """Extract the first Dataset entity referenced from the root's hasPart."""
+        has_part = self.root.get("hasPart") if self.root else []
+        for ref in has_part:
+            eid = ref if isinstance(ref, str) else ref.get("@id")
+            entity = self._find_entity(eid)
+            if entity is None:
+                continue
+            entity_types = entity.get("@type", [])
+            if isinstance(entity_types, str):
+                entity_types = [entity_types]
+            if "Dataset" in entity_types:
+                return DatasetReference(
+                    url=entity.get("@id", ""),
+                    name=entity.get("name"),
+                    description=entity.get("description"),
+                )
+        return None
 
     def _extract_parameters(self, param_refs: list[Any]) -> list[FormalParameter]:
         params: list[FormalParameter] = []
@@ -213,4 +236,3 @@ class VREPayloadBuilder:
         if isinstance(ref, dict) and "@id" in ref:
             return self._find_entity(ref["@id"])
         return ref
-

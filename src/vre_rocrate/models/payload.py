@@ -28,6 +28,13 @@ class FileReference:
 
 
 @dataclass
+class DatasetReference:
+    url: str
+    name: str | None = None
+    description: str | None = None
+
+
+@dataclass
 class WorkflowDescriptor:
     id: str
     type: str
@@ -36,6 +43,7 @@ class WorkflowDescriptor:
     runtime_platform: str | RuntimePlatform | None = None
     properties: dict[str, Any] = field(default_factory=dict, repr=False)
     tool_version: str | None = None
+    docker_image: str | None = None
 
 
 @dataclass
@@ -56,6 +64,7 @@ class VREPayload:
     workflow_outputs: list[FormalParameter] = field(default_factory=list)
     raw_crate: dict[str, Any] = field(default_factory=dict, repr=False)
     raw_definition: dict[str, Any] = field(default_factory=dict, repr=False)
+    input_dataset: DatasetReference | None = None
 
     # -- data-access helpers -------------------------------------------------
 
@@ -204,10 +213,14 @@ class VREPayload:
         workflow_outputs = [
             FormalParameter(**p) for p in data.pop("workflow_outputs", [])
         ]
+        input_dataset = data.pop("input_dataset", None)
+        if isinstance(input_dataset, dict):
+            input_dataset = DatasetReference(**input_dataset)
         return cls(
             workflow=workflow,
             files=files,
             workflow_inputs=workflow_inputs,
             workflow_outputs=workflow_outputs,
+            input_dataset=input_dataset,
             **data,
         )

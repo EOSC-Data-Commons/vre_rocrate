@@ -3,6 +3,7 @@ from .payload import (
     WorkflowDescriptor,
     FileReference,
     FormalParameter,
+    DatasetReference,
 )
 from .launch import (
     VRELaunchRequest,
@@ -20,6 +21,7 @@ __all__ = [
     "WorkflowDescriptor",
     "FileReference",
     "FormalParameter",
+    "DatasetReference",
     "VRELaunchRequest",
     "ToolMeta",
     "LaunchInput",

@@ -8,6 +8,7 @@ OSCAR_PROGRAMMING_LANGUAGE = "https://oscar.grycap.net/"
 JUPYTER_PROGRAMMING_LANGUAGE = "https://jupyter.org"
 VIP_PROGRAMMING_LANGUAGE = "https://vip.creatis.insa-lyon.fr/"
 MDDASH_PROGRAMMING_LANGUAGE = "https://github.com/CERIT-SC/mddash"
+RRP_PROGRAMMING_LANGUAGE = "https://rrp-eosc.ethz.ch/"
 
 VRE_TYPE_TO_PROGRAMMING_LANGUAGE = {
     "galaxy": GALAXY_PROGRAMMING_LANGUAGE,
@@ -18,6 +19,7 @@ VRE_TYPE_TO_PROGRAMMING_LANGUAGE = {
     "vip": VIP_PROGRAMMING_LANGUAGE,
     "mddash": MDDASH_PROGRAMMING_LANGUAGE,
     "sciencemesh": SCIENCEMESH_PROGRAMMING_LANGUAGE,
+    "rrp": RRP_PROGRAMMING_LANGUAGE,
 }
 
 VRE_TYPE_TO_DISPLAY_NAME = {
@@ -29,6 +31,7 @@ VRE_TYPE_TO_DISPLAY_NAME = {
     "vip": "VIP",
     "mddash": "MDDash",
     "sciencemesh": "Jupyter Notebook",
+    "rrp": "Reproducible Research Platform (RRP)",
 }
 
 VRE_TYPE_TO_LANGUAGE_URL = {
@@ -40,6 +43,7 @@ VRE_TYPE_TO_LANGUAGE_URL = {
     "vip": "https://vip.creatis.insa-lyon.fr/",
     "mddash": "https://github.com/CERIT-SC/mddash",
     "sciencemesh": "https://jupyter.org/",
+    "rrp": "https://rrp-eosc.ethz.ch/",
 }
 
 VRE_TYPES = tuple(VRE_TYPE_TO_PROGRAMMING_LANGUAGE.keys())
