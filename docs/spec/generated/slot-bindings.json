@@ -1,0 +1,96 @@
+{
+  "_note": "Cases 2 and 3 emit the identical FormalParameter JSON and are parsed back differently, because `VREPayload.file_for_input` resolves the defaultValue against the crate's files rather than reading additionalType. A consumer that decides 'is this slot a file?' from the declared type will disagree with this library on case 2.",
+  "collider_with_file_absent": {
+    "input_files": [],
+    "slots": [
+      {
+        "declared_type": "string",
+        "default_value": "https://example.org/data/input.fastq",
+        "default_value_json": "\"https://example.org/data/input.fastq\"",
+        "file_for_input": null,
+        "has_defaultValue_key": true,
+        "name": "looks_literal"
+      }
+    ],
+    "violations": []
+  },
+  "collider_with_file_present": {
+    "input_files": [
+      "https://example.org/data/input.fastq"
+    ],
+    "slots": [
+      {
+        "declared_type": "string",
+        "default_value": "https://example.org/data/input.fastq",
+        "default_value_json": "\"https://example.org/data/input.fastq\"",
+        "file_for_input": "https://example.org/data/input.fastq",
+        "has_defaultValue_key": true,
+        "name": "looks_literal"
+      }
+    ],
+    "violations": []
+  },
+  "findings": [
+    {
+      "claim": "`additionalType` (the declared `slot_type`) is carried through to the consumer but never consulted when deciding whether a slot is file-bound",
+      "confirmed": true
+    },
+    {
+      "claim": "two crates with byte-identical `defaultValue` JSON mean different things depending on whether a file with that `@id` is present",
+      "confirmed": true
+    },
+    {
+      "claim": "a declared slot with no value is still emitted and still referenced from `workflow.input`; only `defaultValue` is absent, so an unfilled slot and an empty one are indistinguishable downstream",
+      "confirmed": true
+    }
+  ],
+  "intended": {
+    "input_files": [
+      "https://example.org/data/input.fastq",
+      "https://example.org/data/attachment.csv"
+    ],
+    "slots": [
+      {
+        "declared_type": "data_file",
+        "default_value": {
+          "@id": "https://example.org/data/input.fastq"
+        },
+        "default_value_json": "{\"@id\": \"https://example.org/data/input.fastq\"}",
+        "file_for_input": "https://example.org/data/input.fastq",
+        "has_defaultValue_key": true,
+        "name": "Input 1"
+      },
+      {
+        "declared_type": "string",
+        "default_value": "1UBQ",
+        "default_value_json": "\"1UBQ\"",
+        "file_for_input": null,
+        "has_defaultValue_key": true,
+        "name": "pdb_id"
+      }
+    ],
+    "violations": []
+  },
+  "unfilled_slot": {
+    "input_files": [],
+    "slots": [
+      {
+        "declared_type": "data_file",
+        "default_value": null,
+        "default_value_json": "null",
+        "file_for_input": null,
+        "has_defaultValue_key": false,
+        "name": "Input 1"
+      },
+      {
+        "declared_type": "string",
+        "default_value": "1UBQ",
+        "default_value_json": "\"1UBQ\"",
+        "file_for_input": null,
+        "has_defaultValue_key": true,
+        "name": "pdb_id"
+      }
+    ],
+    "violations": []
+  }
+}

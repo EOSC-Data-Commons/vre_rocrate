@@ -1,0 +1,1357 @@
+{
+  "$defs": {
+    "descriptor": {
+      "additionalProperties": true,
+      "properties": {
+        "@id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "about": {
+          "additionalProperties": true,
+          "properties": {
+            "@id": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        },
+        "conformsTo": {
+          "contains": {
+            "properties": {
+              "@id": {
+                "const": "https://w3id.org/eosc-vre/req-packager/1.0"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "minItems": 2,
+          "type": "array"
+        }
+      },
+      "required": [
+        "@id",
+        "@type",
+        "about",
+        "conformsTo"
+      ],
+      "type": "object"
+    },
+    "file": {
+      "additionalProperties": true,
+      "properties": {
+        "@id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "datePublished": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "@id",
+        "@type",
+        "name"
+      ],
+      "type": "object"
+    },
+    "language": {
+      "additionalProperties": true,
+      "properties": {
+        "@id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "@id",
+        "@type",
+        "identifier",
+        "name",
+        "url"
+      ],
+      "type": "object"
+    },
+    "link": {
+      "additionalProperties": true,
+      "properties": {
+        "@id": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "@id"
+      ],
+      "type": "object"
+    },
+    "root": {
+      "additionalProperties": true,
+      "properties": {
+        "@id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "creator": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "properties": {
+                "@id": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "additionalProperties": true,
+                "properties": {
+                  "@id": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "datePublished": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "hasPart": {
+          "items": {
+            "additionalProperties": true,
+            "properties": {
+              "@id": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "license": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "properties": {
+                "@id": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "additionalProperties": true,
+                "properties": {
+                  "@id": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "mainEntity": {
+          "additionalProperties": true,
+          "properties": {
+            "@id": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "@id",
+        "@type",
+        "datePublished",
+        "hasPart",
+        "mainEntity"
+      ],
+      "type": "object"
+    },
+    "runtimePlatform": {
+      "additionalProperties": true,
+      "properties": {
+        "@id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "input": {
+          "items": {
+            "additionalProperties": true,
+            "properties": {
+              "@type": {
+                "const": "File"
+              },
+              "contentLocation": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@type"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "@id",
+        "@type",
+        "name"
+      ],
+      "type": "object"
+    },
+    "workflow": {
+      "additionalProperties": true,
+      "properties": {
+        "@id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "conformsTo": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "properties": {
+                "@id": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "additionalProperties": true,
+                "properties": {
+                  "@id": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "creator": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "properties": {
+                "@id": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "additionalProperties": true,
+                "properties": {
+                  "@id": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "dateCreated": {
+          "format": "full-date",
+          "type": "string"
+        },
+        "license": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "properties": {
+                "@id": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "additionalProperties": true,
+                "properties": {
+                  "@id": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "programmingLanguage": {
+          "additionalProperties": true,
+          "properties": {
+            "@id": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        },
+        "runtimePlatform": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "additionalProperties": true,
+              "properties": {
+                "@id": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "sdPublisher": {
+          "additionalProperties": true,
+          "properties": {
+            "@id": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "@id",
+        "@type",
+        "name",
+        "programmingLanguage"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "description": "For crates carrying an infrastructure-manager RuntimePlatform. This profile is PARSEABLE by this library and NOT emittable by it: no RocrateBuilder input produces a RuntimePlatform entity. Schema failures here are expected for older TOSCA-authored crates - see examples.json, whose entries record which crate violates which rule.",
+  "properties": {
+    "@context": {
+      "const": "https://w3id.org/ro/crate/1.1/context"
+    },
+    "@graph": {
+      "allOf": [
+        {
+          "contains": {
+            "allOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "const": "ro-crate-metadata.json"
+                  }
+                },
+                "required": [
+                  "@id"
+                ]
+              },
+              {
+                "required": [
+                  "about",
+                  "conformsTo"
+                ]
+              }
+            ]
+          },
+          "minContains": 1
+        },
+        {
+          "contains": {
+            "allOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "const": "./"
+                  }
+                },
+                "required": [
+                  "@id"
+                ]
+              },
+              {
+                "required": [
+                  "mainEntity"
+                ]
+              }
+            ]
+          },
+          "minContains": 1
+        },
+        {
+          "contains": {
+            "allOf": [
+              {
+                "properties": {
+                  "@type": {
+                    "anyOf": [
+                      {
+                        "const": "ComputerLanguage"
+                      },
+                      {
+                        "contains": {
+                          "const": "ComputerLanguage"
+                        },
+                        "type": "array"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "@type"
+                ]
+              },
+              {}
+            ]
+          },
+          "minContains": 1
+        },
+        {
+          "contains": {
+            "allOf": [
+              {
+                "properties": {
+                  "@type": {
+                    "anyOf": [
+                      {
+                        "const": "RuntimePlatform"
+                      },
+                      {
+                        "contains": {
+                          "const": "RuntimePlatform"
+                        },
+                        "type": "array"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "@type"
+                ]
+              },
+              {}
+            ]
+          },
+          "minContains": 1
+        }
+      ],
+      "items": {
+        "allOf": [
+          {
+            "additionalProperties": true,
+            "properties": {
+              "@id": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "@type": {
+                "anyOf": [
+                  {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "items": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@id",
+              "@type"
+            ],
+            "type": "object"
+          },
+          {
+            "if": {
+              "required": [
+                "hasPart"
+              ]
+            },
+            "then": {
+              "properties": {
+                "hasPart": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "input"
+              ]
+            },
+            "then": {
+              "properties": {
+                "input": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "output"
+              ]
+            },
+            "then": {
+              "properties": {
+                "output": {
+                  "type": "array"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@id": {
+                  "const": "ro-crate-metadata.json"
+                }
+              },
+              "required": [
+                "@id"
+              ]
+            },
+            "then": {
+              "additionalProperties": true,
+              "properties": {
+                "@id": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "@type": {
+                  "anyOf": [
+                    {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "items": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  ]
+                },
+                "about": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "@id": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "conformsTo": {
+                  "contains": {
+                    "properties": {
+                      "@id": {
+                        "const": "https://w3id.org/eosc-vre/req-packager/1.0"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  },
+                  "minItems": 2,
+                  "type": "array"
+                }
+              },
+              "required": [
+                "@id",
+                "@type",
+                "about",
+                "conformsTo"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@id": {
+                  "const": "./"
+                }
+              },
+              "required": [
+                "@id"
+              ]
+            },
+            "then": {
+              "additionalProperties": true,
+              "properties": {
+                "@id": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "@type": {
+                  "anyOf": [
+                    {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "items": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  ]
+                },
+                "creator": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "properties": {
+                        "@id": {
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "items": {
+                        "additionalProperties": true,
+                        "properties": {
+                          "@id": {
+                            "minLength": 1,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "@id"
+                        ],
+                        "type": "object"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  ]
+                },
+                "datePublished": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "hasPart": {
+                  "items": {
+                    "additionalProperties": true,
+                    "properties": {
+                      "@id": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "license": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "properties": {
+                        "@id": {
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "items": {
+                        "additionalProperties": true,
+                        "properties": {
+                          "@id": {
+                            "minLength": 1,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "@id"
+                        ],
+                        "type": "object"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  ]
+                },
+                "mainEntity": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "@id": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "@id",
+                "@type",
+                "datePublished",
+                "hasPart",
+                "mainEntity"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "programmingLanguage"
+              ]
+            },
+            "then": {
+              "additionalProperties": true,
+              "properties": {
+                "@id": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "@type": {
+                  "anyOf": [
+                    {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "items": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  ]
+                },
+                "conformsTo": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "properties": {
+                        "@id": {
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "items": {
+                        "additionalProperties": true,
+                        "properties": {
+                          "@id": {
+                            "minLength": 1,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "@id"
+                        ],
+                        "type": "object"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  ]
+                },
+                "creator": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "properties": {
+                        "@id": {
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "items": {
+                        "additionalProperties": true,
+                        "properties": {
+                          "@id": {
+                            "minLength": 1,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "@id"
+                        ],
+                        "type": "object"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  ]
+                },
+                "dateCreated": {
+                  "format": "full-date",
+                  "type": "string"
+                },
+                "license": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "properties": {
+                        "@id": {
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "items": {
+                        "additionalProperties": true,
+                        "properties": {
+                          "@id": {
+                            "minLength": 1,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "@id"
+                        ],
+                        "type": "object"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  ]
+                },
+                "programmingLanguage": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "@id": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "runtimePlatform": {
+                  "anyOf": [
+                    {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": true,
+                      "properties": {
+                        "@id": {
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "sdPublisher": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "@id": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "@id",
+                "@type",
+                "name",
+                "programmingLanguage"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "sha256"
+              ]
+            },
+            "then": {
+              "additionalProperties": true,
+              "properties": {
+                "@id": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "@type": {
+                  "anyOf": [
+                    {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "items": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  ]
+                },
+                "datePublished": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "sha256": {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id",
+                "@type",
+                "name"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "File"
+                    },
+                    {
+                      "contains": {
+                        "const": "File"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "additionalProperties": true,
+              "properties": {
+                "@id": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "@type": {
+                  "anyOf": [
+                    {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "items": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  ]
+                },
+                "datePublished": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "sha256": {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id",
+                "@type",
+                "name"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "ComputerLanguage"
+                    },
+                    {
+                      "contains": {
+                        "const": "ComputerLanguage"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "additionalProperties": true,
+              "properties": {
+                "@id": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "@type": {
+                  "anyOf": [
+                    {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "items": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@id",
+                "@type",
+                "identifier",
+                "name",
+                "url"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "RuntimePlatform"
+                    },
+                    {
+                      "contains": {
+                        "const": "RuntimePlatform"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "additionalProperties": true,
+              "properties": {
+                "@id": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "@type": {
+                  "anyOf": [
+                    {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "items": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  ]
+                },
+                "input": {
+                  "items": {
+                    "additionalProperties": true,
+                    "properties": {
+                      "@type": {
+                        "const": "File"
+                      },
+                      "contentLocation": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@type"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "@id",
+                "@type",
+                "name"
+              ],
+              "type": "object"
+            }
+          }
+        ]
+      },
+      "minItems": 2,
+      "type": "array"
+    }
+  },
+  "required": [
+    "@context",
+    "@graph"
+  ],
+  "title": "req-packager wire format - infrastructure profile",
+  "type": "object"
+}

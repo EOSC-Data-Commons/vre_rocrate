@@ -1,0 +1,92 @@
+{
+  "@context": "https://w3id.org/ro/crate/1.1/context",
+  "@graph": [
+    {
+      "@id": "#author-dispatcher",
+      "@type": "Person",
+      "name": "Dispatcher System"
+    },
+    {
+      "@id": "#binder-lang",
+      "@type": "ComputerLanguage",
+      "identifier": "https://jupyter.org/binder/",
+      "name": "Binder",
+      "url": "https://jupyter.org/binder/"
+    },
+    {
+      "@id": "#license-unspecified",
+      "@type": "CreativeWork",
+      "description": "License not specified by the crate producer",
+      "name": "Unspecified license"
+    },
+    {
+      "@id": "#workflow-hub",
+      "@type": "Organization",
+      "name": "Example Workflow Hub",
+      "url": "http://example.com/workflows/"
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "datePublished": "2000-01-01T00:00:00+00:00",
+      "description": "N/A",
+      "hasPart": [
+        {
+          "@id": "https://doi.org/10.5281/zenodo.20509715"
+        }
+      ],
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "mainEntity": {
+        "@id": "https://doi.org/10.5281/zenodo.20509715"
+      },
+      "name": "Root dataset for tool: Example jupyter notebook"
+    },
+    {
+      "@id": "https://doi.org/10.5281/zenodo.20509715",
+      "@type": [
+        "SoftwareSourceCode",
+        "ComputationalWorkflow"
+      ],
+      "conformsTo": {
+        "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
+      },
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "dateCreated": "2000-01-01",
+      "description": "A simple Jupyter notebook for demonstration purposes.",
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "Example jupyter notebook",
+      "programmingLanguage": {
+        "@id": "#binder-lang"
+      },
+      "runtimePlatform": "https://replay.notebooks.egi.eu/",
+      "sdPublisher": {
+        "@id": "#workflow-hub"
+      },
+      "version": "1.0.0"
+    },
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      },
+      "conformsTo": [
+        {
+          "@id": "https://w3id.org/ro/crate/1.1"
+        },
+        {
+          "@id": "https://w3id.org/eosc-vre/req-packager/1.0"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,664 @@
+{
+  "_generated_from": "probe matrix over RocrateBuilder.build_from_launch_request",
+  "_probe_count": 16,
+  "emission_order": [
+    "ro-crate-metadata.json",
+    "./",
+    "https://example.org/workflow.ga",
+    "#galaxy-lang",
+    "https://example.org/data/input.fastq",
+    "https://example.org/data/attachment.csv",
+    "#input-in1",
+    "#input-lit",
+    "https://example.org/dataset/doi/10.5072/test",
+    "#tool-metadata",
+    "#author-dispatcher",
+    "#workflow-hub",
+    "#license-unspecified"
+  ],
+  "entities": {
+    "author-placeholder": {
+      "emitted_when": "always",
+      "example_ids": [
+        "#author-dispatcher"
+      ],
+      "id_pattern": "#author-dispatcher",
+      "meaning": "Placeholder Person credited as root creator.",
+      "omitted_when": [],
+      "properties": {
+        "@type": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "name": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        }
+      },
+      "types_observed": [
+        "Person"
+      ]
+    },
+    "computer-language": {
+      "emitted_when": "always",
+      "example_ids": [
+        "#galaxy-lang"
+      ],
+      "id_pattern": "#<vre_type>-lang",
+      "meaning": "ComputerLanguage carrying the VRE identity token in `identifier`. This is the ONLY place the target VRE is declared.",
+      "omitted_when": [],
+      "properties": {
+        "@type": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "identifier": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "name": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "url": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        }
+      },
+      "types_observed": [
+        "ComputerLanguage"
+      ]
+    },
+    "file": {
+      "emitted_when": "conditional",
+      "example_ids": [
+        "https://example.org/data/input.fastq",
+        "https://example.org/data/attachment.csv"
+      ],
+      "id_pattern": "<file.url, or the bare name when there is no url>",
+      "meaning": "A data file, reachable ONLY through root hasPart. Slot-bound and free-form files are structurally identical here and differ only in whether a FormalParameter's defaultValue points at them.",
+      "omitted_when": [
+        "neither slot-bound nor free-form files are supplied"
+      ],
+      "properties": {
+        "@type": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "contentSize": {
+          "omitted_when": [
+            "FileInput.size_bytes is None"
+          ],
+          "probes_that_drop_it": [
+            "file_no_size"
+          ],
+          "shapes": [
+            "integer"
+          ],
+          "status": "conditional"
+        },
+        "encodingFormat": {
+          "omitted_when": [
+            "FileInput.mime_type is None"
+          ],
+          "probes_that_drop_it": [
+            "file_no_mime"
+          ],
+          "shapes": [
+            "string"
+          ],
+          "status": "conditional"
+        },
+        "license": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "reference"
+          ],
+          "status": "required"
+        },
+        "name": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "onedata:fileId": {
+          "omitted_when": [
+            "no onedata placement hints are given"
+          ],
+          "probes_that_drop_it": [
+            "file_no_onedata"
+          ],
+          "shapes": [
+            "string"
+          ],
+          "status": "conditional"
+        },
+        "onedata:onezoneDomain": {
+          "omitted_when": [
+            "no onedata placement hints are given"
+          ],
+          "probes_that_drop_it": [
+            "file_no_onedata"
+          ],
+          "shapes": [
+            "string"
+          ],
+          "status": "conditional"
+        },
+        "sha256": {
+          "omitted_when": [
+            "FileInput.checksum is None",
+            "checksum_type is anything other than 'sha256' - the checksum is DISCARDED, not emitted under another key"
+          ],
+          "probes_that_drop_it": [
+            "file_no_checksum",
+            "file_non_sha256_checksum"
+          ],
+          "shapes": [
+            "string"
+          ],
+          "status": "conditional"
+        },
+        "url": {
+          "omitted_when": [
+            "FileInput.url is None; the entity is then keyed by its bare name"
+          ],
+          "probes_that_drop_it": [
+            "file_local_no_url"
+          ],
+          "shapes": [
+            "string"
+          ],
+          "status": "conditional"
+        }
+      },
+      "types_observed": [
+        "File"
+      ]
+    },
+    "formal-parameter": {
+      "emitted_when": "conditional",
+      "example_ids": [
+        "#input-in1",
+        "#input-lit"
+      ],
+      "id_pattern": "#input-<slot.id>",
+      "meaning": "A tool-declared input slot. @id derives from slot.id but values are looked up by slot.name, so id and name are different keys.",
+      "omitted_when": [
+        "the tool declares no slots"
+      ],
+      "properties": {
+        "@type": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "additionalType": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "defaultValue": {
+          "omitted_when": [
+            "the slot is declared by the tool but not filled by the request"
+          ],
+          "probes_that_drop_it": [
+            "slot_unfilled"
+          ],
+          "shapes": [
+            "reference",
+            "string"
+          ],
+          "status": "conditional"
+        },
+        "name": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "required": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "boolean"
+          ],
+          "status": "required"
+        }
+      },
+      "types_observed": [
+        "FormalParameter"
+      ]
+    },
+    "input-dataset": {
+      "emitted_when": "conditional",
+      "example_ids": [
+        "https://example.org/dataset/doi/10.5072/test"
+      ],
+      "id_pattern": "<dataset.url>",
+      "meaning": "Optional Dataset for a browsed dataset. @id IS the dataset url.",
+      "omitted_when": [
+        "LaunchInput.dataset is None"
+      ],
+      "properties": {
+        "@type": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "description": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "name": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        }
+      },
+      "types_observed": [
+        "Dataset"
+      ]
+    },
+    "license-placeholder": {
+      "emitted_when": "always",
+      "example_ids": [
+        "#license-unspecified"
+      ],
+      "id_pattern": "#license-unspecified",
+      "meaning": "Placeholder CreativeWork, emitted because a builder cannot assert a license on the producer's behalf. Never read by the parser and absent from every crate not built by this library - an emitter convention, not a protocol feature.",
+      "omitted_when": [],
+      "properties": {
+        "@type": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "description": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "name": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        }
+      },
+      "types_observed": [
+        "CreativeWork"
+      ]
+    },
+    "publisher-placeholder": {
+      "emitted_when": "always",
+      "example_ids": [
+        "#workflow-hub"
+      ],
+      "id_pattern": "#workflow-hub",
+      "meaning": "Placeholder Organization carried as sdPublisher.",
+      "omitted_when": [],
+      "properties": {
+        "@type": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "name": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "url": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        }
+      },
+      "types_observed": [
+        "Organization"
+      ]
+    },
+    "root-dataset": {
+      "emitted_when": "always",
+      "example_ids": [
+        "./"
+      ],
+      "id_pattern": "./",
+      "meaning": "Root dataset. The anchor for the whole payload: mainEntity and hasPart are read from here and nowhere else.",
+      "omitted_when": [],
+      "properties": {
+        "@type": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "creator": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "reference"
+          ],
+          "status": "required"
+        },
+        "datePublished": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "description": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "hasPart": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "list_of_references"
+          ],
+          "status": "required"
+        },
+        "license": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "reference"
+          ],
+          "status": "required"
+        },
+        "mainEntity": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "reference"
+          ],
+          "status": "required"
+        },
+        "name": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        }
+      },
+      "types_observed": [
+        "Dataset"
+      ]
+    },
+    "root-descriptor": {
+      "emitted_when": "always",
+      "example_ids": [
+        "ro-crate-metadata.json"
+      ],
+      "id_pattern": "ro-crate-metadata.json",
+      "meaning": "Crate root descriptor. MUST be the first @graph entity. Declares the base RO-Crate profile and the wire format profile in conformsTo.",
+      "omitted_when": [],
+      "properties": {
+        "@type": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "about": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "reference"
+          ],
+          "status": "required"
+        },
+        "conformsTo": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "list_of_references"
+          ],
+          "status": "required"
+        }
+      },
+      "types_observed": [
+        "CreativeWork"
+      ]
+    },
+    "tool-metadata": {
+      "emitted_when": "conditional",
+      "example_ids": [
+        "#tool-metadata"
+      ],
+      "id_pattern": "#tool-metadata",
+      "meaning": "Opaque Thing carrying rawDefinition - the producer's own tool definition, round-tripped untouched.",
+      "omitted_when": [
+        "ToolMeta.raw_definition is empty"
+      ],
+      "properties": {
+        "@type": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "rawDefinition": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "object"
+          ],
+          "status": "required"
+        }
+      },
+      "types_observed": [
+        "Thing"
+      ]
+    },
+    "workflow": {
+      "emitted_when": "always",
+      "example_ids": [
+        "https://example.org/workflow.ga"
+      ],
+      "id_pattern": "<tool.uri>",
+      "meaning": "The workflow / mainEntity. Its @id IS the workflow uri - there is no separate identifier - and it is also a root hasPart member.",
+      "omitted_when": [],
+      "properties": {
+        "@type": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "list_of_string"
+          ],
+          "status": "required"
+        },
+        "conformsTo": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "reference"
+          ],
+          "status": "required"
+        },
+        "creator": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "reference"
+          ],
+          "status": "required"
+        },
+        "dateCreated": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "description": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "encodingFormat": {
+          "omitted_when": [
+            "the workflow uri has no extension in _EXTENSION_TO_MIME; this also drops 'File' from @type, which stops the workflow appearing in VREPayload.files"
+          ],
+          "probes_that_drop_it": [
+            "workflow_uri_without_extension"
+          ],
+          "shapes": [
+            "string"
+          ],
+          "status": "conditional"
+        },
+        "input": {
+          "omitted_when": [
+            "the tool declares no slots"
+          ],
+          "probes_that_drop_it": [
+            "no_slots"
+          ],
+          "shapes": [
+            "list_of_references"
+          ],
+          "status": "conditional"
+        },
+        "license": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "reference"
+          ],
+          "status": "required"
+        },
+        "name": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "programmingLanguage": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "reference"
+          ],
+          "status": "required"
+        },
+        "runtimePlatform": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        },
+        "sdPublisher": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "reference"
+          ],
+          "status": "required"
+        },
+        "version": {
+          "omitted_when": [],
+          "probes_that_drop_it": [],
+          "shapes": [
+            "string"
+          ],
+          "status": "required"
+        }
+      },
+      "types_observed": [
+        "File|SoftwareSourceCode|ComputationalWorkflow"
+      ]
+    }
+  }
+}

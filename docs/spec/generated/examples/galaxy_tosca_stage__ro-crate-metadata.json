@@ -1,0 +1,171 @@
+{
+  "@context": "https://w3id.org/ro/crate/1.1/context",
+  "@graph": [
+    {
+      "@id": "#author-dispatcher",
+      "@type": "Person",
+      "name": "Dispatcher System"
+    },
+    {
+      "@id": "#destination",
+      "@type": "RuntimePlatform",
+      "input": [
+        {
+          "@id": "#tosca_input_file"
+        }
+      ],
+      "installUrl": "https://raw.githubusercontent.com/grycap/tosca/refs/heads/eosc_dc/templates/galaxy.yaml",
+      "memoryRequirements": "4 GiB",
+      "name": "Infrastructure Manager",
+      "processorRequirements": [
+        "2 vCPU",
+        "1 GPU"
+      ],
+      "storageRequirements": "200 GiB"
+    },
+    {
+      "@id": "#galaxy-lang",
+      "@type": "ComputerLanguage",
+      "identifier": "https://galaxyproject.org/",
+      "name": "Galaxy",
+      "url": "https://galaxyproject.org/"
+    },
+    {
+      "@id": "#input-textfile",
+      "@type": "FormalParameter",
+      "additionalType": {
+        "@id": "http://edamontology.org/data_3671"
+      },
+      "conformsTo": {
+        "@id": "https://bioschemas.org/profiles/FormalParameter/0.1-DRAFT-2020_07_21/"
+      },
+      "encodingFormat": {
+        "@id": "http://edamontology.org/format_2330"
+      },
+      "name": "simpletext_input"
+    },
+    {
+      "@id": "#output-result",
+      "@type": "FormalParameter",
+      "additionalType": {
+        "@id": "http://edamontology.org/data_3671"
+      },
+      "conformsTo": {
+        "@id": "https://bioschemas.org/profiles/FormalParameter/0.1-DRAFT-2020_07_21/"
+      },
+      "encodingFormat": {
+        "@id": "http://edamontology.org/format_2330"
+      },
+      "name": "reversed_text"
+    },
+    {
+      "@id": "#tosca_input_file",
+      "@type": "File",
+      "contentLocation": "/opt/data",
+      "encodingFormat": "text/txt",
+      "name": "simpletext_input"
+    },
+    {
+      "@id": "#workflow-hub",
+      "@type": "Organization",
+      "name": "Example Workflow Hub",
+      "url": "http://example.com/workflows/"
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "datePublished": "2025-05-06T14:35:47+00:00",
+      "description": "This is an example of a workflow using the Galaxy platform with TOSCA.",
+      "hasPart": [
+        {
+          "@id": "https://dockstore.org/api/ga4gh/trs/v2/tools/%23workflow%2Fgithub.com%2Flaitanawe%2Fismb2024%2Fgalaxy_example/versions/main/PLAIN_GALAXY/descriptor//Galaxy-Workflow-reverse_file_galaxy_workflow.ga"
+        },
+        {
+          "@id": "https://example-files.online-convert.com/document/txt/example.txt"
+        }
+      ],
+      "license": {
+        "@id": "https://spdx.org/licenses/GPL-3.0"
+      },
+      "mainEntity": {
+        "@id": "https://dockstore.org/api/ga4gh/trs/v2/tools/%23workflow%2Fgithub.com%2Flaitanawe%2Fismb2024%2Fgalaxy_example/versions/main/PLAIN_GALAXY/descriptor//Galaxy-Workflow-reverse_file_galaxy_workflow.ga"
+      },
+      "name": "Galaxy Example Workflow"
+    },
+    {
+      "@id": "http://edamontology.org/data_3671",
+      "@type": "Thing",
+      "name": "Text"
+    },
+    {
+      "@id": "http://edamontology.org/format_2330",
+      "@type": "Thing",
+      "name": "Plain text format"
+    },
+    {
+      "@id": "https://dockstore.org/api/ga4gh/trs/v2/tools/%23workflow%2Fgithub.com%2Flaitanawe%2Fismb2024%2Fgalaxy_example/versions/main/PLAIN_GALAXY/descriptor//Galaxy-Workflow-reverse_file_galaxy_workflow.ga",
+      "@type": [
+        "File",
+        "SoftwareSourceCode",
+        "ComputationalWorkflow"
+      ],
+      "conformsTo": {
+        "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
+      },
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "dateCreated": "2025-05-06",
+      "description": "A simple Galaxy workflow for demonstration purposes.",
+      "input": [
+        {
+          "@id": "#input-textfile"
+        }
+      ],
+      "license": {
+        "@id": "https://spdx.org/licenses/GPL-3.0"
+      },
+      "name": "Example galaxy workflow",
+      "output": [
+        {
+          "@id": "#output-result"
+        }
+      ],
+      "programmingLanguage": {
+        "@id": "#galaxy-lang"
+      },
+      "runtimePlatform": {
+        "@id": "#destination"
+      },
+      "sdPublisher": {
+        "@id": "#workflow-hub"
+      },
+      "version": "1.0.0"
+    },
+    {
+      "@id": "https://example-files.online-convert.com/document/txt/example.txt",
+      "@type": "File",
+      "encodingFormat": "text/txt",
+      "name": "simpletext_input"
+    },
+    {
+      "@id": "https://spdx.org/licenses/GPL-3.0",
+      "@type": "CreativeWork",
+      "alternateName": "GPL-3.0",
+      "name": "GNU General Public License v3.0"
+    },
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      },
+      "conformsTo": {
+        "@id": "https://w3id.org/ro/crate/1.1"
+      }
+    }
+  ]
+}

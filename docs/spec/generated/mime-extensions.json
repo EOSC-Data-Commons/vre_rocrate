@@ -1,0 +1,19 @@
+{
+  "_note": "Applied ONLY to the workflow uri, never to data files. It sets the workflow's encodingFormat AND decides whether 'File' is prepended to the workflow @type; a uri whose extension is absent or unknown yields no 'File' type, which then drops the workflow out of VREPayload.files entirely (that list is built from hasPart members whose @type includes File). Data files take encodingFormat from FileInput.mime_type verbatim and are File-typed unconditionally.",
+  "applies_to": "workflow uri only",
+  "extension_to_mime": {
+    ".csv": "text/csv",
+    ".fastq": "application/fastq",
+    ".ga": "application/galaxy",
+    ".ipynb": "application/x-ipynb+json",
+    ".jpeg": "image/jpeg",
+    ".jpg": "image/jpeg",
+    ".json": "application/json",
+    ".png": "image/png",
+    ".py": "text/x-python",
+    ".sh": "text/x-shellscript",
+    ".tif": "image/tiff",
+    ".tiff": "image/tiff",
+    ".txt": "text/plain"
+  }
+}

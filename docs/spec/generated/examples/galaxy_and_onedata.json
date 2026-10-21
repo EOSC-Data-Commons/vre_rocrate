@@ -1,0 +1,146 @@
+{
+  "@context": "https://w3id.org/ro/crate/1.1/context",
+  "@graph": [
+    {
+      "@id": "#author-dispatcher",
+      "@type": "Person",
+      "name": "Dispatcher System"
+    },
+    {
+      "@id": "#galaxy-lang",
+      "@type": "ComputerLanguage",
+      "identifier": "https://galaxyproject.org/",
+      "name": "Galaxy",
+      "url": "https://galaxyproject.org/"
+    },
+    {
+      "@id": "#input-input-image",
+      "@type": "FormalParameter",
+      "additionalType": "file",
+      "name": "Input Image",
+      "required": true
+    },
+    {
+      "@id": "#input-input-stopwords",
+      "@type": "FormalParameter",
+      "additionalType": "file",
+      "name": "Upload Stopwords",
+      "required": true
+    },
+    {
+      "@id": "#license-unspecified",
+      "@type": "CreativeWork",
+      "description": "License not specified by the crate producer",
+      "name": "Unspecified license"
+    },
+    {
+      "@id": "#workflow-hub",
+      "@type": "Organization",
+      "name": "Example Workflow Hub",
+      "url": "http://example.com/workflows/"
+    },
+    {
+      "@id": "./",
+      "@type": "Dataset",
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "datePublished": "2000-01-01T00:00:00+00:00",
+      "description": "N/A",
+      "hasPart": [
+        {
+          "@id": "https://dockstore.org/api/ga4gh/trs/v2/tools/%23workflow%2Fgithub.com%2Fbwalkowi%2Fgalaxy-workflow-ocr-test%2Fmain/versions/main/PLAIN_GALAXY/descriptor//galaxy-workflow-ocr-test-DaSCH.ga"
+        },
+        {
+          "@id": "https://example.com/input-image.tiff"
+        },
+        {
+          "@id": "https://example.com/stopwords.txt"
+        }
+      ],
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "mainEntity": {
+        "@id": "https://dockstore.org/api/ga4gh/trs/v2/tools/%23workflow%2Fgithub.com%2Fbwalkowi%2Fgalaxy-workflow-ocr-test%2Fmain/versions/main/PLAIN_GALAXY/descriptor//galaxy-workflow-ocr-test-DaSCH.ga"
+      },
+      "name": "Root dataset for tool: OCR for a journal from DaSCH - PoC workflow"
+    },
+    {
+      "@id": "https://dockstore.org/api/ga4gh/trs/v2/tools/%23workflow%2Fgithub.com%2Fbwalkowi%2Fgalaxy-workflow-ocr-test%2Fmain/versions/main/PLAIN_GALAXY/descriptor//galaxy-workflow-ocr-test-DaSCH.ga",
+      "@type": [
+        "File",
+        "SoftwareSourceCode",
+        "ComputationalWorkflow"
+      ],
+      "conformsTo": {
+        "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
+      },
+      "creator": {
+        "@id": "#author-dispatcher"
+      },
+      "dateCreated": "2000-01-01",
+      "description": "A workflow to show how material from DaSch can be processed in Galaxy. The example used is a optical character recognition of a German newspaper from DaSch which will be made machine-readable, cleaned, stripped of punctuation and visualised in a Wordcloud.",
+      "encodingFormat": "application/galaxy",
+      "input": [
+        {
+          "@id": "#input-input-image"
+        },
+        {
+          "@id": "#input-input-stopwords"
+        }
+      ],
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "OCR for a journal from DaSCH - PoC workflow",
+      "programmingLanguage": {
+        "@id": "#galaxy-lang"
+      },
+      "runtimePlatform": "https://usegalaxy.eu/",
+      "sdPublisher": {
+        "@id": "#workflow-hub"
+      },
+      "version": "1.0.0"
+    },
+    {
+      "@id": "https://example.com/input-image.tiff",
+      "@type": "File",
+      "encodingFormat": "image/tiff",
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "Input Image",
+      "onedata:fileId": "00000000007EADF3736861726547756964233964613065396530393037303130393062356433623965356632643832353138636830386464233665366232326436663332623633646233346663666163353365353265323333636864386261233437656434633633333638393264396361626239316435636430623161663436636830343438",
+      "onedata:onezoneDomain": "demo.onedata.org",
+      "url": "https://example.com/input-image.tiff"
+    },
+    {
+      "@id": "https://example.com/stopwords.txt",
+      "@type": "File",
+      "encodingFormat": "text/plain",
+      "license": {
+        "@id": "#license-unspecified"
+      },
+      "name": "Upload Stopwords",
+      "onedata:fileId": "00000000007E21F373686172654775696423393731653838663066653939376533643335303635386566363536363130376632636830386464233665366232326436663332623633646233346663666163353365353265323333636864386261233437656434633633333638393264396361626239316435636430623161663436636830343438",
+      "onedata:onezoneDomain": "demo.onedata.org",
+      "url": "https://example.com/stopwords.txt"
+    },
+    {
+      "@id": "ro-crate-metadata.json",
+      "@type": "CreativeWork",
+      "about": {
+        "@id": "./"
+      },
+      "conformsTo": [
+        {
+          "@id": "https://w3id.org/ro/crate/1.1"
+        },
+        {
+          "@id": "https://w3id.org/eosc-vre/req-packager/1.0"
+        }
+      ]
+    }
+  ]
+}

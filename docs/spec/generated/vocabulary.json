@@ -1,0 +1,124 @@
+{
+  "_note": "programmingLanguage.identifier is the VRE identity token. For sciencemesh it is an OpenCloudMesh domain, NOT a notebook URL, while the same language entity's name/url say 'Jupyter Notebook' - keying on those routes sciencemesh to the wrong handler.",
+  "default_runtime_platform": {
+    "binder": "https://mybinder.org/",
+    "galaxy": "https://usegalaxy.eu/",
+    "jupyter": "https://jupyterhub.egi.eu/",
+    "mddash": "https://mddash.cerit-sc.cz/",
+    "oscar": "https://oscar.grycap.net/",
+    "rrp": "https://rrp-eosc.ethz.ch/",
+    "sciencemesh": "https://eosc.cernbox.cern.ch",
+    "scipion": "http://scipion.i2pc.es/",
+    "vip": "https://vip.creatis.insa-lyon.fr/"
+  },
+  "known_gaps": [
+    {
+      "consequence": "the builder emits an empty identifier, validation still passes (an empty string is not missing), and consumers receive vre_type 'unknown'",
+      "missing_from": [
+        "VRE_TYPE_TO_PROGRAMMING_LANGUAGE",
+        "VRE_TYPE_TO_DISPLAY_NAME",
+        "VRE_TYPE_TO_LANGUAGE_URL"
+      ],
+      "vre_type": "rrp"
+    }
+  ],
+  "language_name": {
+    "binder": "Binder",
+    "galaxy": "Galaxy",
+    "jupyter": "Jupyter Notebook",
+    "mddash": "MDDash",
+    "oscar": "OSCAR",
+    "sciencemesh": "Jupyter Notebook",
+    "scipion": "Scipion",
+    "vip": "VIP"
+  },
+  "language_url": {
+    "binder": "https://jupyter.org/binder/",
+    "galaxy": "https://galaxyproject.org/",
+    "jupyter": "https://jupyter.org",
+    "mddash": "https://github.com/CERIT-SC/mddash",
+    "oscar": "https://oscar.grycap.net/",
+    "sciencemesh": "https://jupyter.org/",
+    "scipion": "http://scipion.i2pc.es/",
+    "vip": "https://vip.creatis.insa-lyon.fr/"
+  },
+  "programming_language_identifier": {
+    "binder": "https://jupyter.org/binder/",
+    "galaxy": "https://galaxyproject.org/",
+    "jupyter": "https://jupyter.org",
+    "mddash": "https://github.com/CERIT-SC/mddash",
+    "oscar": "https://oscar.grycap.net/",
+    "sciencemesh": "https://eosc.cernbox.cern.ch",
+    "scipion": "http://scipion.i2pc.es/",
+    "vip": "https://vip.creatis.insa-lyon.fr/"
+  },
+  "resolution_order": [
+    "raw_definition['vre_type'] if it names a known vre_type",
+    "first entry of tool.types present in tool_type_aliases",
+    "first uri substring match in uri_fallback_patterns",
+    "otherwise the producer raises - no crate is emitted"
+  ],
+  "rocrate_base_profile": "https://w3id.org/ro/crate/1.1",
+  "tool_type_aliases": {
+    "binder": "binder",
+    "binder-launcher": "binder",
+    "boutique": "vip",
+    "cernbox": "sciencemesh",
+    "egi-replay": "binder",
+    "galaxy": "galaxy",
+    "galaxy_workflow": "galaxy",
+    "jupyter": "jupyter",
+    "mddash": "mddash",
+    "mybinder": "binder",
+    "oscar": "oscar",
+    "rrp": "rrp",
+    "sciencemesh": "sciencemesh",
+    "scipion": "scipion",
+    "vip": "vip"
+  },
+  "uri_fallback_patterns": [
+    [
+      "galaxyproject.org",
+      "galaxy"
+    ],
+    [
+      "usegalaxy.eu",
+      "galaxy"
+    ],
+    [
+      "usegalaxy.org",
+      "galaxy"
+    ],
+    [
+      "jupyter.org",
+      "jupyter"
+    ],
+    [
+      "oscar.grycap",
+      "oscar"
+    ],
+    [
+      "vip.creatis",
+      "vip"
+    ],
+    [
+      "cernbox.cern.ch",
+      "sciencemesh"
+    ],
+    [
+      "rrp-eosc",
+      "rrp"
+    ]
+  ],
+  "vre_types": [
+    "galaxy",
+    "oscar",
+    "scipion",
+    "binder",
+    "jupyter",
+    "vip",
+    "mddash",
+    "sciencemesh"
+  ],
+  "wire_format_profile": "https://w3id.org/eosc-vre/req-packager/1.0"
+}

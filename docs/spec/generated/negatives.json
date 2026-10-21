@@ -1,0 +1,135 @@
+{
+  "_note": "One deliberately-broken crate per rule, for a consumer team to test their own validator against. Each entry records what the linter is expected to say about the file, so a weakened predicate fails generation rather than passing quietly. expected_undecidable lists rules that cannot be judged once this fault is present - NOT rules the crate passes.",
+  "entries": {
+    "W001": {
+      "expected_undecidable": [],
+      "expected_violations": [
+        "W001"
+      ],
+      "file": "negatives/W001.json",
+      "label": "a support entity whose @id is the empty string"
+    },
+    "W002": {
+      "expected_undecidable": [],
+      "expected_violations": [
+        "W002"
+      ],
+      "file": "negatives/W002.json",
+      "label": "two FileInputs with no url and the same name, so both get @id = name (reachable through the public API)"
+    },
+    "W003": {
+      "expected_undecidable": [
+        "W004",
+        "W005",
+        "W006",
+        "W007",
+        "W008",
+        "W009",
+        "W011"
+      ],
+      "expected_violations": [
+        "W003"
+      ],
+      "file": "negatives/W003.json",
+      "label": "the root dataset './' is absent entirely"
+    },
+    "W004": {
+      "expected_undecidable": [
+        "W005",
+        "W006",
+        "W009",
+        "W011"
+      ],
+      "expected_violations": [
+        "W004"
+      ],
+      "file": "negatives/W004.json",
+      "label": "mainEntity references an entity that is not in @graph"
+    },
+    "W005": {
+      "expected_undecidable": [
+        "W006"
+      ],
+      "expected_violations": [
+        "W005"
+      ],
+      "file": "negatives/W005.json",
+      "label": "programmingLanguage written as a bare string instead of {\"@id\": ...}"
+    },
+    "W006": {
+      "expected_undecidable": [],
+      "expected_violations": [
+        "W006"
+      ],
+      "file": "negatives/W006.json",
+      "label": "the language entity exists but its identifier is empty - validation passes and the consumer gets vre_type 'unknown'"
+    },
+    "W007": {
+      "expected_undecidable": [
+        "W008"
+      ],
+      "expected_violations": [
+        "W007"
+      ],
+      "file": "negatives/W007.json",
+      "label": "the root dataset omits hasPart"
+    },
+    "W008": {
+      "expected_undecidable": [],
+      "expected_violations": [
+        "W008"
+      ],
+      "file": "negatives/W008.json",
+      "label": "a File entity present in @graph but absent from root hasPart. This is what the TOSCA-authored fixture galaxy_tosca_stage/ro-crate-metadata.json really contains (#tosca_input_file); RocrateBuilder never produces it, so a producer only hits it by hand-rolling the graph"
+    },
+    "W009": {
+      "expected_undecidable": [],
+      "expected_violations": [
+        "W002",
+        "W009"
+      ],
+      "file": "negatives/W009.json",
+      "label": "a FileInput whose url is the workflow uri, so the file and the workflow share one @id (reachable through the public API)"
+    },
+    "W010": {
+      "expected_undecidable": [],
+      "expected_violations": [
+        "W010"
+      ],
+      "file": "negatives/W010.json",
+      "label": "sha256 truncated to 63 characters"
+    },
+    "W011": {
+      "expected_undecidable": [],
+      "expected_violations": [
+        "W011"
+      ],
+      "file": "negatives/W011.json",
+      "label": "workflow.input references a FormalParameter that is not in @graph"
+    },
+    "W012": {
+      "expected_undecidable": [],
+      "expected_violations": [
+        "W012"
+      ],
+      "file": "negatives/W012.json",
+      "label": "conformsTo lists only the RO-Crate base profile, so the wire format version is undeclared"
+    },
+    "W013": {
+      "expected_undecidable": [],
+      "expected_violations": [
+        "W013"
+      ],
+      "file": "negatives/W013.json",
+      "label": "a RuntimePlatform whose input lists \"{\"@id\": \"#file\"}\" instead of the file's properties inline; the parser reads @type off the entry, finds none, and skips it"
+    },
+    "W014": {
+      "expected_undecidable": [],
+      "expected_violations": [
+        "W014"
+      ],
+      "file": "negatives/W014.json",
+      "label": "workflow.input collapses from a one-element array to the bare object; the parser iterates the object's members, finds no @id, and returns no input slots at all"
+    }
+  }
+}
