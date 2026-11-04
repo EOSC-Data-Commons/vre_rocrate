@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import PurePosixPath
 from typing import Any
@@ -56,6 +57,19 @@ def _file_id(f: FileInput) -> str:
     return f.url or f.name
 
 
+# Attributes a later same-id file input may fill in when the first left
+# them unset (see RocrateBuilder._merged_files); `name` and `url` always
+# keep the first occurrence's values.
+_FILLABLE_FILE_FIELDS = (
+    "mime_type",
+    "size_bytes",
+    "checksum",
+    "checksum_type",
+    "onedata_domain",
+    "onedata_file_id",
+)
+
+
 # Placeholder license entity — the builder cannot assert a concrete license
 # on behalf of crate producers; consumers see an honest "Unspecified" node.
 _LICENSE_PLACEHOLDER_ID = "#license-unspecified"
@@ -105,12 +119,54 @@ class RocrateBuilder:
     def _all_files(self) -> list[FileInput]:
         return self._slot_files() + self._input_files()
 
-    def _add_root_dataset(self) -> None:
+    def _merged_files(self) -> list[FileInput]:
+        """Collapse file inputs sharing an entity id into one FileInput.
+
+        Two slots (or a slot and a free-form file) may bind the same
+        download URL — one file on disk is one File entity, referenced by
+        every binding (Dispatcher issue #166). The first occurrence wins
+        on conflicting attributes; later occurrences only fill in unset
+        fields.
+        """
+        merged: dict[str, FileInput] = {}
+        for f in self._all_files():
+            fid = _file_id(f)
+            if fid not in merged:
+                merged[fid] = f
+                continue
+            filled = {
+                attr: getattr(f, attr)
+                for attr in _FILLABLE_FILE_FIELDS
+                if getattr(merged[fid], attr) is None
+            }
+            merged[fid] = replace(merged[fid], **filled)
+        return list(merged.values())
+
+    def _check_entity_id_collisions(self, files: list[FileInput]) -> None:
+        """Refuse to build a crate whose file ids collide with other entities.
+
+        The workflow and dataset entities are keyed by their URLs; a file
+        sharing one of those ids would yield duplicate @graph ids — the
+        ill-defined crate shape ValidationPipeline rejects.
+        """
+        reserved = {self.tool.uri}
+        dataset = self.request.input.dataset
+        if dataset is not None:
+            reserved.add(dataset.url)
+        for f in files:
+            fid = _file_id(f)
+            if fid in reserved:
+                raise ValueError(
+                    f"File '{f.name}' id '{fid}' collides with the workflow "
+                    "or dataset entity id in the crate"
+                )
+
+    def _add_root_dataset(self, files: list[FileInput]) -> None:
         name = f"Root dataset for tool: {self.tool.name}"
         description = "N/A"
 
         has_part: list[dict[str, str]] = [{"@id": self.tool.uri}]
-        for file in self._all_files():
+        for file in files:
             has_part.append({"@id": _file_id(file)})
 
         input_dataset = self.request.input.dataset
@@ -198,14 +254,22 @@ class RocrateBuilder:
             file_entity["onedata:fileId"] = f.onedata_file_id
         return file_entity
 
-    def _add_file_entities(self) -> None:
-        for f in self._all_files():
+    def _add_file_entities(self, files: list[FileInput]) -> None:
+        for f in files:
             self.graph.append(self._build_file_entity(f))
 
     def _add_formal_parameters(self) -> None:
+        seen_ids: set[str] = set()
         for slot in self.tool.slots:
+            fp_id = f"#input-{slot.id}"
+            if fp_id in seen_ids:
+                raise ValueError(
+                    f"Duplicate slot id '{slot.id}' in tool.slots — "
+                    "FormalParameter entities would share an @id"
+                )
+            seen_ids.add(fp_id)
             fp: dict[str, Any] = {
-                "@id": f"#input-{slot.id}",
+                "@id": fp_id,
                 "@type": "FormalParameter",
                 "name": slot.name,
                 "additionalType": slot.slot_type,
@@ -269,11 +333,13 @@ class RocrateBuilder:
         )
 
     def build(self) -> dict[str, Any]:
+        files = self._merged_files()
+        self._check_entity_id_collisions(files)
         self._add_metadata_descriptor()
-        self._add_root_dataset()
+        self._add_root_dataset(files)
         self._add_workflow_entity()
         self._add_programming_language()
-        self._add_file_entities()
+        self._add_file_entities(files)
         self._add_formal_parameters()
         self._add_dataset_entity()
         self._add_tool_metadata_entity()
