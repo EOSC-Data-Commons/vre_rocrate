@@ -84,33 +84,33 @@ class VREPayloadBuilder:
         return None
 
     def _resolve_runtime_platform(self) -> str | RuntimePlatform | None:
-        raw = self.main.get("runtimePlatform")
-        resolved = self._resolve_ref(raw)
+        resolved = self._resolve_ref(self.main.get("runtimePlatform"))
         if isinstance(resolved, str):
             return resolved
         if isinstance(resolved, dict):
-            return runtime_platform_from_dict(self._resolve_staged_files(resolved))
+            # Staged files are referenced by id from #destination.input[];
+            # runtime_platform_from_dict parses entities, not refs, so
+            # resolve them against the graph first — as a copy, the
+            # graph entity itself must stay pristine inside raw_crate.
+            inputs = self._resolve_refs(resolved.get("input", []))
+            return runtime_platform_from_dict({**resolved, "input": inputs})
         return None
 
-    def _resolve_staged_files(self, dest: dict[str, Any]) -> dict[str, Any]:
-        """Resolve #destination.input[] refs to their staged File entities.
+    def _resolve_refs(self, refs: Any) -> Any:
+        """Resolve a list of refs against the graph, keeping the
+        original of anything that does not resolve.
 
-        Staged files are standalone File entities in the graph, referenced
-        by id from the RuntimePlatform — never inlined. Without resolution
-        the staged-file parser only sees bare refs and skips them.
-        Dangling refs are passed through unchanged (skipped downstream).
+        Dangling refs stay in place for the downstream parser to skip
+        with its warning; inlined entities and non-dict entries pass
+        through unchanged.
         """
-        inputs = dest.get("input")
-        if not isinstance(inputs, list):
-            return dest
-        resolved: list[Any] = []
-        for ref in inputs:
-            if isinstance(ref, dict) and "@id" in ref:
-                entity = self._find_entity(ref["@id"])
-                resolved.append(entity if entity is not None else ref)
-            else:
-                resolved.append(ref)
-        return {**dest, "input": resolved}
+        if not isinstance(refs, list):
+            return refs
+        resolved = []
+        for ref in refs:
+            entity = self._resolve_ref(ref)
+            resolved.append(entity if entity is not None else ref)
+        return resolved
 
     def _build_workflow(
         self, lang_id: str | None, runtime_platform: str | RuntimePlatform | None
