@@ -327,7 +327,7 @@ def test_file_id_colliding_with_workflow_uri_raises():
                    slots=[SlotDefinition(id="s", name="s", slot_type="file")]),
         input=LaunchInput(slots={"s": FileInput(name="s", url=GALAXY_URI)}),
     )
-    with pytest.raises(ValueError, match="collides"):
+    with pytest.raises(ValueError, match="Duplicate entity id"):
         _build(req)
 
 
@@ -339,7 +339,7 @@ def test_file_id_colliding_with_dataset_url_raises():
             dataset=DatasetHandle(url=DATASET_URL, title="DS", description=""),
         ),
     )
-    with pytest.raises(ValueError, match="collides"):
+    with pytest.raises(ValueError, match="Duplicate entity id"):
         _build(req)
 
 
@@ -350,7 +350,7 @@ def test_duplicate_slot_id_raises():
                           SlotDefinition(id="s", name="b", slot_type="file")]),
         input=LaunchInput(),
     )
-    with pytest.raises(ValueError, match="Duplicate slot id"):
+    with pytest.raises(ValueError, match="Duplicate entity id"):
         _build(req)
 
 
