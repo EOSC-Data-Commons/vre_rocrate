@@ -21,6 +21,8 @@ from vre_rocrate import (
     VREPayload,
     WorkflowDescriptor,
     ValidationPipeline,
+    RuntimePlatform,
+    IMInputFile,
 )
 from vre_rocrate.constants import (
     resolve_vre_type,
@@ -39,6 +41,12 @@ MDDASH_URI = "https://github.com/sb-ncbr/mddash-notebooks.git"
 FILE_URL = "https://example.org/p.txt"
 FREE_FILE_URL = "https://example.org/free.csv"
 DATASET_URL = "https://example.org/dataset"
+IM_INSTALL_URL = (
+    "https://raw.githubusercontent.com/grycap/tosca/refs/heads/"
+    "eosc_beyond/templates/scipion.yaml"
+)
+STAGED_URL = "https://example.org/staged.txt"
+NODE_STAGED_URL = "https://example.org/node-staged.txt"
 
 
 def _entity(graph, eid):
@@ -257,6 +265,114 @@ def test_runtime_platform_override_used_directly():
     )
     wf = _entity(_graph(_build(req)), GALAXY_URI)
     assert wf["runtimePlatform"] == "https://custom-galaxy.example.org/"
+
+
+@pytest.fixture
+def im_platform_request():
+    """Galaxy request deployed via the Infrastructure Manager — the
+    structured RuntimePlatform behind the tosca fixtures' #destination."""
+    return VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"]),
+        input=LaunchInput(),
+        runtime_platform=RuntimePlatform(
+            name="Infrastructure Manager",
+            memory="4 GiB",
+            num_cpus=2,
+            storage="200 GiB",
+            install_url=IM_INSTALL_URL,
+        ),
+    )
+
+
+def test_structured_runtime_platform_becomes_destination_entity(
+    im_platform_request,
+):
+    wf = _entity(_graph(_build(im_platform_request)), GALAXY_URI)
+    assert wf["runtimePlatform"] == {"@id": "#destination"}
+    dest = _entity(_graph(_build(im_platform_request)), "#destination")
+    assert dest == {
+        "@id": "#destination",
+        "@type": "RuntimePlatform",
+        "name": "Infrastructure Manager",
+        "memoryRequirements": "4 GiB",
+        "processorRequirements": ["2 vCPU"],
+        "storageRequirements": "200 GiB",
+        "installUrl": IM_INSTALL_URL,
+    }
+
+
+def test_structured_runtime_platform_gpu_and_omitted_fields():
+    req = VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"]),
+        input=LaunchInput(),
+        runtime_platform=RuntimePlatform(
+            name="Infrastructure Manager", num_cpus=2, num_gpus=1,
+        ),
+    )
+    dest = _entity(_graph(_build(req)), "#destination")
+    assert dest["processorRequirements"] == ["2 vCPU", "1 GPU"]
+    assert "memoryRequirements" not in dest
+    assert "storageRequirements" not in dest
+    assert "installUrl" not in dest
+    assert "input" not in dest
+
+
+def test_structured_runtime_platform_roundtrips(im_platform_request):
+    pkg = VREPayloadBuilder.build(_build(im_platform_request))
+    rp = pkg.workflow.runtime_platform
+    assert isinstance(rp, RuntimePlatform)
+    assert rp.install_url == IM_INSTALL_URL
+    assert rp.memory == "4 GiB"
+    assert rp.num_cpus == 2
+    assert rp.num_gpus == 0
+    assert rp.storage == "200 GiB"
+    assert rp.input_files == []
+
+
+@pytest.fixture
+def im_staged_files_request():
+    """Infrastructure Manager request with files staged onto the deployed
+    infrastructure (#destination.input[], not the root hasPart)."""
+    return VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"]),
+        input=LaunchInput(),
+        runtime_platform=RuntimePlatform(
+            name="Infrastructure Manager",
+            install_url=IM_INSTALL_URL,
+            input_files=[
+                IMInputFile(url=STAGED_URL, destination="/opt/data"),
+                IMInputFile(url=NODE_STAGED_URL, destination="/var/x",
+                            compute_node="wn1"),
+            ],
+        ),
+    )
+
+
+def test_staged_files_referenced_from_destination_only(
+    im_staged_files_request,
+):
+    """Staged files hang off the infrastructure, never the crate payload."""
+    crate = _build(im_staged_files_request)
+    dest = _entity(_graph(crate), "#destination")
+    assert [ref["@id"] for ref in dest["input"]] == [STAGED_URL, NODE_STAGED_URL]
+    staged = _entity(_graph(crate), STAGED_URL)
+    assert staged["@type"] == "File"
+    assert staged["contentLocation"] == "/opt/data"
+    node_staged = _entity(_graph(crate), NODE_STAGED_URL)
+    assert node_staged["contentLocation"] == "wn1:/var/x"
+    root = _entity(_graph(crate), "./")
+    haspart_ids = {ref["@id"] for ref in root.get("hasPart", [])}
+    assert STAGED_URL not in haspart_ids and NODE_STAGED_URL not in haspart_ids
+
+
+def test_staged_files_roundtrip(im_staged_files_request):
+    pkg = VREPayloadBuilder.build(_build(im_staged_files_request))
+    rp = pkg.workflow.runtime_platform
+    assert isinstance(rp, RuntimePlatform)
+    assert [(f.url, f.destination, f.compute_node) for f in rp.input_files] == [
+        (STAGED_URL, "/opt/data", None),
+        (NODE_STAGED_URL, "/var/x", "wn1"),
+    ]
 
 
 # ---------------------------------------------------------------------------

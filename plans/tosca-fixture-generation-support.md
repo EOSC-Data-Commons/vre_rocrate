@@ -1,5 +1,12 @@
 # Tosca Fixture Support — Phase 2 Plan
 
+> Status (Nov 5 2026): §1 (structured runtime platform → `#destination`) and
+> §2 (staged `IMInputFile` entities) are implemented on branch
+> `feature/infrastructure-manager`, including the parse-side fix that resolves
+> `#destination.input[]` refs (they were silently dropped before). Still
+> pending: §3 (DatasetHandle slot fills) and plan step 3 (regenerating the
+> fixtures from constructors).
+>
 > Scope: this document covers **only the 4 `*_tosca*` fixtures** and the work
 > needed for `RocrateBuilder.build_from_launch_request()` to generate them.
 > (The 10 non-Tosca fixtures were handled in Phase 1 — removed from this

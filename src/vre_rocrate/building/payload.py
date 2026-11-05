@@ -89,8 +89,28 @@ class VREPayloadBuilder:
         if isinstance(resolved, str):
             return resolved
         if isinstance(resolved, dict):
-            return runtime_platform_from_dict(resolved)
+            return runtime_platform_from_dict(self._resolve_staged_files(resolved))
         return None
+
+    def _resolve_staged_files(self, dest: dict[str, Any]) -> dict[str, Any]:
+        """Resolve #destination.input[] refs to their staged File entities.
+
+        Staged files are standalone File entities in the graph, referenced
+        by id from the RuntimePlatform — never inlined. Without resolution
+        the staged-file parser only sees bare refs and skips them.
+        Dangling refs are passed through unchanged (skipped downstream).
+        """
+        inputs = dest.get("input")
+        if not isinstance(inputs, list):
+            return dest
+        resolved: list[Any] = []
+        for ref in inputs:
+            if isinstance(ref, dict) and "@id" in ref:
+                entity = self._find_entity(ref["@id"])
+                resolved.append(entity if entity is not None else ref)
+            else:
+                resolved.append(ref)
+        return {**dest, "input": resolved}
 
     def _build_workflow(
         self, lang_id: str | None, runtime_platform: str | RuntimePlatform | None
