@@ -52,15 +52,21 @@ def _resolve_ref(graph: list[dict[str, Any]], ref: object) -> object:
 
 
 def _validate_entity_ids(graph: list[dict[str, Any]]) -> None:
-    """Validate that every entity in the graph declares a non-empty @id.
+    """Validate that every @graph entity declares a non-empty, unique @id.
 
     RO-Crate 1.1 requires each @graph entity to be identified by an @id
-    (unlike bare JSON-LD, which permits blank nodes). Downstream helpers
-    (e.g. VREPayload file triage) exclude and match entities by id.
+    (unlike bare JSON-LD, which permits blank nodes). Ids must also be
+    unique across the graph: two entities sharing an @id describe the
+    same resource, and conflicting properties between them make the
+    crate ill-defined (e.g. two file slots bound to the same download
+    URL). Downstream helpers (e.g. VREPayload file triage) exclude and
+    match entities by id.
 
     Raises:
-        CrateValidationError: If an entity lacks an @id or it is empty.
+        CrateValidationError: If an entity lacks an @id, it is empty, or
+            the same @id appears on more than one entity.
     """
+    first_seen: dict[str, int] = {}
     for index, entity in enumerate(graph):
         eid = entity.get("@id")
         if not isinstance(eid, str) or not eid:
@@ -68,6 +74,12 @@ def _validate_entity_ids(graph: list[dict[str, Any]]) -> None:
             raise CrateValidationError(
                 f"Entity without @id in ROCrate (@graph[{index}]: {label})"
             )
+        if eid in first_seen:
+            raise CrateValidationError(
+                f"Duplicate @id in ROCrate @graph: '{eid}' "
+                f"(@graph[{first_seen[eid]}] and @graph[{index}])"
+            )
+        first_seen[eid] = index
 
 
 def _validate_main_entity(graph: list[dict[str, Any]]) -> None:
@@ -116,7 +128,7 @@ class ValidationPipeline:
         """Perform basic validation of a ROCrate dict.
 
         This validates:
-        - every @graph entity declares a non-empty @id (RO-Crate requirement)
+        - every @graph entity declares a non-empty, unique @id (RO-Crate requirement)
         - mainEntity exists and is valid
         - programmingLanguage is defined and resolvable
         - programmingLanguage has an identifier

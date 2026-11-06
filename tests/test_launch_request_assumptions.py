@@ -47,6 +47,7 @@ IM_INSTALL_URL = (
 )
 STAGED_URL = "https://example.org/staged.txt"
 NODE_STAGED_URL = "https://example.org/node-staged.txt"
+SHARED_URL = "https://example.org/shared.zip"
 
 
 def _entity(graph, eid):
@@ -138,6 +139,22 @@ def mddash_scalar_slot_request():
                    slots=[SlotDefinition(id="pdb_id", name="pdb_id",
                                           slot_type="string")]),
         input=LaunchInput(slots={"pdb_id": "1L2Y"}),
+    )
+
+
+@pytest.fixture
+def galaxy_two_slots_same_file_request():
+    """Two file slots whose download URL is the same file (Dispatcher #166)."""
+    return VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"],
+                   slots=[SlotDefinition(id="data", name="data", slot_type="file"),
+                          SlotDefinition(id="archive", name="archive",
+                                         slot_type="file")]),
+        input=LaunchInput(slots={
+            "data": FileInput(name="data", url=SHARED_URL),
+            "archive": FileInput(name="archive", url=SHARED_URL,
+                                 mime_type="application/zip"),
+        }),
     )
 
 
@@ -246,6 +263,103 @@ def test_free_form_file_stated_in_dataset_haspart(binder_files_request):
     root = _entity(_graph(crate), "./")
     haspart_ids = {ref["@id"] for ref in root.get("hasPart", [])}
     assert FREE_FILE_URL in haspart_ids
+
+
+# ---------------------------------------------------------------------------
+# Bindings sharing one file — one File entity, many slots (Dispatcher #166)
+# ---------------------------------------------------------------------------
+
+def test_two_slots_same_url_emit_single_file_entity(galaxy_two_slots_same_file_request):
+    """Same download URL in two slots must not duplicate the File entity."""
+    graph = _graph(_build(galaxy_two_slots_same_file_request))
+    shared = [e for e in graph if e.get("@id") == SHARED_URL]
+    assert len(shared) == 1
+    assert shared[0]["@type"] == "File"
+    assert shared[0]["name"] == "data"  # first binding names the entity
+
+
+def test_two_slots_same_url_attributes_filled_from_later_binding(
+    galaxy_two_slots_same_file_request,
+):
+    """A later binding may fill in attributes the first left unset."""
+    fe = _entity(_graph(_build(galaxy_two_slots_same_file_request)), SHARED_URL)
+    assert fe["encodingFormat"] == "application/zip"
+
+
+def test_two_slots_same_url_stated_once_in_haspart(galaxy_two_slots_same_file_request):
+    crate = _build(galaxy_two_slots_same_file_request)
+    root = _entity(_graph(crate), "./")
+    haspart_ids = [ref["@id"] for ref in root.get("hasPart", [])]
+    assert haspart_ids.count(SHARED_URL) == 1
+
+
+def test_two_slots_same_url_both_params_bind_the_file(
+    galaxy_two_slots_same_file_request,
+):
+    """Slot identity stays on the FormalParameters; both point at one file."""
+    graph = _graph(_build(galaxy_two_slots_same_file_request))
+    for slot in ("data", "archive"):
+        fp = _entity(graph, f"#input-{slot}")
+        assert fp["defaultValue"] == {"@id": SHARED_URL}
+
+
+def test_two_slots_same_url_roundtrip_keeps_both_bindings(
+    galaxy_two_slots_same_file_request,
+):
+    """The Dispatcher-side view: one file, two slot bindings by name."""
+    pkg = VREPayloadBuilder.build(_build(galaxy_two_slots_same_file_request))
+    assert {f.id for f in pkg.input_files} == {SHARED_URL}
+    bindings = dict(pkg.input_file_bindings())
+    assert set(bindings) == {"data", "archive"}
+    assert bindings["data"].id == SHARED_URL
+    assert bindings["archive"].id == SHARED_URL
+
+
+def test_slot_and_free_form_file_same_url_single_entity():
+    """A slot file and a free-form file sharing a URL also collapse."""
+    req = VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"],
+                   slots=[SlotDefinition(id="s", name="s", slot_type="file")]),
+        input=LaunchInput(
+            slots={"s": FileInput(name="s", url=SHARED_URL)},
+            files={"copy": FileInput(name="copy", url=SHARED_URL)},
+        ),
+    )
+    graph = _graph(_build(req))
+    assert len([e for e in graph if e.get("@id") == SHARED_URL]) == 1
+
+
+def test_file_id_colliding_with_workflow_uri_raises():
+    req = VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"],
+                   slots=[SlotDefinition(id="s", name="s", slot_type="file")]),
+        input=LaunchInput(slots={"s": FileInput(name="s", url=GALAXY_URI)}),
+    )
+    with pytest.raises(ValueError, match="Duplicate entity id"):
+        _build(req)
+
+
+def test_file_id_colliding_with_dataset_url_raises():
+    req = VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"]),
+        input=LaunchInput(
+            files={"f": FileInput(name="f", url=DATASET_URL)},
+            dataset=DatasetHandle(url=DATASET_URL, title="DS", description=""),
+        ),
+    )
+    with pytest.raises(ValueError, match="Duplicate entity id"):
+        _build(req)
+
+
+def test_duplicate_slot_id_raises():
+    req = VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"],
+                   slots=[SlotDefinition(id="s", name="a", slot_type="file"),
+                          SlotDefinition(id="s", name="b", slot_type="file")]),
+        input=LaunchInput(),
+    )
+    with pytest.raises(ValueError, match="Duplicate entity id"):
+        _build(req)
 
 
 # ---------------------------------------------------------------------------

@@ -118,8 +118,8 @@ class RocrateBuilder:
         description = "N/A"
 
         has_part: list[dict[str, str]] = [{"@id": self.tool.uri}]
-        for file in self._all_files():
-            has_part.append({"@id": _file_id(file)})
+        for fid in dict.fromkeys(_file_id(f) for f in self._all_files()):
+            has_part.append({"@id": fid})
 
         input_dataset = self.request.input.dataset
         if input_dataset is not None:
@@ -249,8 +249,20 @@ class RocrateBuilder:
         return file_entity
 
     def _add_file_entities(self) -> None:
+        """Emit one File entity per distinct file id (Dispatcher #166).
+
+        Several slots (or a slot and a free-form file) may bind the same
+        download URL — one file on disk is one File entity, referenced
+        by every binding. The first occurrence builds and names the
+        entity; later ones only fill in attributes left unset.
+        """
+        entities: dict[str, dict[str, Any]] = {}
         for f in self._all_files():
-            self.graph.append(self._build_file_entity(f))
+            entity = self._build_file_entity(f)
+            target = entities.setdefault(entity["@id"], entity)
+            for key, value in entity.items():
+                target.setdefault(key, value)
+        self.graph.extend(entities.values())
 
     def _add_formal_parameters(self) -> None:
         for slot in self.tool.slots:
@@ -318,6 +330,25 @@ class RocrateBuilder:
             }
         )
 
+    def _check_unique_entity_ids(self) -> None:
+        """Refuse to return a crate whose @graph entity ids are not unique.
+
+        ValidationPipeline rejects duplicate ids at parse time, so the
+        builder must never emit one (round-trip invariant). This catches
+        producer mistakes the structural code cannot, e.g. a file id
+        equal to the workflow or dataset id, or repeated tool.slots ids.
+        """
+        seen: set[str] = set()
+        for entity in self.graph:
+            eid = entity["@id"]
+            if eid in seen:
+                raise ValueError(
+                    f"Duplicate entity id '{eid}' in the built crate — "
+                    "file ids must not collide with the workflow, dataset "
+                    "or slot ids"
+                )
+            seen.add(eid)
+
     def build(self) -> dict[str, Any]:
         self._add_metadata_descriptor()
         self._add_root_dataset()
@@ -329,6 +360,7 @@ class RocrateBuilder:
         self._add_dataset_entity()
         self._add_tool_metadata_entity()
         self._add_supporting_entities()
+        self._check_unique_entity_ids()
         return {
             "@context": "https://w3id.org/ro/crate/1.1/context",
             "@graph": self.graph,
