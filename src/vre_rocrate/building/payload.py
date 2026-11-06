@@ -96,16 +96,14 @@ class VREPayloadBuilder:
             return runtime_platform_from_dict({**resolved, "input": inputs})
         return None
 
-    def _resolve_refs(self, refs: Any) -> Any:
-        """Resolve a list of refs against the graph, keeping the
-        original of anything that does not resolve.
+    def _resolve_refs(self, refs: list[Any]) -> list[Any]:
+        """Resolve refs against the graph, keeping the original of
+        anything that does not resolve.
 
         Dangling refs stay in place for the downstream parser to skip
         with its warning; inlined entities and non-dict entries pass
         through unchanged.
         """
-        if not isinstance(refs, list):
-            return refs
         resolved = []
         for ref in refs:
             entity = self._resolve_ref(ref)
