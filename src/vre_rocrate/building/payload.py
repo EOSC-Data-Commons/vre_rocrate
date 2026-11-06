@@ -88,10 +88,6 @@ class VREPayloadBuilder:
         if isinstance(resolved, str):
             return resolved
         if isinstance(resolved, dict):
-            # Staged files are referenced by id from #destination.input[];
-            # runtime_platform_from_dict parses entities, not refs, so
-            # resolve them against the graph first — as a copy, the
-            # graph entity itself must stay pristine inside raw_crate.
             inputs = self._resolve_refs(resolved.get("input", []))
             return runtime_platform_from_dict({**resolved, "input": inputs})
         return None
