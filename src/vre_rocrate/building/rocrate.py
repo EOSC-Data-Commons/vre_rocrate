@@ -62,14 +62,6 @@ def _file_id(f: FileInput) -> str:
 _DESTINATION_ID = "#destination"
 
 
-def _processor_requirements(num_cpus: int, num_gpus: int) -> list[str]:
-    """Render cpu/gpu counts back into processorRequirements strings."""
-    requirements = [f"{num_cpus} vCPU"]
-    if num_gpus:
-        requirements.append(f"{num_gpus} GPU")
-    return requirements
-
-
 # Placeholder license entity — the builder cannot assert a concrete license
 # on behalf of crate producers; consumers see an honest "Unspecified" node.
 _LICENSE_PLACEHOLDER_ID = "#license-unspecified"
@@ -213,9 +205,10 @@ class RocrateBuilder:
         }
         if rp.memory:
             entity["memoryRequirements"] = rp.memory
-        entity["processorRequirements"] = _processor_requirements(
-            rp.num_cpus, rp.num_gpus
-        )
+        processors = [f"{rp.num_cpus} vCPU"]
+        if rp.num_gpus:
+            processors.append(f"{rp.num_gpus} GPU")
+        entity["processorRequirements"] = processors
         if rp.storage:
             entity["storageRequirements"] = rp.storage
         if rp.install_url:
