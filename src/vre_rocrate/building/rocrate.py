@@ -11,6 +11,7 @@ from ..constants import (
     resolve_vre_type,
     VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM,
 )
+from ..models.infrastructure import RuntimePlatform
 from ..models.launch import (
     VRELaunchRequest,
     ToolMeta,
@@ -56,6 +57,11 @@ def _file_id(f: FileInput) -> str:
     return f.url or f.name
 
 
+# Entity id of the Infrastructure Manager (TOSCA deployment) RuntimePlatform
+# — the id the tosca fixtures established for it.
+_DESTINATION_ID = "#destination"
+
+
 # Placeholder license entity — the builder cannot assert a concrete license
 # on behalf of crate producers; consumers see an honest "Unspecified" node.
 _LICENSE_PLACEHOLDER_ID = "#license-unspecified"
@@ -80,7 +86,9 @@ class RocrateBuilder:
         self.now_iso = datetime.now(timezone.utc).isoformat()
         self.graph: list[dict[str, Any]] = []
 
-    def _runtime_platform(self) -> str:
+    def _runtime_platform(self) -> str | dict[str, str]:
+        if isinstance(self.request.runtime_platform, RuntimePlatform):
+            return {"@id": _DESTINATION_ID}
         if self.request.runtime_platform:
             return self.request.runtime_platform
         return VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM.get(self.vre_type, "")
@@ -176,6 +184,48 @@ class RocrateBuilder:
                 "url": self.language_url,
             }
         )
+
+    def _add_runtime_platform_entity(self) -> None:
+        """Emit the #destination RuntimePlatform entity (Infrastructure
+        Manager) and its staged input files.
+
+        Staged files hang off the infrastructure, not the crate payload:
+        each is referenced only from #destination.input[], never from the
+        root hasPart — data reaches the deployed VM through provisioning
+        (contentLocation), not the workflow engine's upload.
+        """
+        rp = self.request.runtime_platform
+        if not isinstance(rp, RuntimePlatform):
+            return
+
+        entity: dict[str, Any] = {
+            "@id": _DESTINATION_ID,
+            "@type": "RuntimePlatform",
+            "name": rp.name,
+        }
+        if rp.memory:
+            entity["memoryRequirements"] = rp.memory
+        processors = [f"{rp.num_cpus} vCPU"]
+        if rp.num_gpus:
+            processors.append(f"{rp.num_gpus} GPU")
+        entity["processorRequirements"] = processors
+        if rp.storage:
+            entity["storageRequirements"] = rp.storage
+        if rp.install_url:
+            entity["installUrl"] = rp.install_url
+        if rp.input_files:
+            entity["input"] = [{"@id": im.url} for im in rp.input_files]
+        self.graph.append(entity)
+
+        for im in rp.input_files:
+            staged: dict[str, Any] = {"@id": im.url, "@type": "File"}
+            if im.destination is not None:
+                staged["contentLocation"] = (
+                    f"{im.compute_node}:{im.destination}"
+                    if im.compute_node
+                    else im.destination
+                )
+            self.graph.append(staged)
 
     def _build_file_entity(self, f: FileInput) -> dict[str, Any]:
         file_entity: dict[str, Any] = {
@@ -273,6 +323,7 @@ class RocrateBuilder:
         self._add_root_dataset()
         self._add_workflow_entity()
         self._add_programming_language()
+        self._add_runtime_platform_entity()
         self._add_file_entities()
         self._add_formal_parameters()
         self._add_dataset_entity()

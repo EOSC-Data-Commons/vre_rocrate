@@ -84,13 +84,27 @@ class VREPayloadBuilder:
         return None
 
     def _resolve_runtime_platform(self) -> str | RuntimePlatform | None:
-        raw = self.main.get("runtimePlatform")
-        resolved = self._resolve_ref(raw)
+        resolved = self._resolve_ref(self.main.get("runtimePlatform"))
         if isinstance(resolved, str):
             return resolved
         if isinstance(resolved, dict):
-            return runtime_platform_from_dict(resolved)
+            inputs = self._resolve_refs(resolved.get("input", []))
+            return runtime_platform_from_dict({**resolved, "input": inputs})
         return None
+
+    def _resolve_refs(self, refs: list[object]) -> list[object]:
+        """Resolve refs against the graph, keeping the original of
+        anything that does not resolve.
+
+        Dangling refs stay in place for the downstream parser to skip
+        with its warning; inlined entities and non-dict entries pass
+        through unchanged.
+        """
+        resolved = []
+        for ref in refs:
+            entity = self._resolve_ref(ref)
+            resolved.append(entity if entity is not None else ref)
+        return resolved
 
     def _build_workflow(
         self, lang_id: str | None, runtime_platform: str | RuntimePlatform | None
