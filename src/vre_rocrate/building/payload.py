@@ -92,7 +92,7 @@ class VREPayloadBuilder:
             return runtime_platform_from_dict({**resolved, "input": inputs})
         return None
 
-    def _resolve_refs(self, refs: list[Any]) -> list[Any]:
+    def _resolve_refs(self, refs: list[object]) -> list[object]:
         """Resolve refs against the graph, keeping the original of
         anything that does not resolve.
 
