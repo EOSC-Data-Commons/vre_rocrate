@@ -321,12 +321,7 @@ def test_structured_runtime_platform_roundtrips(im_platform_request):
     pkg = VREPayloadBuilder.build(_build(im_platform_request))
     rp = pkg.workflow.runtime_platform
     assert isinstance(rp, RuntimePlatform)
-    assert rp.install_url == IM_INSTALL_URL
-    assert rp.memory == "4 GiB"
-    assert rp.num_cpus == 2
-    assert rp.num_gpus == 0
-    assert rp.storage == "200 GiB"
-    assert rp.input_files == []
+    assert rp == im_platform_request.runtime_platform
 
 
 @pytest.fixture
