@@ -146,7 +146,9 @@ class VRELaunchRequest:
     # Optional explicit runtime_platform override. If None, RocrateBuilder infers
     # the runtimePlatform from the resolved vre_type's default service URL and
     # emits it on the workflow/mainEntity entity so it's always present in the crate.
-    runtime_platform: str | None = None
+    # A RuntimePlatform instance (Infrastructure Manager) instead emits a
+    # #destination RuntimePlatform entity referenced from the workflow.
+    runtime_platform: str | RuntimePlatform | None = None
 ```
 
 ---
@@ -403,6 +405,10 @@ This replaces `build_from_minimal()` entirely. Key building logic:
 2. **Resolve runtimePlatform** — if `request.runtime_platform` is set, use it directly;
    otherwise look up `VRE_TYPE_TO_DEFAULT_RUNTIME_PLATFORM[resolved_vre_type]` and emit that
    on the workflow entity. The runtime platform is always present in the crate.
+   A `RuntimePlatform` instance (Infrastructure Manager) takes precedence over both:
+   the workflow's `runtimePlatform` becomes a `{"@id": "#destination"}` ref and a
+   `#destination` RuntimePlatform entity (with staged `IMInputFile` File entities
+   referenced only from `#destination.input[]`) is emitted into the graph.
 3. **Build workflow entity** — `@id = tool.uri`, `version = tool.version`,
    `runtimePlatform = resolved_platform`
 4. **Build FormalParameters from slots**:

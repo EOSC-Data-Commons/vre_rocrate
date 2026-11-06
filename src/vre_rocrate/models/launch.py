@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from .infrastructure import RuntimePlatform
+
 
 @dataclass
 class DatasetHandle:
@@ -80,6 +82,6 @@ class VRELaunchRequest:
 
     tool: ToolMeta  # → workflow entity + FormalParameters
     input: LaunchInput  # → hasPart files + slot defaultValues + optional Dataset
-    runtime_platform: str | None = (
-        None  # → runtimePlatform (installUrl / svc_url); default from VRE_TYPE constants
+    runtime_platform: str | RuntimePlatform | None = (
+        None  # str → runtimePlatform URL; RuntimePlatform → #destination entity (Infrastructure Manager); None → VRE_TYPE default
     )
