@@ -11,27 +11,26 @@ from vre_rocrate import (
 )
 
 WORKFLOW_URL = (
-    "https://raw.githubusercontent.com/micafer/Dispatcher/refs/heads/"
-    "oscar-vre/test/oscar/cowsay.json"
+    "https://github.com/grycap/oscar-hub/tree/main/crates/fish-detector"
 )
 
 request = VRELaunchRequest(
     tool=ToolMeta(
-        id="cowsay-oscar",
+        id="fish-detector",
         version="1.0.0",
-        name="Cowsay OSCAR FDL",
+        name="Fish Detector Service (by OBSEA)",
         uri=WORKFLOW_URL,
         types=["oscar"],
-        description="A simple OSCAR service using the cowsay example.",
+        description="OSCAR service that deploys the Fish Detector workflow by OBSEA.",
         slots=[],
         raw_definition={},
     ),
     input=LaunchInput(
         files={
-            "simpletext_input": FileInput(
-                name="simpletext_input",
-                url="https://example-files.online-convert.com/document/txt/example.txt",
-                mime_type="text/plain",
+            "image_input": FileInput(
+                name="image_input",
+                url="https://raw.githubusercontent.com/grycap/oscar-hub/refs/heads/main/crates/fish-detector/input.jpg",
+                mime_type="image/jpeg",
             ),
         },
     ),

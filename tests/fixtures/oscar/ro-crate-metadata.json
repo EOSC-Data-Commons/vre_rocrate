@@ -24,11 +24,11 @@
                 "@id": "#author-dispatcher"
             },
             "mainEntity": {
-                "@id": "https://raw.githubusercontent.com/micafer/Dispatcher/refs/heads/oscar-vre/test/oscar/cowsay.json"
+                "@id": "https://github.com/grycap/oscar-hub/tree/main/crates/fish-detector"
             },
             "hasPart": [
                 {
-                    "@id": "https://raw.githubusercontent.com/micafer/Dispatcher/refs/heads/oscar-vre/test/oscar/cowsay.json"
+                    "@id": "https://github.com/grycap/oscar-hub/tree/main/crates/fish-detector"
                 },
                 {
                     "@id": "https://example-files.online-convert.com/document/txt/example.txt"
@@ -36,7 +36,7 @@
             ]
         },
         {
-            "@id": "https://raw.githubusercontent.com/micafer/Dispatcher/refs/heads/oscar-vre/test/oscar/cowsay.json",
+            "@id": "https://github.com/grycap/oscar-hub/tree/main/crates/fish-detector",
             "@type": [
                 "File",
                 "SoftwareSourceCode",
@@ -45,8 +45,8 @@
             "conformsTo": {
                 "@id": "https://bioschemas.org/profiles/ComputationalWorkflow/0.5-DRAFT-2020_07_21/"
             },
-            "name": "Cowsay OSCAR FDL",
-            "description": "A simple OSCAR service using the cowsay example.",
+            "name": "Fish Detector Service (by OBSEA)",
+            "description": "OSCAR service that deploys the Fish Detector workflow by OBSEA.",
             "programmingLanguage": {
                 "@id": "#oscar-lang"
             },
@@ -71,10 +71,11 @@
             "url": "https://oscar.grycap.net/"
         },
         {
-            "@id": "https://example-files.online-convert.com/document/txt/example.txt",
+            "@id": "https://raw.githubusercontent.com/grycap/oscar-hub/refs/heads/main/crates/fish-detector/input.jpg",
             "@type": "File",
-            "name": "simpletext_input",
-            "encodingFormat": "text/txt"
+            "name": "image_input",
+            "encodingFormat": "image/jpeg",
+            "url": "https://raw.githubusercontent.com/grycap/oscar-hub/refs/heads/main/crates/fish-detector/input.jpg"
         },
         {
             "@id": "#author-dispatcher",
