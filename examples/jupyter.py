@@ -1,7 +1,6 @@
 """Example: Jupyter notebook on a JupyterHub instance.
 
-Reproduces tests/fixtures/jupyter/ro-crate-metadata.json. A local notebook
-file with no inputs.
+A local notebook file with no inputs.
 """
 
 import json
@@ -25,4 +24,5 @@ request = VRELaunchRequest(
     runtime_platform="https://notebooks-dev.egi.zcu.cz",
 )
 
-print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))
+if __name__ == "__main__":
+    print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))

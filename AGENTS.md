@@ -37,15 +37,14 @@ Note: models use stdlib dataclasses even though `pyproject.toml` declares `pydan
 - `VREPayload` changes must be **additive only** — external VRE handlers (in the Dispatcher repo) read it and must not break.
 - The `*_tosca*` fixtures' `#destination` RuntimePlatform entity is **generatable** since the Infrastructure Manager support (`VRELaunchRequest.runtime_platform: RuntimePlatform` → `#destination` + staged `IMInputFile` entities); the fixtures themselves stay hand-authored — full byte-equal regeneration is still pending (see `plans/tosca-fixture-generation-support.md`). A slot may also be filled by a `DatasetHandle` → `Dataset` entity + `defaultValue` ref (one entity per url, deduped like files); see `examples/scipion_tosca.py` / `plans/tosca-fixture-generation-support.md` §3.
 
+
 ## Repo state gotchas
 
 - **README usage snippets are stale** — they use the removed `MinimalVRERequest`/`build_from_minimal` API (tests assert its removal). Trust code + tests over README examples.
-- **Test suite is green** (71/71 as of Nov 5 2026): input-files semantics implemented (slot-bound ∪ free-form, descriptor excluded); Infrastructure Manager `#destination` support added; the sciencemesh `qa.cernbox→eosc.cernbox` test expectation was fixed in an earlier pass.
-- **Test suite is green** (76/76 as of Nov 5 2026): input-files semantics implemented (slot-bound ∪ free-form, descriptor excluded); shared-download-url dedup for Dispatcher #166; the sciencemesh `qa.cernbox→eosc.cernbox` test expectation was fixed in an earlier pass.
-- `tests/fixtures/*/simple_example.json` files are legacy (old minimal-request format), unreferenced by current tests — not API examples.
+- **Test suite is green** (81/81 as of Nov 12 2026): hand-authored `tests/fixtures/` were dropped — crates for tests are built from `examples/` scripts instead.
 - `build/` and `*.egg-info/` contain stale artifacts from an old flat-layout build; ignore them (gitignored).
 - `plans/` holds *pending* design docs; once a plan lands, it moves to `docs/design/` as a design note. New tests sometimes encode a design doc as executable assumptions — check the referenced file.
 
 ## Testing conventions
 
-Fixtures live in `tests/fixtures/<vre>/ro-crate-metadata.json`; load via `fixtures_dir` fixture / `load_json` from `tests/conftest.py`. Fixture-based tests parametrize over fixture paths (`BUILDER_CASES` in `test_building/test_package.py`).
+There are no JSON fixtures. Tests build crates from the `examples/` scripts: every example module exposes a module-level `request` (print guarded by `if __name__ == "__main__"`) and is importable as `examples.<name>` (pytest `pythonpath = ["."]` in `pyproject.toml` makes this work). Build a crate with `example_crate(name)` from `tests/conftest.py`. Parametrized tests parametrize over example names (`BUILDER_CASES` in `test_building/test_payload.py`). Note the crates are built fresh per call — `datePublished`/`dateCreated` are `now()`; don't assert on or mock them.

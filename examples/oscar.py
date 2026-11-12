@@ -1,7 +1,7 @@
 """Example: OSCAR service from a remote FDL JSON.
 
-Reproduces tests/fixtures/oscar/ro-crate-metadata.json. The workflow has no
-declared slots; the input file is a free-form attachment.
+The workflow has no declared slots; the input file is a free-form
+attachment.
 """
 
 import json
@@ -37,4 +37,5 @@ request = VRELaunchRequest(
     runtime_platform="https://oscar.vre.eosc-data-commons.eu",
 )
 
-print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))
+if __name__ == "__main__":
+    print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))

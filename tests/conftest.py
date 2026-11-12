@@ -1,22 +1,15 @@
-import json
-from pathlib import Path
+"""Shared test helpers: build crates from examples/ scripts."""
 
-import pytest
+import importlib
 
-
-@pytest.fixture
-def fixtures_dir() -> Path:
-    """Return the directory containing ROCrate fixture files."""
-    return Path(__file__).parent / "fixtures"
+from vre_rocrate import RocrateBuilder
 
 
-def load_json(fixtures_dir: Path, file_name: str) -> dict:
-    """Load a JSON fixture file from the fixtures directory."""
-    with open(fixtures_dir / file_name, encoding="utf-8") as f:
-        return json.load(f)
+def example_crate(name: str) -> dict:
+    """Build the crate dict produced by examples/<name>.py.
 
-
-@pytest.fixture
-def galaxy_rocrate_source(fixtures_dir) -> dict:
-    """Load the galaxy ROCrate fixture as a raw dict."""
-    return load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
+    Examples are importable: each module exposes a module-level `request`
+    and only prints when run as a script.
+    """
+    example = importlib.import_module(f"examples.{name}")
+    return RocrateBuilder.build_from_launch_request(example.request)

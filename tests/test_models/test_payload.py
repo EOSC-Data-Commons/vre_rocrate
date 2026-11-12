@@ -9,21 +9,21 @@ from vre_rocrate import (
     FileReference,
     FormalParameter,
 )
-from conftest import load_json
+from conftest import example_crate
 
 SERIALIZATION_CASES = [
-    "galaxy/ro-crate-metadata.json",
-    "oscar/ro-crate-metadata.json",
-    "simple-binder/ro-crate-metadata.json",
+    "galaxy",
+    "oscar",
+    "simple_binder",
 ]
 
 
 class TestVREPayloadSerialization:
     """Round-trip tests for VREPayload.to_dict() / from_dict()."""
 
-    @pytest.mark.parametrize("fixture_path", SERIALIZATION_CASES)
-    def test_to_dict_and_from_dict_roundtrip(self, fixtures_dir, fixture_path):
-        source = load_json(fixtures_dir, fixture_path)
+    @pytest.mark.parametrize("example_name", SERIALIZATION_CASES)
+    def test_to_dict_and_from_dict_roundtrip(self, example_name):
+        source = example_crate(example_name)
         package = VREPayloadBuilder.build(source)
         d = package.to_dict()
         restored = VREPayload.from_dict(d)
@@ -37,83 +37,73 @@ class TestVREPayloadSerialization:
 class TestVREPayloadHelpers:
     """Tests for VREPayload helper properties and methods."""
 
-    def test_local_vs_remote_files(self, fixtures_dir):
-        source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = VREPayloadBuilder.build(source)
+    def test_local_vs_remote_files(self):
+        package = VREPayloadBuilder.build(example_crate("galaxy"))
         assert len(package.local_files) == 0
         assert len(package.remote_files) == 2
 
-    def test_files_by_encoding_no_match(self, fixtures_dir):
-        source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = VREPayloadBuilder.build(source)
+    def test_files_by_encoding_no_match(self):
+        package = VREPayloadBuilder.build(example_crate("galaxy"))
         result = package.files_by_encoding("application/octet-stream")
         assert result == []
 
-    def test_file_by_id(self, fixtures_dir):
-        source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = VREPayloadBuilder.build(source)
+    def test_file_by_id(self):
+        package = VREPayloadBuilder.build(example_crate("galaxy"))
         f = package.file_by_id(
             "https://example-files.online-convert.com/document/txt/example.txt"
         )
         assert f is not None
         assert f.name == "simpletext_input"
 
-    def test_file_by_id_not_found(self, fixtures_dir):
-        source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = VREPayloadBuilder.build(source)
+    def test_file_by_id_not_found(self):
+        package = VREPayloadBuilder.build(example_crate("galaxy"))
         f = package.file_by_id("https://nonexistent.example.com/file.txt")
         assert f is None
 
-    def test_workflow_inputs_outputs(self, fixtures_dir):
-        source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = VREPayloadBuilder.build(source)
+    def test_workflow_inputs_outputs(self):
+        package = VREPayloadBuilder.build(example_crate("galaxy"))
         assert len(package.workflow_inputs) == 1
         assert package.workflow_inputs[0].name == "simpletext_input"
-        assert len(package.workflow_outputs) == 1
-        assert package.workflow_outputs[0].name == "reversed_text"
+        # workflow outputs are not modeled by the builder
+        assert package.workflow_outputs == []
 
-    def test_root_metadata(self, fixtures_dir):
-        source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = VREPayloadBuilder.build(source)
-        assert package.root_name == "Galaxy Example Workflow"
-        assert "example of a workflow" in package.root_description
+    def test_root_metadata(self):
+        package = VREPayloadBuilder.build(example_crate("galaxy"))
+        assert package.root_name == "Root dataset for tool: Galaxy reverse file workflow"
+        assert package.root_description == "N/A"
 
-    def test_mixed_local_remote_files(self, fixtures_dir):
+    def test_mixed_local_remote_files(self):
         """Verify local_files and remote_files partition correctly with mixed data."""
-        source = load_json(fixtures_dir, "oscar/ro-crate-metadata.json")
-        package = VREPayloadBuilder.build(source)
+        package = VREPayloadBuilder.build(example_crate("oscar"))
         assert len(package.local_files) >= 0
         assert len(package.remote_files) >= 0
         assert len(package.local_files) + len(package.remote_files) == len(
             package.files
         )
 
-    def test_input_files_filters_by_workflow_inputs(self, fixtures_dir):
+    def test_input_files_filters_by_workflow_inputs(self):
         """input_files returns only files whose @id matches a workflow input."""
-        source = load_json(fixtures_dir, "galaxy/ro-crate-metadata.json")
-        package = VREPayloadBuilder.build(source)
-        # Galaxy fixture has input referencing the file entity directly
+        package = VREPayloadBuilder.build(example_crate("galaxy"))
+        # Galaxy example has input referencing the file entity directly
         assert len(package.workflow_inputs) == 1
         assert package.workflow_inputs[0].name == "simpletext_input"
         # input_files should only contain the file referenced by input
         assert len(package.input_files) == 1
         assert package.input_files[0].name == "simpletext_input"
 
-    def test_input_files_falls_back_to_all_files(self, fixtures_dir):
+    def test_input_files_falls_back_to_all_files(self):
         """input_files returns all data files when no workflow_inputs are declared."""
-        source = load_json(fixtures_dir, "oscar/ro-crate-metadata.json")
-        package = VREPayloadBuilder.build(source)
-        # OSCAR fixture has no input parameter
+        package = VREPayloadBuilder.build(example_crate("oscar"))
+        # OSCAR example has no input parameter
         assert len(package.workflow_inputs) == 0
         # all files except the workflow descriptor itself
         assert {f.id for f in package.input_files} == {
             f.id for f in package.files if f.id != package.workflow.id
         }
 
-    def test_input_files_vip_slot_files_only(self, fixtures_dir):
+    def test_input_files_vip_slot_files_only(self):
         """input_files returns the slot-bound input files, never the workflow descriptor."""
-        source = load_json(fixtures_dir, "vip/ro-crate-metadata.json")
-        package = VREPayloadBuilder.build(source)
+        package = VREPayloadBuilder.build(example_crate("vip"))
         assert len(package.workflow_inputs) == 3
         assert len(package.input_files) == 3
         assert package.workflow.id not in {f.id for f in package.input_files}

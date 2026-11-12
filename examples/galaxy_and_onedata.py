@@ -1,6 +1,5 @@
 """Example: Galaxy workflow with Onedata-hosted input files.
 
-Reproduces tests/fixtures/galaxy_and_onedata/ro-crate-metadata.json.
 The workflow declares two input slots (Input Image, Upload Stopwords) but
 the files are attached as free-form data, not bound to the slot parameters.
 """
