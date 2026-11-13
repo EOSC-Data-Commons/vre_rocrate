@@ -132,6 +132,20 @@ def galaxy_dataset_request():
 
 
 @pytest.fixture
+def galaxy_dataset_slot_request():
+    """Galaxy request whose data_collection slot is filled by a DatasetHandle."""
+    return VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"],
+                   slots=[SlotDefinition(id="empiar", name="empiar",
+                                          slot_type="data_collection")]),
+        input=LaunchInput(slots={
+            "empiar": DatasetHandle(url=DATASET_URL, title="DS",
+                                   description="A dataset"),
+        }),
+    )
+
+
+@pytest.fixture
 def mddash_scalar_slot_request():
     """MDDash request with a scalar pdb_id slot (no files at all)."""
     return VRELaunchRequest(
@@ -497,6 +511,55 @@ def test_no_dataset_entity_when_dataset_none(galaxy_empty_request):
     datasets = [e for e in _graph(_build(galaxy_empty_request))
                 if e.get("@type") == "Dataset" and e.get("@id") != "./"]
     assert datasets == []
+
+
+def test_dataset_slot_fill_binds_dataset_entity(galaxy_dataset_slot_request):
+    """A DatasetHandle slot fill emits a Dataset entity bound via defaultValue."""
+    crate = _build(galaxy_dataset_slot_request)
+    ds = _entity(_graph(crate), DATASET_URL)
+    assert ds["@type"] == "Dataset" and ds["name"] == "DS"
+    fp = _entity(_graph(crate), "#input-empiar")
+    assert fp["defaultValue"] == {"@id": DATASET_URL}
+    root = _entity(_graph(crate), "./")
+    assert {"@id": DATASET_URL} in root["hasPart"]
+
+
+def test_dataset_slot_and_crate_attachment_same_url_single_entity():
+    """A slot fill and the crate-level dataset sharing one url emit a single
+    Dataset entity / hasPart ref; every binding points at it."""
+    req = VRELaunchRequest(
+        tool=_tool(GALAXY_URI, ["galaxy_workflow"],
+                   slots=[SlotDefinition(id="d", name="d",
+                                          slot_type="data_collection")]),
+        input=LaunchInput(
+            slots={"d": DatasetHandle(url=DATASET_URL, title="DS",
+                                     description="slot fill")},
+            dataset=DatasetHandle(url=DATASET_URL, title="other",
+                                  description="crate attachment"),
+        ),
+    )
+    crate = _build(req)
+    entities = [e for e in _graph(crate)
+                if e.get("@type") == "Dataset" and e.get("@id") == DATASET_URL]
+    assert len(entities) == 1
+    assert entities[0]["name"] == "DS"  # first occurrence names it
+    root = _entity(_graph(crate), "./")
+    assert root["hasPart"].count({"@id": DATASET_URL}) == 1
+    fp = _entity(_graph(crate), "#input-d")
+    assert fp["defaultValue"] == {"@id": DATASET_URL}
+
+
+def test_dataset_slot_fill_roundtrips(galaxy_dataset_slot_request):
+    """Parse side keeps the defaultValue a raw ref, excludes the Dataset from
+    files, and lets consumers resolve it via get_entity."""
+    pkg = VREPayloadBuilder.build(_build(galaxy_dataset_slot_request))
+    param = pkg.input_by_name("empiar")
+    assert param is not None
+    assert param.default_value == {"@id": DATASET_URL}
+    assert not any(f.id == DATASET_URL for f in pkg.files)
+    assert pkg.input_files == []
+    entity = pkg.get_entity(DATASET_URL)
+    assert entity is not None and entity["@type"] == "Dataset"
 
 
 # ---------------------------------------------------------------------------

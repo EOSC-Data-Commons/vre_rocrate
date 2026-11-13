@@ -113,6 +113,16 @@ class RocrateBuilder:
     def _all_files(self) -> list[FileInput]:
         return self._slot_files() + self._input_files()
 
+    def _slot_datasets(self) -> list[DatasetHandle]:
+        return [sv for sv in self.request.input.slots.values()
+                if isinstance(sv, DatasetHandle)]
+
+    def _all_datasets(self) -> list[DatasetHandle]:
+        datasets = self._slot_datasets()
+        if self.request.input.dataset is not None:
+            datasets.append(self.request.input.dataset)
+        return datasets
+
     def _add_root_dataset(self) -> None:
         name = f"Root dataset for tool: {self.tool.name}"
         description = "N/A"
@@ -121,9 +131,8 @@ class RocrateBuilder:
         for fid in dict.fromkeys(_file_id(f) for f in self._all_files()):
             has_part.append({"@id": fid})
 
-        input_dataset = self.request.input.dataset
-        if input_dataset is not None:
-            has_part.append({"@id": input_dataset.url})
+        for durl in dict.fromkeys(d.url for d in self._all_datasets()):
+            has_part.append({"@id": durl})
 
         self.graph.append(
             {
@@ -277,22 +286,34 @@ class RocrateBuilder:
             if slot_value is not None:
                 if isinstance(slot_value, FileInput):
                     fp["defaultValue"] = {"@id": _file_id(slot_value)}
+                elif isinstance(slot_value, DatasetHandle):
+                    fp["defaultValue"] = {"@id": slot_value.url}
                 else:
                     fp["defaultValue"] = slot_value
             self.graph.append(fp)
 
     def _add_dataset_entity(self) -> None:
-        dataset = self.request.input.dataset
-        if dataset is None:
+        """Emit one Dataset entity per distinct url.
+
+        A slot fill and the crate-level attachment may reference the same
+        collection — one dataset is one Dataset entity, referenced by every
+        binding. The first occurrence builds and names the entity; later
+        ones only fill in attributes left unset.
+        """
+        if not self._all_datasets():
             return
-        self.graph.append(
-            {
-                "@id": dataset.url,
+        entities: dict[str, dict[str, Any]] = {}
+        for d in self._all_datasets():
+            entity = {
+                "@id": d.url,
                 "@type": "Dataset",
-                "name": dataset.title,
-                "description": dataset.description,
+                "name": d.title,
+                "description": d.description,
             }
-        )
+            target = entities.setdefault(entity["@id"], entity)
+            for key, value in entity.items():
+                target.setdefault(key, value)
+        self.graph.extend(entities.values())
 
     def _add_tool_metadata_entity(self) -> None:
         if not self.tool.raw_definition:
