@@ -44,9 +44,10 @@ class FileInput:
 
 
 # A slot is filled by a scalar literal → defaultValue literal (mddash pdb_id,
-# vip params) or by a file → File entity + defaultValue {"@id"} (binding).
+# vip params), by a file → File entity + defaultValue {"@id"} (binding), or
+# by a whole collection → Dataset entity + defaultValue {"@id"} (binding).
 # Unfilled slots are simply absent from LaunchInput.slots.
-SlotValue = str | int | float | bool | FileInput
+SlotValue = str | int | float | bool | FileInput | DatasetHandle
 
 
 @dataclass

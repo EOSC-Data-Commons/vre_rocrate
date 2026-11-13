@@ -8,10 +8,9 @@ from vre_rocrate import (
 SCIPION_TOSCA_URI = "https://workflowhub.eu/workflows/2169/git/1/raw/workflow_2D_xmipp.json.template"
 
 # The empiar_dataset slot is filled by an entire remote collection — a
-# DatasetHandle, not a FileInput. Slot-bound Dataset fills are not yet
-# expressible in LaunchInput.slots (plans/tosca-fixture-generation-support.md
-# §3), so the slot stays unfilled and the dataset travels as a crate-level
-# attachment.
+# DatasetHandle, not a FileInput: the builder emits a Dataset entity
+# (name/description) referenced from defaultValue and root hasPart,
+# mirroring slot-bound files.
 empiar = DatasetHandle(
     url="rsync://ftp.ebi.ac.uk/empiar/world_availability/10305/",
     title="empiar_dataset",
@@ -35,8 +34,10 @@ request = VRELaunchRequest(
         raw_definition={},
     ),
     input=LaunchInput(
-        dataset=empiar,
-        slots={"streaming": False},
+        slots={
+            "empiar_dataset": empiar,
+            "streaming": False,
+        },
     ),
     runtime_platform=RuntimePlatform(
         name="Infrastructure Manager",
