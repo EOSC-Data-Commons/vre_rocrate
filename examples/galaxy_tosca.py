@@ -28,7 +28,7 @@ request = VRELaunchRequest(
         raw_definition={},
     ),
     input=LaunchInput(
-        files={"simpletext_input": textfile},
+        slots={"simpletext_input": textfile},
     ),
     runtime_platform=RuntimePlatform(
         name="Infrastructure Manager",
@@ -40,4 +40,5 @@ request = VRELaunchRequest(
     ),
 )
 
-print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))
+if __name__ == "__main__":
+    print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))

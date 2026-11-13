@@ -1,7 +1,6 @@
 """Example: AlphaFind multi-domain search notebook on Binder/Replay.
 
-Reproduces tests/fixtures/alphafind-notebook/ro-crate-metadata.json. The
-notebook has no slots; requirements.txt is a free-form attachment.
+The notebook has no slots; requirements.txt is a free-form attachment.
 """
 
 import json

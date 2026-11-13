@@ -1,7 +1,6 @@
 """Example: Simple local Jupyter notebook for Binder.
 
-Reproduces tests/fixtures/simple-binder/ro-crate-metadata.json. A local
-notebook file with no inputs.
+A local notebook file with no inputs.
 """
 
 import json
@@ -25,4 +24,5 @@ request = VRELaunchRequest(
     runtime_platform="https://replay.notebooks.egi.eu",
 )
 
-print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))
+if __name__ == "__main__":
+    print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))

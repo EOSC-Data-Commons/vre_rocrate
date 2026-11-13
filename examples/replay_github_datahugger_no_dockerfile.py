@@ -1,6 +1,5 @@
 """Example: DataLens notebook (GitHub repo, no Dockerfile) replayed via EGI Replay.
 
-Reproduces tests/fixtures/replay-github-datahugger-no-dockerfile/ro-crate-metadata.json.
 Same as the dockerfile variant but the repo URL points at a different fork
 (recap/DataLens) that has no Dockerfile.
 """

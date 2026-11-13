@@ -3,13 +3,14 @@
 import pytest
 
 from vre_rocrate import ValidationPipeline, CrateValidationError
+from conftest import example_crate
 
 
 class TestValidationPipeline:
     """Unit tests for ValidationPipeline.validate_basic()."""
 
-    def test_valid_crate_passes(self, galaxy_rocrate_source):
-        ValidationPipeline.validate_basic(galaxy_rocrate_source)
+    def test_valid_crate_passes(self):
+        ValidationPipeline.validate_basic(example_crate("galaxy"))
 
     def test_missing_main_entity_raises(self):
         source = {

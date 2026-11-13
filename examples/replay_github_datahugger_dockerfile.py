@@ -1,6 +1,5 @@
 """Example: DataLens notebook (GitHub repo with Dockerfile) replayed via EGI Replay.
 
-Reproduces tests/fixtures/replay-github-datahugger-dockerfile/ro-crate-metadata.json.
 The workflow is a repository URL (no inferable encoding → SoftwareSourceCode
 only, not staged as a data file). The dataset CSV is a free-form attachment.
 """

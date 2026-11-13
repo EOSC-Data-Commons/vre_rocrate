@@ -1,7 +1,6 @@
 """Example: Binder notebook referenced by a Zenodo DOI.
 
-Reproduces tests/fixtures/simple-binder/ro-crate-metadata-zenodo.json. The
-workflow @id is a DOI URL (no inferable encoding → File + SoftwareSourceCode,
+The workflow @id is a DOI URL (no inferable encoding → File + SoftwareSourceCode,
 no ComputationalWorkflow).
 """
 

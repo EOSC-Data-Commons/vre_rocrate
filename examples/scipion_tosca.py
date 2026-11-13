@@ -48,4 +48,5 @@ request = VRELaunchRequest(
     ),
 )
 
-print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))
+if __name__ == "__main__":
+    print(json.dumps(RocrateBuilder.build_from_launch_request(request), indent=2))
